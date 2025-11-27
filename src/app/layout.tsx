@@ -2,7 +2,7 @@
 import "./globals.css";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import { fetchGlobalSettings, fileUrl } from "@/lib/directus";
+import { fetchGlobalSettings } from "@/lib/directus";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import type { Metadata, Viewport } from "next";
 
@@ -25,13 +25,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     console.error("Failed to fetch global settings:", error);
   }
 
-  // Prepare props for Header
-  const headerProps = {
-    utilityLinks: settings?.header_nav?.slice(0, 3) || undefined, // Use first 3 or default
-    categoryLinks: settings?.header_nav?.slice(3) || undefined,   // Use rest or default (adjust logic as needed)
-    logoUrl: settings?.site_logo ? fileUrl(settings.site_logo) : null,
-  };
-
   // Prepare props for Footer
   const footerProps = {
     footerLinks: settings?.footer_nav || undefined,
@@ -49,7 +42,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <a className="sr-only focus:not-sr-only p-2 absolute z-[9999]" href="#main">
             Skip to content
           </a>
-          <Header {...headerProps} />
+          <Header />
           <main id="main" style={{ flex: '1 0 auto', backgroundColor: '#f5f5f5', width: '100%' }}>{children}</main>
           <Footer {...footerProps} />
         </ThemeProvider>
