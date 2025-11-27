@@ -22,8 +22,7 @@ export default function StoreLocatorMapPage() {
 
     // Google Maps embed URL with all markers
     const getMapUrl = () => {
-        const baseUrl = "https://www.google.com/maps/embed/v1/place";
-        const apiKey = "AIzaSyCMOQqKq24jDkr8ewS1F9M_V9Kyps6T4x0";
+        const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '';
         
         if (selectedStore) {
             return `https://www.google.com/maps/embed/v1/place?key=${apiKey}&q=${encodeURIComponent(selectedStore.address)}&zoom=15`;

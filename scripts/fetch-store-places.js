@@ -8,8 +8,14 @@
 const fs = require('fs');
 const path = require('path');
 
-// Your Google Places API Key
-const GOOGLE_PLACES_API_KEY = process.env.GOOGLE_PLACES_API_KEY || 'AIzaSyCMOQqKq24jDkr8ewS1F9M_V9Kyps6T4x0';
+// Your Google Places API Key - must be set as environment variable
+const GOOGLE_PLACES_API_KEY = process.env.GOOGLE_PLACES_API_KEY;
+
+if (!GOOGLE_PLACES_API_KEY) {
+    console.error('Error: GOOGLE_PLACES_API_KEY environment variable is not set');
+    console.error('Set it with: $env:GOOGLE_PLACES_API_KEY="your-api-key"');
+    process.exit(1);
+}
 
 // Import stores data
 const storesPath = path.join(__dirname, '../src/data/stores.ts');

@@ -1,8 +1,14 @@
 const fs = require('fs');
 const path = require('path');
 
-// Google Places API configuration
-const API_KEY = process.env.GOOGLE_PLACES_API_KEY || 'AIzaSyCMOQqKq24jDkr8ewS1F9M_V9Kyps6T4x0';
+// Google Places API configuration - must be set as environment variable
+const API_KEY = process.env.GOOGLE_PLACES_API_KEY;
+
+if (!API_KEY) {
+    console.error('Error: GOOGLE_PLACES_API_KEY environment variable is not set');
+    console.error('Set it with: $env:GOOGLE_PLACES_API_KEY="your-api-key"');
+    process.exit(1);
+}
 
 // Store to fetch photos for
 const STORE = {

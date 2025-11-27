@@ -46,9 +46,10 @@ export default function StoreDetailPage() {
 
     // Google Maps embed URL with the store location
     // Using place_id for accurate display of store name and address
+    const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '';
     const mapEmbedUrl = store.placeId 
-        ? `https://www.google.com/maps/embed/v1/place?key=AIzaSyCMOQqKq24jDkr8ewS1F9M_V9Kyps6T4x0&q=place_id:${store.placeId}&zoom=15`
-        : `https://www.google.com/maps/embed/v1/place?key=AIzaSyCMOQqKq24jDkr8ewS1F9M_V9Kyps6T4x0&q=${encodeURIComponent(store.address)}&zoom=15`;
+        ? `https://www.google.com/maps/embed/v1/place?key=${apiKey}&q=place_id:${store.placeId}&zoom=15`
+        : `https://www.google.com/maps/embed/v1/place?key=${apiKey}&q=${encodeURIComponent(store.address)}&zoom=15`;
 
     return (
         <div style={{

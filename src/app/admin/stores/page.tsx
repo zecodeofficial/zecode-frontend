@@ -78,7 +78,12 @@ export default function StoreAdminPage() {
             }
 
             // Generate photo URLs from photo references
-            const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || 'AIzaSyCMOQqKq24jDkr8ewS1F9M_V9Kyps6T4x0';
+            const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '';
+            if (!apiKey) {
+                setPhotosFetchStatus('⚠️ Google Maps API key not configured');
+                setIsFetchingPhotos(false);
+                return;
+            }
             const photoUrls = photos.slice(0, 10).map((photo: any) => 
                 `https://maps.googleapis.com/maps/api/place/photo?maxwidth=1200&photo_reference=${photo.photo_reference}&key=${apiKey}`
             );
