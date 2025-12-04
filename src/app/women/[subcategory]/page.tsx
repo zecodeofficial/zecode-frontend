@@ -77,6 +77,11 @@ const SUBCATEGORY_MAP: Record<string, string | string[]> = {
   'heels': 'Heels',
   'jumpsuits': 'Jumpsuit',
   'apparel': 'Apparel',  // Generic fallback
+  // Ethnic wear
+  'kurti': 'Kurti',
+  'kurta': 'Kurta',
+  'lehenga': 'Lehenga',
+  'ethnic-wear': ['Kurti', 'Kurta', 'Lehenga'],
 };
 
 const TITLE_MAP: Record<string, string> = {
