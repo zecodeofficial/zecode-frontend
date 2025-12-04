@@ -41,24 +41,24 @@ function buildMatchingGallery(product: any): string[] {
 }
 
 const SUBCATEGORY_MAP: Record<string, string | string[]> = {
-  'tshirts': ['T', 'T-Shirt'],
-  'shirts': 'Shirt',
-  'pants': 'Pants',
-  'jeans': 'Jeans',
-  'dresses': ['Dress', 'Dresses'],
-  'jackets': ['Jacket', 'Outerwear'],
+  'tshirts': ['T', 'T-Shirt', 'Classic T-Shirt'],
+  'shirts': ['Shirt', 'Casual Shirt'],
+  'pants': ['Pants', 'Slim Pants', 'Cargo Pants'],
+  'jeans': ['Jeans', 'Slim Jeans'],
+  'dresses': ['Dress', 'Dresses', 'Midi Dress', 'Mini Dress'],
+  'jackets': ['Jacket', 'Outerwear', 'Casual Jacket', 'Denim Jacket'],
   'shoes': ['Footwear', 'Flats', 'Flat'],
   'accessories': 'Accessories',
   // Kids-specific slugs
-  'boys-tshirts': 'T',
-  'girls-tops': 'Tops',
-  'boys-jeans': 'Bottoms',
-  'girls-dresses': 'Dresses',
+  'boys-tshirts': ['T', 'T-Shirt', 'Classic T-Shirt'],
+  'girls-tops': ['Tops', 'Top', 'Casual Top'],
+  'boys-jeans': ['Bottoms', 'Jeans', 'Slim Jeans'],
+  'girls-dresses': ['Dresses', 'Dress', 'Midi Dress'],
   // Additional kids subcategories
-  'tops': 'Tops',
+  'tops': ['Tops', 'Top', 'Casual Top'],
   'bottoms': 'Bottoms',
   'tracksuits': 'Tracksuit',
-  'jumpsuits': 'Jumpsuits',
+  'jumpsuits': ['Jumpsuits', 'Jumpsuit'],
   'outerwear': 'Outerwear',
   'apparel': 'Apparel',  // Generic fallback
 };

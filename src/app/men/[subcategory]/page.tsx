@@ -41,18 +41,19 @@ function buildMatchingGallery(product: any): string[] {
 }
 
 const SUBCATEGORY_MAP: Record<string, string | string[]> = {
-  'tshirts': ['T', 'T-Shirt'],
-  'shirts': 'Shirt',
-  'jeans': 'Jeans',
-  'pants': 'Pants',
+  'tshirts': ['T', 'T-Shirt', 'Classic T-Shirt'],
+  'shirts': ['Shirt', 'Casual Shirt', 'Button-Up Shirt', 'Short Sleeve Shirt'],
+  'jeans': ['Jeans', 'Slim Jeans'],
+  'pants': ['Pants', 'Slim Pants', 'Cargo Pants'],
   'trousers': 'Trousers',
-  'jackets': 'Jacket',
+  'jackets': ['Jacket', 'Casual Jacket', 'Denim Jacket', 'Varsity Jacket'],
   'shoes': 'Footwear',
   'accessories': 'Accessories',
   'shorts': ['Short', 'Shorts'],
   'hoodies': 'Hoodie',
   'sweatshirts': 'Sweatshirt',
   'backpacks': 'Backpack',
+  'polos': 'Polo Shirt',
   'apparel': 'Apparel',  // Generic fallback
 };
 
