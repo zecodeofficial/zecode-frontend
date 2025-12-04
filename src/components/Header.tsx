@@ -29,10 +29,16 @@ const SLUG_TO_CMS_SUBCATEGORY: Record<string, string[]> = {
 };
 
 // Type for processed navigation
+type Subcategory = { 
+  label: string; 
+  href: string;
+  items?: { label: string; href: string }[]; // For nested sub-sections like Western Wear, Ethnic Fusion
+};
+
 type Category = {
   href: string;
   label: string;
-  subcategories: { label: string; href: string }[];
+  subcategories: Subcategory[];
 };
 
 type QuickLink = {
@@ -59,11 +65,27 @@ const DEFAULT_CATEGORIES: Category[] = [
     href: "/women",
     label: "WOMEN",
     subcategories: [
-      { label: "TOPS", href: "/women/tops" },
-      { label: "DRESSES", href: "/women/dresses" },
-      { label: "JEANS", href: "/women/jeans" },
-      { label: "SKIRTS", href: "/women/skirts" },
-      { label: "JACKETS", href: "/women/jackets" },
+      { 
+        label: "WESTERN WEAR", 
+        href: "/women",
+        items: [
+          { label: "TOPS", href: "/women/tops" },
+          { label: "DRESSES", href: "/women/dresses" },
+          { label: "JEANS", href: "/women/jeans" },
+          { label: "SKIRTS", href: "/women/skirts" },
+          { label: "JACKETS", href: "/women/jackets" },
+          { label: "SHORTS", href: "/women/shorts" },
+        ]
+      },
+      { 
+        label: "ETHNIC FUSION", 
+        href: "/women/ethnic-wear",
+        items: [
+          { label: "KURTI", href: "/women/kurti" },
+          { label: "KURTA", href: "/women/kurta" },
+          { label: "LEHENGA", href: "/women/lehenga" },
+        ]
+      },
       { label: "SHOES", href: "/women/shoes" },
     ],
   },
@@ -247,14 +269,34 @@ export default function Header() {
                       {/* Subcategory Links */}
                       <div className="py-2">
                         {category.subcategories.map((sub, idx) => (
-                          <Link 
-                            key={sub.href}
-                            href={sub.href}
-                            className="group/sub flex items-center gap-3 px-5 py-2.5 text-sm text-white/75 hover:text-white hover:bg-white/5 transition-all duration-200"
-                          >
-                            <span className="w-1.5 h-1.5 rounded-full bg-white/30 group-hover/sub:bg-[#C83232] group-hover/sub:scale-125 transition-all duration-200"></span>
-                            {sub.label}
-                          </Link>
+                          sub.items ? (
+                            // Nested subcategory with items (e.g., Western Wear, Ethnic Fusion)
+                            <div key={sub.href} className="mb-2">
+                              <div className="px-5 py-2 text-xs font-bold uppercase tracking-wider text-[#C83232] border-b border-white/5">
+                                {sub.label}
+                              </div>
+                              {sub.items.map((item) => (
+                                <Link 
+                                  key={item.href}
+                                  href={item.href}
+                                  className="group/sub flex items-center gap-3 px-5 py-2 text-sm text-white/75 hover:text-white hover:bg-white/5 transition-all duration-200"
+                                >
+                                  <span className="w-1.5 h-1.5 rounded-full bg-white/30 group-hover/sub:bg-[#C83232] group-hover/sub:scale-125 transition-all duration-200"></span>
+                                  {item.label}
+                                </Link>
+                              ))}
+                            </div>
+                          ) : (
+                            // Simple subcategory link
+                            <Link 
+                              key={sub.href}
+                              href={sub.href}
+                              className="group/sub flex items-center gap-3 px-5 py-2.5 text-sm text-white/75 hover:text-white hover:bg-white/5 transition-all duration-200"
+                            >
+                              <span className="w-1.5 h-1.5 rounded-full bg-white/30 group-hover/sub:bg-[#C83232] group-hover/sub:scale-125 transition-all duration-200"></span>
+                              {sub.label}
+                            </Link>
+                          )
                         ))}
                       </div>
                     </div>
@@ -382,15 +424,36 @@ export default function Header() {
                     
                     {/* Subcategory Links */}
                     {category.subcategories.map((sub) => (
-                      <Link 
-                        key={sub.href}
-                        href={sub.href}
-                        onClick={() => setMobileMenuOpen(false)}
-                        className="flex items-center gap-2 py-2 px-4 text-sm text-white/70 hover:text-white hover:bg-white/5 rounded-lg transition-all duration-200"
-                      >
-                        <span className="w-1 h-1 rounded-full bg-white/40"></span>
-                        {sub.label}
-                      </Link>
+                      sub.items ? (
+                        // Nested subcategory with items (e.g., Western Wear, Ethnic Fusion)
+                        <div key={sub.href} className="mb-3">
+                          <div className="py-2 px-4 text-xs font-bold uppercase tracking-wider text-[#C83232] border-b border-white/10 mb-1">
+                            {sub.label}
+                          </div>
+                          {sub.items.map((item) => (
+                            <Link 
+                              key={item.href}
+                              href={item.href}
+                              onClick={() => setMobileMenuOpen(false)}
+                              className="flex items-center gap-2 py-2 px-6 text-sm text-white/70 hover:text-white hover:bg-white/5 rounded-lg transition-all duration-200"
+                            >
+                              <span className="w-1 h-1 rounded-full bg-white/40"></span>
+                              {item.label}
+                            </Link>
+                          ))}
+                        </div>
+                      ) : (
+                        // Simple subcategory link
+                        <Link 
+                          key={sub.href}
+                          href={sub.href}
+                          onClick={() => setMobileMenuOpen(false)}
+                          className="flex items-center gap-2 py-2 px-4 text-sm text-white/70 hover:text-white hover:bg-white/5 rounded-lg transition-all duration-200"
+                        >
+                          <span className="w-1 h-1 rounded-full bg-white/40"></span>
+                          {sub.label}
+                        </Link>
+                      )
                     ))}
                   </div>
                 </div>
