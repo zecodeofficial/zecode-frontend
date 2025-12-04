@@ -3,6 +3,27 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 export function middleware(request: NextRequest) {
+  const pathname = request.nextUrl.pathname;
+  
+  // Handle old slug format redirects (men-s- -> mens-, women-s- -> womens-, etc.)
+  // This handles URLs with apostrophe encoding that became -s-
+  if (pathname.match(/\/(men|women|kids)\/(?:men|women|kids|boy|girl)-s-/)) {
+    const newPathname = pathname
+      .replace(/men-s-/g, 'mens-')
+      .replace(/women-s-/g, 'womens-')
+      .replace(/kids-s-/g, 'kids-')
+      .replace(/boy-s-/g, 'boys-')
+      .replace(/girl-s-/g, 'girls-')
+      // Also handle t-shirt -> t-shirt (ensure consistent)
+      .replace(/-t-shirt$/, '-t-shirt');
+    
+    if (newPathname !== pathname) {
+      const url = request.nextUrl.clone();
+      url.pathname = newPathname;
+      return NextResponse.redirect(url, { status: 301 });
+    }
+  }
+  
   const response = NextResponse.next();
   
   // Add security headers not covered by next.config.ts
