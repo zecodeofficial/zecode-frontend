@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Zecode Product Editor</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 0; padding: 20px; background: #f5f5f5; }
+    h1 { color: #333; margin-bottom: 20px; }
+    .controls { background: white; padding: 15px; border-radius: 8px; margin-bottom: 20px; display: flex; gap: 15px; flex-wrap: wrap; align-items: center; }
+    .controls select, .controls input, .controls button { padding: 8px 12px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; }
+    .controls button { background: #4CAF50; color: white; cursor: pointer; border: none; }
+    .controls button:hover { background: #45a049; }
+    .controls button.export { background: #2196F3; }
+    .controls button.export:hover { background: #1976D2; }
+    .stats { background: #e3f2fd; padding: 10px 15px; border-radius: 4px; }
+    .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(400px, 1fr)); gap: 20px; }
+    .product-card { background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+    .product-images { display: flex; gap: 10px; padding: 15px; background: #fafafa; overflow-x: auto; }
+    .product-images img { height: 150px; width: auto; object-fit: contain; border-radius: 4px; cursor: pointer; }
+    .product-images img:hover { transform: scale(1.05); }
+    .product-info { padding: 15px; }
+    .product-info h3 { margin: 0 0 10px; font-size: 16px; color: #333; }
+    .product-info .id { color: #888; font-size: 12px; }
+    .field { margin-bottom: 12px; }
+    .field label { display: block; font-size: 12px; color: #666; margin-bottom: 4px; font-weight: 500; }
+    .field input, .field select, .field textarea { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; }
+    .field textarea { resize: vertical; min-height: 100px; }
+    .field .char-count { font-size: 11px; color: #888; text-align: right; }
+    .field .char-count.warning { color: #f44336; }
+    .category-tag { display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 12px; margin-right: 5px; margin-bottom: 5px; }
+    .category-tag.western { background: #e3f2fd; color: #1976D2; }
+    .category-tag.ethnic { background: #fff3e0; color: #e65100; }
+    .category-tag.kids { background: #f3e5f5; color: #7b1fa2; }
+    .save-btn { background: #4CAF50; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; width: 100%; margin-top: 10px; }
+    .save-btn:hover { background: #45a049; }
+    .save-btn.saved { background: #8bc34a; }
+    .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center; }
+    .modal.active { display: flex; }
+    .modal img { max-width: 90%; max-height: 90%; object-fit: contain; }
+    .modal-close { position: absolute; top: 20px; right: 30px; color: white; font-size: 30px; cursor: pointer; }
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+  <h1>🛍️ Zecode Product Editor</h1>
+  
+  <div class="controls">
+    <select id="filterCategory">
+      <option value="">All Categories</option>
+      <option value="Tops">Tops</option>
+      <option value="Dresses">Dresses</option>
+      <option value="Bottoms">Bottoms</option>
+      <option value="Outerwear">Outerwear</option>
+      <option value="Footwear">Footwear</option>
+      <option value="Accessories">Accessories</option>
+      <option value="Kids">Kids</option>
+      <option value="Ethnic Fusion">Ethnic Fusion</option>
+    </select>
+    <select id="filterGender">
+      <option value="">All Genders</option>
+      <option value="Women">Women</option>
+      <option value="Men">Men</option>
+      <option value="Kids">Kids</option>
+    </select>
+    <select id="filterSubcategory">
+      <option value="">All Subcategories</option>
+    </select>
+    <input type="text" id="searchInput" placeholder="Search products...">
+    <button onclick="applyFilters()">Filter</button>
+    <button class="export" onclick="exportChanges()">Export Changes (JSON)</button>
+    <button class="export" onclick="generateUpdateScript()">Generate Update Script</button>
+    <div class="stats" id="stats">Loading...</div>
+  </div>
+
+  <div class="product-grid" id="productGrid"></div>
+
+  <div class="modal" id="imageModal" onclick="closeModal()">
+    <span class="modal-close">&times;</span>
+    <img id="modalImage" src="" alt="">
+  </div>
+
+  <script>
+    let products = [];
+    let changes = {};
+    const BASE_URL = 'http://localhost:3000'; // Next.js dev server for images
+
+    // Categories for new structure
+    const categories = ['Tops', 'Dresses', 'Bottoms', 'Outerwear', 'Footwear', 'Accessories', 'Kids', 'Ethnic Fusion', 'Apparel'];
+    const subcategories = {
+      'Tops': ['T-Shirt', 'Shirt', 'Blouse', 'Top', 'Tank', 'Tunic', 'Hoodie', 'Sweatshirt', 'Sweater'],
+      'Dresses': ['Dress', 'Midi Dress', 'Mini Dress', 'Maxi Dress', 'Slip Dress'],
+      'Bottoms': ['Jeans', 'Pants', 'Shorts', 'Skirt', 'Sweatpants', 'Track'],
+      'Outerwear': ['Jacket', 'Vest', 'Outerwear'],
+      'Footwear': ['Flats', 'Mules', 'Heels', 'Sneakers'],
+      'Accessories': ['Backpack', 'Visor', 'Bag'],
+      'Kids': ['Dresses', 'Tops', 'Bottoms', 'Outerwear', 'Tracksuit', 'Jumpsuits', 'Apparel'],
+      'Ethnic Fusion': ['Kurta', 'Kurti', 'Salwar', 'Anarkali', 'Palazzo Set', 'Ethnic Dress', 'Traditional'],
+      'Apparel': ['Apparel', 'Set']
+    };
+
+    async function loadProducts() {
+      try {
+        const response = await fetch('all-products.json');
+        products = await response.json();
+        
+        // Load saved changes from localStorage
+        const saved = localStorage.getItem('productChanges');
+        if (saved) changes = JSON.parse(saved);
+        
+        populateSubcategoryFilter();
+        renderProducts();
+        updateStats();
+      } catch (e) {
+        console.error('Error loading products:', e);
+        document.getElementById('productGrid').innerHTML = '<p style="color:red">Error loading products. Make sure all-products.json exists.</p>';
+      }
+    }
+
+    function populateSubcategoryFilter() {
+      const allSubcats = [...new Set(products.map(p => p.subcategory).filter(Boolean))];
+      const select = document.getElementById('filterSubcategory');
+      allSubcats.forEach(s => {
+        const opt = document.createElement('option');
+        opt.value = s;
+        opt.textContent = s;
+        select.appendChild(opt);
+      });
+    }
+
+    function renderProducts() {
+      const grid = document.getElementById('productGrid');
+      const filterCat = document.getElementById('filterCategory').value;
+      const filterGender = document.getElementById('filterGender').value;
+      const filterSubcat = document.getElementById('filterSubcategory').value;
+      const search = document.getElementById('searchInput').value.toLowerCase();
+
+      const filtered = products.filter(p => {
+        const cat = changes[p.id]?.category || p.category;
+        const gender = p.gender_category;
+        const subcat = changes[p.id]?.subcategory || p.subcategory;
+        const name = (changes[p.id]?.name || p.name || '').toLowerCase();
+        
+        if (filterCat && cat !== filterCat) return false;
+        if (filterGender && gender !== filterGender) return false;
+        if (filterSubcat && subcat !== filterSubcat) return false;
+        if (search && !name.includes(search) && !p.id.toString().includes(search)) return false;
+        return true;
+      });
+
+      grid.innerHTML = filtered.map(p => renderProductCard(p)).join('');
+      updateStats();
+    }
+
+    function renderProductCard(p) {
+      const data = { ...p, ...changes[p.id] };
+      const imageUrl = p.image_url ? `${BASE_URL}${p.image_url}` : '';
+      const modelImages = [p.model_image_1, p.model_image_2, p.model_image_3].filter(Boolean);
+      const descLen = (data.description || '').length;
+      const isChanged = changes[p.id] ? 'saved' : '';
+
+      return `
+        <div class="product-card" data-id="${p.id}">
+          <div class="product-images">
+            ${imageUrl ? `<img src="${imageUrl}" alt="Product" onclick="showModal('${imageUrl}')" title="Product Image">` : '<span style="color:#999">No product image</span>'}
+            ${modelImages.map((m, i) => `<img src="${m}" alt="Model ${i+1}" onclick="showModal('${m}')" title="Model Image ${i+1}">`).join('')}
+          </div>
+          <div class="product-info">
+            <h3><span class="id">ID: ${p.id}</span> ${data.name}</h3>
+            
+            <div class="field">
+              <label>Product Name</label>
+              <input type="text" value="${escapeHtml(data.name || '')}" onchange="updateField(${p.id}, 'name', this.value)">
+            </div>
+
+            <div class="field">
+              <label>URL Slug</label>
+              <input type="text" value="${escapeHtml(data.slug || '')}" onchange="updateField(${p.id}, 'slug', this.value)">
+              <button onclick="generateSlug(${p.id})" style="margin-top:5px;padding:4px 8px;font-size:12px;">Auto-generate from name</button>
+            </div>
+
+            <div class="field">
+              <label>Category</label>
+              <select onchange="updateField(${p.id}, 'category', this.value)">
+                ${categories.map(c => `<option value="${c}" ${data.category === c ? 'selected' : ''}>${c}</option>`).join('')}
+              </select>
+            </div>
+
+            <div class="field">
+              <label>Subcategory</label>
+              <input type="text" value="${escapeHtml(data.subcategory || '')}" onchange="updateField(${p.id}, 'subcategory', this.value)" list="subcatList${p.id}">
+              <datalist id="subcatList${p.id}">
+                ${Object.values(subcategories).flat().map(s => `<option value="${s}">`).join('')}
+              </datalist>
+            </div>
+
+            <div class="field">
+              <label>Description (Target: 500 characters)</label>
+              <textarea onchange="updateField(${p.id}, 'description', this.value)" oninput="updateCharCount(this, ${p.id})">${escapeHtml(data.description || '')}</textarea>
+              <div class="char-count ${descLen < 400 ? 'warning' : ''}" id="charCount${p.id}">${descLen}/500 characters</div>
+            </div>
+
+            <button class="save-btn ${isChanged}" onclick="markReviewed(${p.id})">
+              ${isChanged ? '✓ Changes Saved' : 'Mark as Reviewed'}
+            </button>
+          </div>
+        </div>
+      `;
+    }
+
+    function escapeHtml(str) {
+      return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    function updateField(id, field, value) {
+      if (!changes[id]) changes[id] = {};
+      changes[id][field] = value;
+      localStorage.setItem('productChanges', JSON.stringify(changes));
+      
+      // Update button state
+      const card = document.querySelector(`.product-card[data-id="${id}"]`);
+      if (card) {
+        const btn = card.querySelector('.save-btn');
+        btn.classList.add('saved');
+        btn.textContent = '✓ Changes Saved';
+      }
+    }
+
+    function updateCharCount(textarea, id) {
+      const count = textarea.value.length;
+      const el = document.getElementById(`charCount${id}`);
+      el.textContent = `${count}/500 characters`;
+      el.className = `char-count ${count < 400 ? 'warning' : ''}`;
+    }
+
+    function generateSlug(id) {
+      const card = document.querySelector(`.product-card[data-id="${id}"]`);
+      const nameInput = card.querySelector('input[type="text"]');
+      const slugInput = card.querySelectorAll('input[type="text"]')[1];
+      
+      const name = changes[id]?.name || nameInput.value;
+      const slug = name.toLowerCase()
+        .replace(/['']/g, '')
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-|-$/g, '');
+      
+      slugInput.value = slug;
+      updateField(id, 'slug', slug);
+    }
+
+    function markReviewed(id) {
+      if (!changes[id]) changes[id] = { reviewed: true };
+      else changes[id].reviewed = true;
+      localStorage.setItem('productChanges', JSON.stringify(changes));
+    }
+
+    function applyFilters() {
+      renderProducts();
+    }
+
+    function updateStats() {
+      const total = products.length;
+      const changed = Object.keys(changes).length;
+      const ethnicCount = products.filter(p => (changes[p.id]?.category || p.category) === 'Ethnic Fusion').length;
+      document.getElementById('stats').innerHTML = `
+        Total: ${total} | Modified: ${changed} | Ethnic Fusion: ${ethnicCount}
+      `;
+    }
+
+    function exportChanges() {
+      const data = JSON.stringify(changes, null, 2);
+      const blob = new Blob([data], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'product-changes.json';
+      a.click();
+    }
+
+    function generateUpdateScript() {
+      const changedProducts = Object.entries(changes).map(([id, data]) => ({
+        id: parseInt(id),
+        ...data
+      }));
+
+      const script = `// Generated Update Script
+const fs = require('fs');
+const path = require('path');
+
+const envContent = fs.readFileSync(path.join(__dirname, '..', '.env.local'), 'utf8');
+const env = {};
+envContent.split('\\n').forEach(line => {
+  const m = line.match(/^([^=]+)=(.*)$/);
+  if (m) env[m[1].trim()] = m[2].trim();
+});
+
+const DIRECTUS_URL = 'https://zecode-directus.onrender.com';
+
+const updates = ${JSON.stringify(changedProducts, null, 2)};
+
+async function updateProducts() {
+  const authRes = await fetch(DIRECTUS_URL + '/auth/login', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email: 'zecode@siyaram.com', password: env.DIRECTUS_ADMIN_PASSWORD })
+  });
+  const token = (await authRes.json()).data.access_token;
+
+  for (const update of updates) {
+    const { id, reviewed, ...fields } = update;
+    if (Object.keys(fields).length === 0) continue;
+    
+    console.log('Updating product', id, ':', fields.name || '(no name change)');
+    
+    const res = await fetch(DIRECTUS_URL + '/items/products/' + id, {
+      method: 'PATCH',
+      headers: {
+        'Authorization': 'Bearer ' + token,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(fields)
+    });
+    
+    if (!res.ok) {
+      console.error('Failed to update product', id, await res.text());
+    }
+  }
+  
+  console.log('\\nDone! Updated', updates.length, 'products');
+}
+
+updateProducts().catch(console.error);
+`;
+
+      const blob = new Blob([script], { type: 'application/javascript' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'apply-product-updates.js';
+      a.click();
+    }
+
+    function showModal(src) {
+      document.getElementById('modalImage').src = src;
+      document.getElementById('imageModal').classList.add('active');
+    }
+
+    function closeModal() {
+      document.getElementById('imageModal').classList.remove('active');
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeModal();
+    });
+
+    // Load products on page load
+    loadProducts();
+  </script>
+</body>
+</html>
