@@ -29,8 +29,8 @@ const SLUG_TO_CMS_SUBCATEGORY: Record<string, string[]> = {
 };
 
 // Type for processed navigation
-type Subcategory = { 
-  label: string; 
+type Subcategory = {
+  label: string;
   href: string;
   items?: { label: string; href: string }[]; // For nested sub-sections like Western Wear, Ethnic Fusion
 };
@@ -65,8 +65,8 @@ const DEFAULT_CATEGORIES: Category[] = [
     href: "/women",
     label: "WOMEN",
     subcategories: [
-      { 
-        label: "WESTERN WEAR", 
+      {
+        label: "WESTERN WEAR",
         href: "/women",
         items: [
           { label: "TOPS", href: "/women/tops" },
@@ -77,15 +77,7 @@ const DEFAULT_CATEGORIES: Category[] = [
           { label: "SHORTS", href: "/women/shorts" },
         ]
       },
-      { 
-        label: "ETHNIC FUSION", 
-        href: "/women/ethnic-wear",
-        items: [
-          { label: "KURTI", href: "/women/kurti" },
-          { label: "KURTA", href: "/women/kurta" },
-          { label: "LEHENGA", href: "/women/lehenga" },
-        ]
-      },
+      { label: "ETHNIC FUSION", href: "/women/ethnic-wear" },
       { label: "SHOES", href: "/women/shoes" },
     ],
   },
@@ -119,14 +111,14 @@ const DEFAULT_QUICK_LINKS: QuickLink[] = [
 function processNavigation(items: DirectusNavigationItem[]): { categories: Category[]; quickLinks: QuickLink[] } {
   const categories: Category[] = [];
   const quickLinks: QuickLink[] = [];
-  
+
   // First, find all parent items (parent === null)
   const parentItems = items.filter(item => item.parent === null);
-  
+
   parentItems.forEach(parent => {
     // Check if this is a category (MEN, WOMEN, KIDS, FOOTWEAR) or a quick link
     const isCategory = ["MEN", "WOMEN", "KIDS", "FOOTWEAR"].includes(parent.label.toUpperCase());
-    
+
     if (isCategory) {
       // Find all children for this parent
       const children = items
@@ -136,7 +128,7 @@ function processNavigation(items: DirectusNavigationItem[]): { categories: Categ
           label: child.label,
           href: child.href,
         }));
-      
+
       categories.push({
         href: parent.href,
         label: parent.label.toUpperCase(),
@@ -152,14 +144,14 @@ function processNavigation(items: DirectusNavigationItem[]): { categories: Categ
       });
     }
   });
-  
+
   // Sort categories by their sort order
   categories.sort((a, b) => {
     const aItem = parentItems.find(p => p.label.toUpperCase() === a.label);
     const bItem = parentItems.find(p => p.label.toUpperCase() === b.label);
     return (aItem?.sort || 0) - (bItem?.sort || 0);
   });
-  
+
   return { categories, quickLinks };
 }
 
@@ -186,7 +178,7 @@ export default function Header() {
     <>
       <header
         className="text-white sticky top-0 z-50 transition-all duration-300"
-        style={{ 
+        style={{
           backgroundColor: colors.header.background,
           boxShadow: '0 4px 30px rgba(0, 0, 0, 0.4)'
         }}
@@ -201,12 +193,12 @@ export default function Header() {
         <div className="relative">
           {/* Decorative top border */}
           <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
-          
+
           <div className="container mx-auto px-4 md:px-6">
             {/* Single Row Header - Logo with Navigation on both sides */}
             <div className="flex items-center justify-between py-0">
               {/* Mobile Menu Button */}
-              <button 
+              <button
                 className="md:hidden text-white p-2 hover:bg-white/10 rounded-lg transition-colors"
                 onClick={() => setMobileMenuOpen(true)}
               >
@@ -218,45 +210,44 @@ export default function Header() {
               {/* Left Nav - Categories with Dropdowns (Desktop) */}
               <nav className="hidden md:flex items-center gap-1">
                 {categories.map((category) => (
-                  <div 
+                  <div
                     key={category.href}
                     className="relative"
                     onMouseEnter={() => setActiveDropdown(category.label)}
                     onMouseLeave={() => setActiveDropdown(null)}
                   >
-                    <Link 
-                      href={category.href} 
+                    <Link
+                      href={category.href}
                       className="group flex items-center gap-1 px-2 py-2 rounded-lg hover:bg-white/5 transition-all duration-300"
                     >
                       <span className="text-xs font-bold tracking-[0.12em] uppercase text-white/90 group-hover:text-white transition-colors duration-300">
                         {category.label}
                       </span>
-                      <svg 
-                        xmlns="http://www.w3.org/2000/svg" 
-                        fill="none" 
-                        viewBox="0 0 24 24" 
-                        strokeWidth={2.5} 
-                        stroke="currentColor" 
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        strokeWidth={2.5}
+                        stroke="currentColor"
                         className={`w-3 h-3 text-white/70 transition-transform duration-300 ${activeDropdown === category.label ? 'rotate-180' : ''}`}
                       >
                         <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
                       </svg>
                     </Link>
-                    
+
                     {/* Dropdown Menu - Enhanced */}
-                    <div 
-                      className={`absolute top-full left-0 min-w-[220px] bg-gradient-to-b from-black/98 to-black/95 backdrop-blur-md border border-white/10 rounded-xl shadow-2xl overflow-hidden transition-all duration-300 ${
-                        activeDropdown === category.label 
-                          ? 'opacity-100 visible translate-y-0' 
+                    <div
+                      className={`absolute top-full left-0 min-w-[220px] bg-gradient-to-b from-black/98 to-black/95 backdrop-blur-md border border-white/10 rounded-xl shadow-2xl overflow-hidden transition-all duration-300 ${activeDropdown === category.label
+                          ? 'opacity-100 visible translate-y-0'
                           : 'opacity-0 invisible -translate-y-2'
-                      }`}
+                        }`}
                       style={{ boxShadow: '0 20px 60px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.05)' }}
                     >
                       {/* Dropdown top accent */}
                       <div className="h-0.5 bg-gradient-to-r from-[#C83232] via-[#e63946] to-[#C83232]"></div>
-                      
+
                       {/* View All Link */}
-                      <Link 
+                      <Link
                         href={category.href}
                         className="group/link flex items-center justify-between px-5 py-3.5 text-sm font-bold text-[#C83232] hover:bg-[#C83232] hover:text-white transition-all duration-200 border-b border-white/10"
                       >
@@ -265,7 +256,7 @@ export default function Header() {
                           <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
                         </svg>
                       </Link>
-                      
+
                       {/* Subcategory Links */}
                       <div className="py-2">
                         {category.subcategories.map((sub, idx) => (
@@ -276,7 +267,7 @@ export default function Header() {
                                 {sub.label}
                               </div>
                               {sub.items.map((item) => (
-                                <Link 
+                                <Link
                                   key={item.href}
                                   href={item.href}
                                   className="group/sub flex items-center gap-3 px-5 py-2 text-sm text-white/75 hover:text-white hover:bg-white/5 transition-all duration-200"
@@ -288,7 +279,7 @@ export default function Header() {
                             </div>
                           ) : (
                             // Simple subcategory link
-                            <Link 
+                            <Link
                               key={sub.href}
                               href={sub.href}
                               className="group/sub flex items-center gap-3 px-5 py-2.5 text-sm text-white/75 hover:text-white hover:bg-white/5 transition-all duration-200"
@@ -320,7 +311,7 @@ export default function Header() {
               {/* Right Nav - Utility Links (Desktop) */}
               <nav className="hidden md:flex items-center gap-2">
                 {quickLinks.map((link) => (
-                  <Link 
+                  <Link
                     key={link.href}
                     href={link.href}
                     className={`flex items-center gap-1.5 px-4 py-2.5 rounded-lg hover:bg-white/5 text-sm font-bold tracking-wider uppercase text-white/90 hover:text-white transition-all duration-300 ${link.highlight ? 'icon-fire-container' : ''}`}
@@ -338,26 +329,26 @@ export default function Header() {
               <div className="md:hidden w-10"></div>
             </div>
           </div>
-          
+
           {/* Decorative bottom border */}
           <div className="absolute bottom-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-white/10 to-transparent"></div>
         </div>
       </header>
 
       {/* Mobile Menu Overlay */}
-      <div 
+      <div
         className={`fixed inset-0 bg-black/70 backdrop-blur-sm z-50 transition-all duration-300 md:hidden ${mobileMenuOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
         onClick={() => setMobileMenuOpen(false)}
       />
 
       {/* Mobile Menu Slide-in Panel */}
-      <div 
+      <div
         className={`fixed top-0 left-0 h-full w-80 bg-gradient-to-b from-black via-black/98 to-black z-50 transform transition-transform duration-300 ease-out md:hidden ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}
         style={{ boxShadow: mobileMenuOpen ? '10px 0 40px rgba(0, 0, 0, 0.5)' : 'none' }}
       >
         {/* Decorative side accent */}
         <div className="absolute top-0 right-0 bottom-0 w-[1px] bg-gradient-to-b from-[#C83232]/50 via-white/10 to-transparent"></div>
-        
+
         {/* Mobile Menu Header */}
         <div className="relative flex items-center justify-between p-5 border-b border-white/10">
           <div className="absolute bottom-0 left-0 right-0 h-[1px] bg-gradient-to-r from-[#C83232] via-white/20 to-transparent"></div>
@@ -368,7 +359,7 @@ export default function Header() {
             height={40}
             className="h-8 w-auto"
           />
-          <button 
+          <button
             onClick={() => setMobileMenuOpen(false)}
             className="text-white p-2 hover:bg-white/10 hover:rotate-90 rounded-lg transition-all duration-300"
           >
@@ -388,30 +379,30 @@ export default function Header() {
             {categories.map((category) => (
               <div key={category.href} className="border-b border-white/5 last:border-b-0">
                 {/* Category Header - Accordion Toggle */}
-                <button 
+                <button
                   onClick={() => setActiveDropdown(activeDropdown === category.label ? null : category.label)}
                   className="flex items-center justify-between w-full py-3 px-4 text-white text-lg font-bold tracking-wider uppercase hover:bg-white/5 rounded-lg transition-all duration-300 group"
                 >
                   <span className="group-hover:translate-x-1 transition-transform duration-300">{category.label}</span>
                   <div className={`w-6 h-6 rounded-full border border-white/20 flex items-center justify-center transition-all duration-300 ${activeDropdown === category.label ? 'bg-[#C83232] border-[#C83232] rotate-180' : ''}`}>
-                    <svg 
-                      xmlns="http://www.w3.org/2000/svg" 
-                      fill="none" 
-                      viewBox="0 0 24 24" 
-                      strokeWidth={2} 
-                      stroke="currentColor" 
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      strokeWidth={2}
+                      stroke="currentColor"
                       className="w-3 h-3"
                     >
                       <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
                     </svg>
                   </div>
                 </button>
-                
+
                 {/* Subcategories - Accordion Content */}
                 <div className={`overflow-hidden transition-all duration-300 ${activeDropdown === category.label ? 'max-h-96' : 'max-h-0'}`}>
                   <div className="pl-4 pb-3 border-l-2 border-[#C83232]/30 ml-4">
                     {/* View All Link */}
-                    <Link 
+                    <Link
                       href={category.href}
                       onClick={() => setMobileMenuOpen(false)}
                       className="flex items-center gap-2 py-2 px-4 text-sm font-bold text-[#C83232] hover:bg-[#C83232] hover:text-white rounded-lg transition-all duration-200"
@@ -421,7 +412,7 @@ export default function Header() {
                         <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
                       </svg>
                     </Link>
-                    
+
                     {/* Subcategory Links */}
                     {category.subcategories.map((sub) => (
                       sub.items ? (
@@ -431,7 +422,7 @@ export default function Header() {
                             {sub.label}
                           </div>
                           {sub.items.map((item) => (
-                            <Link 
+                            <Link
                               key={item.href}
                               href={item.href}
                               onClick={() => setMobileMenuOpen(false)}
@@ -444,7 +435,7 @@ export default function Header() {
                         </div>
                       ) : (
                         // Simple subcategory link
-                        <Link 
+                        <Link
                           key={sub.href}
                           href={sub.href}
                           onClick={() => setMobileMenuOpen(false)}
@@ -470,9 +461,9 @@ export default function Header() {
           </p>
           <nav className="flex flex-col gap-1">
             {quickLinks.map((item) => (
-              <Link 
+              <Link
                 key={item.href}
-                href={item.href} 
+                href={item.href}
                 onClick={() => setMobileMenuOpen(false)}
                 className="group flex items-center gap-3 py-3 px-4 text-white/80 font-medium tracking-wide hover:bg-white/5 rounded-lg transition-all duration-300"
               >
