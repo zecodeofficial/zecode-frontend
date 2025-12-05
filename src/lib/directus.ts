@@ -15,7 +15,7 @@ const DIRECTUS = process.env.NEXT_PUBLIC_DIRECTUS_URL || "http://127.0.0.1:8055"
  */
 const CACHE_PRODUCTS = 300;      // 5 minutes
 const CACHE_HERO = 600;          // 10 minutes  
-const CACHE_STORES = 1800;       // 30 minutes
+const CACHE_STORES = 0;          // 0 minutes (disabled)
 const CACHE_CATEGORIES = 600;    // 10 minutes
 
 // Request timeout - increased for Render cold starts
@@ -127,18 +127,18 @@ export function fileUrl(file: any) {
   if (!file) return null;
   const id = typeof file === "string" ? file : (file?.id ?? file?.data?.id);
   if (!id) return null;
-  
+
   // If it's already a full URL (http/https), return as is
   if (typeof id === 'string' && id.startsWith('http')) {
     return id;
   }
-  
+
   // If it's a local path (starts with /), transform to Cloudinary URL
   if (typeof id === 'string' && id.startsWith('/')) {
     // Check if it's one of our image folders
-    if (id.startsWith('/products/') || id.startsWith('/categories/') || 
-        id.startsWith('/hero/') || id.startsWith('/brand/') || 
-        id.startsWith('/placeholders/')) {
+    if (id.startsWith('/products/') || id.startsWith('/categories/') ||
+      id.startsWith('/hero/') || id.startsWith('/brand/') ||
+      id.startsWith('/placeholders/')) {
       return getCloudinaryUrl(id);
     }
     // Other local paths (like fonts) stay as-is
@@ -167,7 +167,7 @@ async function _fetchHeroSlides(): Promise<HeroSlide[] | null> {
 }
 
 // Cached version of fetchHeroSlides
-export const fetchHeroSlides = typeof window === 'undefined' 
+export const fetchHeroSlides = typeof window === 'undefined'
   ? unstable_cache(_fetchHeroSlides, ['hero-slides-v1'], { revalidate: CACHE_HERO, tags: ['hero'] })
   : _fetchHeroSlides;
 
@@ -178,7 +178,7 @@ export async function fetchCategories(): Promise<Category[] | null> {
   try {
     const url = getApiUrl("/items/categories");
     const res = await axios.get(url, {
-      params: { 
+      params: {
         sort: "sort",
         fields: "*,subcategories.*"
       },
@@ -198,7 +198,7 @@ export async function fetchCategoryBySlug(slug: string): Promise<Category | null
   try {
     const url = getApiUrl("/items/categories");
     const res = await axios.get(url, {
-      params: { 
+      params: {
         "filter[slug][_eq]": slug,
         fields: "*,subcategories.*",
         limit: 1
@@ -240,9 +240,10 @@ async function _fetchStores(): Promise<Store[] | null> {
   try {
     const url = getApiUrl("/items/stores");
     const res = await axios.get(url, {
-      params: { 
+      params: {
         sort: "sort,name",
-        "filter[status][_eq]": "published"
+        "filter[status][_eq]": "published",
+        _t: new Date().getTime(), // Cache buster
       },
       timeout: TIMEOUT_DEFAULT,
     });
@@ -311,7 +312,7 @@ export type ProductCount = {
 async function _fetchProducts(): Promise<Product[] | null> {
   const maxRetries = 2;
   let lastError: any = null;
-  
+
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
       const url = getApiUrl("/items/products");
@@ -319,7 +320,7 @@ async function _fetchProducts(): Promise<Product[] | null> {
         console.log(`[Directus] Retrying products fetch (attempt ${attempt})...`);
       }
       const res = await axios.get(url, {
-        params: { 
+        params: {
           sort: "sort,name",
           limit: -1,  // Get all products
         },
@@ -341,7 +342,7 @@ async function _fetchProducts(): Promise<Product[] | null> {
       }
     }
   }
-  
+
   console.error("[Directus] fetchProducts failed after retries:", lastError?.message);
   return null;
 }
@@ -358,7 +359,7 @@ async function _fetchProductsByCategory(categorySlug: string): Promise<Product[]
   try {
     const url = getApiUrl("/items/products");
     const res = await axios.get(url, {
-      params: { 
+      params: {
         sort: "sort,name",
         "filter[category][_eq]": categorySlug,
         "filter[status][_eq]": "published"
@@ -375,11 +376,45 @@ async function _fetchProductsByCategory(categorySlug: string): Promise<Product[]
 // Cached version of fetchProductsByCategory
 export const fetchProductsByCategory = typeof window === 'undefined'
   ? (categorySlug: string) => unstable_cache(
-      () => _fetchProductsByCategory(categorySlug),
-      [`products-cat-${categorySlug}`],
-      { revalidate: CACHE_PRODUCTS, tags: ['products'] }
-    )()
+    () => _fetchProductsByCategory(categorySlug),
+    [`products-cat-${categorySlug}`],
+    { revalidate: CACHE_PRODUCTS, tags: ['products'] }
+  )()
   : _fetchProductsByCategory;
+
+/**
+ * fetchProductsByGenderAndSubcategory - optimized fetch with server-side filtering
+ */
+export async function fetchProductsByGenderAndSubcategory(gender: string | null, subcategory: string | string[]): Promise<Product[] | null> {
+  try {
+    const url = getApiUrl("/items/products");
+    const params: any = {
+      sort: "sort,name",
+      "filter[status][_eq]": "published",
+    };
+
+    // Apply gender filter only if provided
+    if (gender) {
+      params["filter[gender_category][_istarts_with]"] = gender;
+    }
+
+    // Handle array of subcategories (OR condition) or single subcategory
+    if (Array.isArray(subcategory)) {
+      params["filter[subcategory][_in]"] = subcategory.join(',');
+    } else {
+      params["filter[subcategory][_eq]"] = subcategory;
+    }
+
+    const res = await axios.get(url, {
+      params,
+      timeout: TIMEOUT_DEFAULT,
+    });
+    return res?.data?.data ?? null;
+  } catch (err: any) {
+    console.error("Directus fetchProductsByGenderAndSubcategory error:", err.message);
+    return null; // Return null so caller can try fallback if needed
+  }
+}
 
 /**
  * fetchProductBySlug - fetch a single product by slug
@@ -388,7 +423,7 @@ export async function fetchProductBySlug(slug: string): Promise<Product | null> 
   try {
     const url = getApiUrl("/items/products");
     const res = await axios.get(url, {
-      params: { 
+      params: {
         "filter[slug][_eq]": slug,
         limit: 1
       },
@@ -447,7 +482,7 @@ export async function fetchProductCounts(): Promise<ProductCount[] | null> {
       const map = new Map<string, number>();
       products.forEach((p: Product) => {
         if (p.status !== 'published') return;
-        const key = `${(p.gender_category||'').toLowerCase()}||${(p.subcategory||'').toLowerCase()}`;
+        const key = `${(p.gender_category || '').toLowerCase()}||${(p.subcategory || '').toLowerCase()}`;
         map.set(key, (map.get(key) || 0) + 1);
       });
       const out: ProductCount[] = [];
@@ -623,7 +658,7 @@ export async function fetchFooterLinkGroups(): Promise<FooterLinkGroup[] | null>
   try {
     const url = getApiUrl("/items/footer_link_groups");
     const res = await axios.get(url, {
-      params: { 
+      params: {
         sort: "sort",
         "filter[status][_eq]": "published"
       },
@@ -643,7 +678,7 @@ export async function fetchFooterLinks(): Promise<FooterLink[] | null> {
   try {
     const url = getApiUrl("/items/footer_links");
     const res = await axios.get(url, {
-      params: { 
+      params: {
         sort: "group,sort",
         "filter[status][_eq]": "published"
       },
@@ -663,7 +698,7 @@ export async function fetchDirectusSocialLinks(): Promise<DirectusSocialLink[] |
   try {
     const url = getApiUrl("/items/social_links");
     const res = await axios.get(url, {
-      params: { 
+      params: {
         sort: "sort",
         "filter[status][_eq]": "published"
       },
@@ -694,7 +729,7 @@ export async function fetchDirectusNavigation(): Promise<DirectusNavigationItem[
   try {
     const url = getApiUrl("/items/navigation_menu");
     const res = await axios.get(url, {
-      params: { 
+      params: {
         sort: "parent,sort",
         "filter[status][_eq]": "published"
       },
@@ -756,7 +791,7 @@ export async function fetchHomepageSections(): Promise<HomepageSection[] | null>
   try {
     const url = getApiUrl("/items/homepage_sections");
     const res = await axios.get(url, {
-      params: { 
+      params: {
         sort: "sort",
         "filter[status][_eq]": "published"
       },
@@ -776,7 +811,7 @@ export async function fetchHomepageSection(sectionKey: string): Promise<Homepage
   try {
     const url = getApiUrl("/items/homepage_sections");
     const res = await axios.get(url, {
-      params: { 
+      params: {
         "filter[section_key][_eq]": sectionKey,
         limit: 1
       },

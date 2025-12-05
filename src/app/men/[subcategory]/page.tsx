@@ -1,4 +1,4 @@
-import { fetchProducts, fetchProductBySlug, fileUrl } from "@/lib/directus";
+import { fetchProducts, fetchProductBySlug, fileUrl, fetchProductsByGenderAndSubcategory } from "@/lib/directus";
 import ProductCard from "@/components/ProductCard";
 import ProductDetailContent from "@/components/ProductDetailContent";
 import Link from "next/link";
@@ -19,24 +19,24 @@ function getSessionId(imagePath: string | null | undefined): string | null {
 function buildMatchingGallery(product: any): string[] {
   const mainImage = product.image || product.image_url;
   const mainSessionId = getSessionId(mainImage);
-  
+
   // Start with just the main product image
   const gallery: string[] = [mainImage].filter(Boolean);
-  
+
   // Add model images - either matching session ID or AI-generated (Cloudinary URLs)
   const modelImages = [product.model_image_1, product.model_image_2, product.model_image_3].filter(Boolean);
-  
+
   for (const modelImg of modelImages) {
     const modelSessionId = getSessionId(modelImg);
     // Include if: session IDs match OR it's an AI-generated image (Cloudinary URL or no session ID)
     const isCloudinaryImage = modelImg.includes('cloudinary.com');
     const isMatchingSession = mainSessionId && modelSessionId && mainSessionId === modelSessionId;
-    
+
     if (isCloudinaryImage || isMatchingSession) {
       gallery.push(modelImg);
     }
   }
-  
+
   return gallery;
 }
 
@@ -104,23 +104,14 @@ export default async function MenSubcategoryPage({ params }: PageProps) {
   if (SUBCATEGORY_MAP[subcategory]) {
     const cmsSubcategory = SUBCATEGORY_MAP[subcategory];
     const displayTitle = TITLE_MAP[subcategory] || subcategory;
-    
+
     let products: any[] = [];
     try {
-      const allProducts = await fetchProducts();
-      if (allProducts && Array.isArray(allProducts)) {
-        products = allProducts.filter((p) => {
-          const pSub = p.subcategory?.toLowerCase();
-          const gender = p.gender_category?.toLowerCase();
-          if (!pSub || !gender) return false;
-          // Filter by Men gender_category
-          if (gender !== "men") return false;
-          
-          if (Array.isArray(cmsSubcategory)) {
-            return cmsSubcategory.some(s => s.toLowerCase() === pSub);
-          }
-          return pSub === (cmsSubcategory as string).toLowerCase();
-        });
+      // Optimized fetch: Filter by gender and subcategory at the API level
+      // This prevents fetching ALL products and filtering in memory
+      const fetchedProducts = await fetchProductsByGenderAndSubcategory("men", cmsSubcategory);
+      if (fetchedProducts) {
+        products = fetchedProducts;
       }
     } catch (error) {
       console.error("Error fetching products:", error);
@@ -167,17 +158,17 @@ export default async function MenSubcategoryPage({ params }: PageProps) {
 
   // 2. If not a subcategory, try to fetch as product
   const product = await fetchProductBySlug(subcategory);
-  
+
   if (product) {
     // Map Directus product to ProductDetail interface
     // Build gallery with matching model images from the same photo session
     const mainImage = product.image || product.image_url;
     const matchingGallery = buildMatchingGallery(product);
-    
+
     // Get proper subcategory slug and title
     const subcategorySlug = getSubcategorySlug(product.subcategory);
     const subcategoryTitle = getSubcategoryTitle(product.subcategory);
-    
+
     const productDetail = {
       id: product.id,
       name: product.name,

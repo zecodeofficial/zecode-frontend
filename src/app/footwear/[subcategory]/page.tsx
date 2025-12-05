@@ -1,4 +1,4 @@
-import { fetchProducts, fetchProductBySlug, fileUrl } from "@/lib/directus";
+import { fetchProducts, fetchProductBySlug, fileUrl, fetchProductsByGenderAndSubcategory } from "@/lib/directus";
 import ProductCard from "@/components/ProductCard";
 import ProductDetailContent from "@/components/ProductDetailContent";
 import Link from "next/link";
@@ -106,44 +106,13 @@ export default async function FootwearSubcategoryPage({ params }: PageProps) {
 
     let products: any[] = [];
     try {
-      const allProducts = await fetchProducts();
-      if (allProducts && Array.isArray(allProducts)) {
-        products = allProducts.filter((p) => {
-          const pSub = p.subcategory?.toLowerCase();
-          const gender = p.gender_category?.toLowerCase();
-          const category = p.category?.toLowerCase();
+      // Optimized fetch: Filter by subcategory and optional gender at the API level
+      // This prevents fetching ALL products and filtering in memory
+      const gender = genderFilter ? genderFilter.toLowerCase() : null;
+      const fetchedProducts = await fetchProductsByGenderAndSubcategory(gender, cmsSubcategory);
 
-          // For gender-based filtering (men/women)
-          if (genderFilter) {
-            const targetGender = genderFilter.toLowerCase();
-
-            // Match if:
-            // 1. gender_category matches AND has footwear subcategory
-            // 2. OR category contains 'footwear' AND gender matches AND has footwear subcategory  
-            // 3. OR category contains gender (e.g., "Men's Footwear") AND has footwear subcategory
-            const hasGenderMatch = gender === targetGender || category?.includes(targetGender);
-
-            if (!hasGenderMatch) return false;
-
-            // Check if subcategory matches footwear types
-            if (pSub) {
-              if (Array.isArray(cmsSubcategory)) {
-                return cmsSubcategory.some(s => s.toLowerCase() === pSub);
-              }
-              return pSub === (cmsSubcategory as string).toLowerCase();
-            }
-
-            // If no subcategory but category contains footwear and gender, include it
-            return category?.includes('footwear');
-          }
-
-          // For specific footwear type filtering (flats, mules, etc.)
-          if (!pSub) return false;
-          if (Array.isArray(cmsSubcategory)) {
-            return cmsSubcategory.some(s => s.toLowerCase() === pSub);
-          }
-          return pSub === (cmsSubcategory as string).toLowerCase();
-        });
+      if (fetchedProducts) {
+        products = fetchedProducts;
       }
     } catch (error) {
       console.error("Error fetching products:", error);

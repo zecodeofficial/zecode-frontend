@@ -1,5 +1,9 @@
+import dynamic from "next/dynamic";
 import HeroSlider from "@/components/HeroSlider";
-import SubcategoryGridDynamic from "@/components/SubcategoryGridDynamic";
+// Lazy load SubcategoryGrid to reduce initial bundle size
+const SubcategoryGridDynamic = dynamic(() => import("@/components/SubcategoryGridDynamic"), {
+  loading: () => <div className="min-h-[500px] bg-white animate-pulse" />,
+});
 import { fetchHeroSlides } from "@/lib/directus";
 
 // Force dynamic rendering to prevent build-time API calls

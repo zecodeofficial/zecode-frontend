@@ -6,7 +6,7 @@ const DIRECTUS_URL = process.env.NEXT_PUBLIC_DIRECTUS_URL || 'http://localhost:8
 const CACHE_DURATIONS: Record<string, number> = {
   'products': 300,      // 5 minutes
   'hero_slides': 600,   // 10 minutes
-  'stores': 1800,       // 30 minutes
+  'stores': 0,          // 0 minutes (disabled for debugging)
   'categories': 600,    // 10 minutes
   'assets': 86400,      // 24 hours for images
   'default': 60,        // 1 minute default
@@ -30,7 +30,7 @@ export async function GET(
     const pathString = path.join('/');
     const searchParams = request.nextUrl.searchParams.toString();
     const url = `${DIRECTUS_URL}/${pathString}${searchParams ? `?${searchParams}` : ''}`;
-    
+
     const cacheDuration = getCacheDuration(pathString);
 
     const response = await fetch(url, {
@@ -61,8 +61,8 @@ export async function GET(
     console.error('Directus proxy error:', error);
     // Return error with short cache to allow retry
     return NextResponse.json(
-      { error: 'Failed to fetch from Directus', data: null }, 
-      { 
+      { error: 'Failed to fetch from Directus', data: null },
+      {
         status: 500,
         headers: {
           'Cache-Control': 'no-store',

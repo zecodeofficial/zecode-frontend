@@ -1,4 +1,3 @@
-// Check stores in Directus
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 const fs = require('fs');
 const path = require('path');
@@ -11,7 +10,7 @@ envContent.split('\n').forEach(line => {
     if (m) env[m[1].trim()] = m[2].trim();
 });
 
-async function checkStores() {
+async function deleteDummyStore() {
     try {
         console.log('Authenticating...');
         const authRes = await fetch('https://zecode-directus.onrender.com/auth/login', {
@@ -27,22 +26,16 @@ async function checkStores() {
         const { data: { access_token } } = await authRes.json();
         const headers = { 'Authorization': 'Bearer ' + access_token };
 
-        console.log('\nFetching Stores...');
-        const res = await fetch('https://zecode-directus.onrender.com/items/stores', { headers });
-        const data = await res.json();
+        console.log('Deleting Store ID 29...');
+        const res = await fetch('https://zecode-directus.onrender.com/items/stores/29', {
+            method: 'DELETE',
+            headers
+        });
 
-        if (!res.ok) {
-            console.log('Failed to fetch stores:', data);
-            return;
-        }
-
-        if (data.data) {
-            console.log(`Found ${data.data.length} stores in Directus.`);
-            data.data.forEach(s => {
-                console.log(`[${s.id}] ${s.name} (${s.city}, ${s.state}) - Phone: ${s.phone}`);
-            });
+        if (res.status === 204) {
+            console.log('Success: Store 29 deleted.');
         } else {
-            console.log('No stores found or data structure mismatch.');
+            console.log('Failed:', res.status, await res.text());
         }
 
     } catch (error) {
@@ -50,4 +43,4 @@ async function checkStores() {
     }
 }
 
-checkStores();
+deleteDummyStore();

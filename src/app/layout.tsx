@@ -67,6 +67,14 @@ export const viewport: Viewport = {
   ],
 };
 
+import localFont from "next/font/local";
+
+const dinCondensed = localFont({
+  src: "../../public/fonts/DINCondensed.woff2",
+  variable: "--font-din-condensed",
+  display: "swap",
+});
+
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   // Fetch global settings from Directus (backend) with error handling
   let settings = null;
@@ -81,7 +89,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <head>
         <meta charSet="utf-8" />
       </head>
-      <body className="antialiased" style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', margin: 0, padding: 0 }} suppressHydrationWarning>
+      <body className={`antialiased ${dinCondensed.variable}`} style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', margin: 0, padding: 0 }} suppressHydrationWarning>
         <ThemeProvider>
           <a className="sr-only focus:not-sr-only p-2 absolute z-[9999]" href="#main">
             Skip to content

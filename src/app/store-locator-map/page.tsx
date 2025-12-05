@@ -1,55 +1,24 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import Image from 'next/image';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { fetchStores, Store as DirectusStore } from '@/lib/directus';
 import { STORES } from '@/data/stores';
 import { Store } from '@/types/store';
 import PageHeader from '@/components/PageHeader';
 
-// Map Directus store to local Store type
-function mapDirectusStore(ds: DirectusStore): Store {
-    return {
-        id: ds.id,
-        name: ds.name,
-        slug: ds.name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
-        address: ds.address,
-        city: ds.city,
-        state: ds.state || '',
-        pincode: ds.pincode || '',
-        phone: ds.phone || '',
-        email: ds.email || '',
-        lat: ds.latitude || 0,
-        lng: ds.longitude || 0,
-        tags: [ds.city, ds.state].filter(Boolean) as string[],
-        workingHours: ds.hours || '10:00 AM - 9:00 PM',
-    };
+declare global {
+    interface Window {
+        google: any;
+    }
 }
 
 export default function StoreLocatorMapPage() {
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedStore, setSelectedStore] = useState<Store | null>(null);
-    const [stores, setStores] = useState<Store[]>(STORES); // Fallback to local data
-    const [loading, setLoading] = useState(true);
-
-    // Fetch stores from Directus on mount
-    useEffect(() => {
-        async function loadStores() {
-            try {
-                const directusStores = await fetchStores();
-                if (directusStores && directusStores.length > 0) {
-                    setStores(directusStores.map(mapDirectusStore));
-                }
-            } catch (error) {
-                console.error('Error fetching stores from CMS:', error);
-                // Keep using fallback STORES data
-            } finally {
-                setLoading(false);
-            }
-        }
-        loadStores();
-    }, []);
+    const [stores] = useState<Store[]>(STORES); // Use local data permanently
+    const mapRef = useRef<HTMLDivElement>(null);
+    const mapInstanceRef = useRef<any>(null);
+    const markersRef = useRef<any[]>([]);
 
     const filteredStores = stores.filter(store =>
         store.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -58,24 +27,98 @@ export default function StoreLocatorMapPage() {
         (store.tags && store.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase())))
     );
 
-    // Google Maps embed URL with all markers
-    const getMapUrl = () => {
-        const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '';
-        
-        if (selectedStore) {
-            return `https://www.google.com/maps/embed/v1/place?key=${apiKey}&q=${encodeURIComponent(selectedStore.address)}&zoom=15`;
+    useEffect(() => {
+        const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+        if (!apiKey || !window.google) return;
+
+        // Initialize map
+        const mapOptions = {
+            center: { lat: 12.9716, lng: 77.5946 }, // Center on Karnataka
+            zoom: 10,
+            mapTypeControl: false,
+            streetViewControl: false,
+            fullscreenControl: false,
+        };
+
+        mapInstanceRef.current = new window.google.maps.Map(mapRef.current, mapOptions);
+
+        // Add markers for all stores
+        markersRef.current = stores.map(store => {
+            const marker = new window.google.maps.Marker({
+                position: { lat: store.lat, lng: store.lng },
+                map: mapInstanceRef.current,
+                title: store.name,
+                icon: {
+                    url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="12" cy="12" r="10" fill="#C83232" stroke="white" stroke-width="2"/>
+                            <text x="12" y="16" text-anchor="middle" fill="white" font-size="12" font-weight="bold">S</text>
+                        </svg>
+                    `),
+                    scaledSize: new window.google.maps.Size(24, 24),
+                },
+            });
+
+            marker.addListener('click', () => {
+                setSelectedStore(store);
+            });
+
+            return marker;
+        });
+
+        // Fit bounds to show all markers
+        if (stores.length > 0) {
+            const bounds = new window.google.maps.LatLngBounds();
+            stores.forEach(store => {
+                bounds.extend({ lat: store.lat, lng: store.lng });
+            });
+            mapInstanceRef.current.fitBounds(bounds);
         }
-        
-        // Default to Karnataka center
-        return `https://www.google.com/maps/embed/v1/view?key=${apiKey}&center=12.9716,77.5946&zoom=10`;
-    };
+    }, [stores]);
+
+    useEffect(() => {
+        // Update selected marker
+        markersRef.current.forEach((marker, index) => {
+            const store = stores[index];
+            if (selectedStore && store.id === selectedStore.id) {
+                marker.setIcon({
+                    url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
+                        <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="16" cy="16" r="14" fill="#C83232" stroke="white" stroke-width="3"/>
+                            <text x="16" y="22" text-anchor="middle" fill="white" font-size="16" font-weight="bold">S</text>
+                        </svg>
+                    `),
+                    scaledSize: new window.google.maps.Size(32, 32),
+                });
+                mapInstanceRef.current?.setCenter({ lat: store.lat, lng: store.lng });
+                mapInstanceRef.current?.setZoom(15);
+            } else {
+                marker.setIcon({
+                    url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="12" cy="12" r="10" fill="#C83232" stroke="white" stroke-width="2"/>
+                            <text x="12" y="16" text-anchor="middle" fill="white" font-size="12" font-weight="bold">S</text>
+                        </svg>
+                    `),
+                    scaledSize: new window.google.maps.Size(24, 24),
+                });
+            }
+        });
+    }, [selectedStore, stores]);
 
     return (
-        <div style={{ 
+        <div style={{
             minHeight: '100vh',
             backgroundColor: '#f5f5f5',
             fontFamily: 'var(--font-din-condensed), sans-serif'
         }}>
+            {/* Load Google Maps API */}
+            <script
+                src={`https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&libraries=places`}
+                async
+                defer
+            />
+
             {/* Header Section */}
             <PageHeader pageKey="store-locator-map" defaultTitle="STORE LOCATOR" subtitle="Find a ZECODE store near you" />
 
@@ -86,32 +129,27 @@ export default function StoreLocatorMapPage() {
                 height: 'calc(100vh - 100px)',
                 gap: '0'
             }}>
-                {/* Map Section - Now on the left */}
+                {/* Map Section - Left */}
                 <div style={{
                     backgroundColor: '#e5e7eb',
                     position: 'relative'
                 }}>
-                    <iframe
-                        src={getMapUrl()}
+                    <div
+                        ref={mapRef}
                         style={{
                             width: '100%',
-                            height: '100%',
-                            border: 'none'
+                            height: '100%'
                         }}
-                        allowFullScreen
-                        loading="lazy"
-                        referrerPolicy="no-referrer-when-downgrade"
-                        title="Store locations map"
                     />
                 </div>
 
-                {/* Store List Sidebar - Now on the right with search */}
+                {/* Store List Sidebar - Right */}
                 <div style={{
                     backgroundColor: '#ffffff',
                     overflowY: 'auto',
                     borderLeft: '1px solid #e5e7eb'
                 }}>
-                    {/* Search Bar in Sidebar */}
+                    {/* Search Bar */}
                     <div style={{
                         padding: '16px',
                         borderBottom: '1px solid #e5e7eb',
