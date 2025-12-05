@@ -59,7 +59,7 @@ const DEFAULT_CATEGORIES: Category[] = [
       { label: "SHIRTS", href: "/men/shirts" },
       { label: "JEANS", href: "/men/jeans" },
       { label: "JACKETS", href: "/men/jackets" },
-      { label: "SHOES", href: "/men/shoes" },
+      { label: "SHOES", href: "/men/shoes", type: 'section' },
     ],
   },
   {
@@ -85,7 +85,7 @@ const DEFAULT_CATEGORIES: Category[] = [
         type: 'section',
         // No items - standalone link with section styling
       },
-      { label: "SHOES", href: "/women/shoes" },
+      { label: "SHOES", href: "/women/shoes", type: 'section' },
     ],
   },
   {
