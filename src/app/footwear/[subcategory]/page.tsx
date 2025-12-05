@@ -19,24 +19,24 @@ function getSessionId(imagePath: string | null | undefined): string | null {
 function buildMatchingGallery(product: any): string[] {
   const mainImage = product.image || product.image_url;
   const mainSessionId = getSessionId(mainImage);
-  
+
   // Start with just the main product image
   const gallery: string[] = [mainImage].filter(Boolean);
-  
+
   // Add model images - either matching session ID or AI-generated (Cloudinary URLs)
   const modelImages = [product.model_image_1, product.model_image_2, product.model_image_3].filter(Boolean);
-  
+
   for (const modelImg of modelImages) {
     const modelSessionId = getSessionId(modelImg);
     // Include if: session IDs match OR it's an AI-generated image (Cloudinary URL)
     const isCloudinaryImage = modelImg.includes('cloudinary.com');
     const isMatchingSession = mainSessionId && modelSessionId && mainSessionId === modelSessionId;
-    
+
     if (isCloudinaryImage || isMatchingSession) {
       gallery.push(modelImg);
     }
   }
-  
+
   return gallery;
 }
 
@@ -103,7 +103,7 @@ export default async function FootwearSubcategoryPage({ params }: PageProps) {
     const cmsSubcategory = SUBCATEGORY_MAP[subcategory];
     const displayTitle = TITLE_MAP[subcategory] || subcategory;
     const genderFilter = GENDER_MAP[subcategory] || null;
-    
+
     let products: any[] = [];
     try {
       const allProducts = await fetchProducts();
@@ -111,14 +111,34 @@ export default async function FootwearSubcategoryPage({ params }: PageProps) {
         products = allProducts.filter((p) => {
           const pSub = p.subcategory?.toLowerCase();
           const gender = p.gender_category?.toLowerCase();
-          if (!pSub) return false;
-          
+          const category = p.category?.toLowerCase();
+
           // For gender-based filtering (men/women)
           if (genderFilter) {
-            if (gender !== genderFilter.toLowerCase()) return false;
+            const targetGender = genderFilter.toLowerCase();
+
+            // Match if:
+            // 1. gender_category matches AND has footwear subcategory
+            // 2. OR category contains 'footwear' AND gender matches AND has footwear subcategory  
+            // 3. OR category contains gender (e.g., "Men's Footwear") AND has footwear subcategory
+            const hasGenderMatch = gender === targetGender || category?.includes(targetGender);
+
+            if (!hasGenderMatch) return false;
+
+            // Check if subcategory matches footwear types
+            if (pSub) {
+              if (Array.isArray(cmsSubcategory)) {
+                return cmsSubcategory.some(s => s.toLowerCase() === pSub);
+              }
+              return pSub === (cmsSubcategory as string).toLowerCase();
+            }
+
+            // If no subcategory but category contains footwear and gender, include it
+            return category?.includes('footwear');
           }
-          
-          // Check if subcategory matches footwear types
+
+          // For specific footwear type filtering (flats, mules, etc.)
+          if (!pSub) return false;
           if (Array.isArray(cmsSubcategory)) {
             return cmsSubcategory.some(s => s.toLowerCase() === pSub);
           }
@@ -187,17 +207,17 @@ export default async function FootwearSubcategoryPage({ params }: PageProps) {
   // 2. If not a known subcategory, try to find a product by slug
   try {
     const product = await fetchProductBySlug(subcategory);
-    
+
     if (product) {
       // Map Directus product to ProductDetail interface
       // Build gallery with matching model images from the same photo session
       const mainImage = product.image || product.image_url;
       const matchingGallery = buildMatchingGallery(product);
-      
+
       // Get proper subcategory slug and title
       const subcategorySlug = getSubcategorySlug(product.subcategory);
       const subcategoryTitle = getSubcategoryTitle(product.subcategory);
-      
+
       const productDetail = {
         id: product.id,
         name: product.name,
