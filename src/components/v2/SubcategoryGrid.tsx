@@ -71,14 +71,38 @@ export default function SubcategoryGrid({ category }: SubcategoryGridProps) {
       <div className="max-w-[1600px] mx-auto px-6 md:px-16">
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
           {subcategories.map((subcat, index) => {
-            // Find up to 4 active products in this subcategory
-            const products = MOCK_DATA.products.filter(
-              (p) => p.categoryLabel?.toLowerCase().includes(subcat.label.toLowerCase().split(" ")[0]) && p.category === category
-            ).slice(0, 4);
-            // Use their gallery images, fallback to subcat image
-            const images = products.length > 0
-              ? products.flatMap((p) => p.gallery || [p.image]).filter(Boolean)
-              : [subcat.image];
+            // Better matching: try name, categoryLabel, slug, tags & singular/plural forms
+            const label = subcat.label.toLowerCase();
+            const cleanTokens = Array.from(new Set(label.split(/[^a-z0-9]+/).filter(Boolean)));
+
+            function matchesProduct(p: any) {
+              if (p.category !== category) return false;
+              const name = (p.name || "").toLowerCase();
+              const catLabel = (p.categoryLabel || "").toLowerCase();
+              const slug = (p.slug || "").toLowerCase();
+              const tags = (p.tags || []).map((t: string) => t.toLowerCase());
+
+              return cleanTokens.some((tok) => {
+                if (!tok) return false;
+                const singular = tok.endsWith('s') ? tok.slice(0, -1) : tok;
+                if (name.includes(tok) || name.includes(singular)) return true;
+                if (catLabel.includes(tok) || catLabel.includes(singular)) return true;
+                if (slug.includes(tok) || slug.includes(singular)) return true;
+                if (tags.some((t: string) => t.includes(tok) || t.includes(singular))) return true;
+                return false;
+              });
+            }
+
+            // Collect matches, up to 4 products; if none found fall back to category-level products
+            let products = MOCK_DATA.products.filter(matchesProduct).slice(0, 4);
+            if (products.length === 0) {
+              products = MOCK_DATA.products.filter((p) => p.category === category).slice(0, 4);
+            }
+
+            // Build image list from product galleries and images
+            const images = products.flatMap((p) => (p.gallery?.length ? p.gallery : [p.image])).filter(Boolean);
+            // Deduplicate and cap the number of images shown
+            const imagesToShow = Array.from(new Set(images)).slice(0, 6);
             return (
               <Link
                 key={subcat.href}
@@ -90,7 +114,7 @@ export default function SubcategoryGrid({ category }: SubcategoryGridProps) {
               >
                 {/* Sliding Images */}
                 <div className="absolute inset-0 transition-transform duration-700 group-hover:scale-110">
-                  <SubcategoryThumbnailSlider images={images} alt={subcat.label} />
+                  <SubcategoryThumbnailSlider images={imagesToShow} alt={subcat.label} />
                   {/* Overlay */}
                   <div className="absolute inset-0 bg-black/40 group-hover:bg-black/60 transition-colors duration-500" />
                 </div>
