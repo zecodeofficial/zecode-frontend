@@ -15,7 +15,7 @@ const DIRECTUS = process.env.NEXT_PUBLIC_DIRECTUS_URL || "http://127.0.0.1:8055"
  */
 const CACHE_PRODUCTS = 300;      // 5 minutes
 const CACHE_HERO = 600;          // 10 minutes  
-const CACHE_STORES = 0;          // 0 minutes (disabled)
+const CACHE_STORES = false;      // disabled
 const CACHE_CATEGORIES = 600;    // 10 minutes
 
 // Request timeout - increased for Render cold starts
