@@ -77,7 +77,13 @@ const DEFAULT_CATEGORIES: Category[] = [
           { label: "SHORTS", href: "/women/shorts" },
         ]
       },
-      { label: "ETHNIC FUSION", href: "/women/ethnic-wear" },
+      {
+        label: "ETHNIC FUSION",
+        href: "/women/ethnic-wear",
+        items: [
+          { label: "VIEW ALL", href: "/women/ethnic-wear" },
+        ]
+      },
       { label: "SHOES", href: "/women/shoes" },
     ],
   },
@@ -238,8 +244,8 @@ export default function Header() {
                     {/* Dropdown Menu - Enhanced */}
                     <div
                       className={`absolute top-full left-0 min-w-[220px] bg-gradient-to-b from-black/98 to-black/95 backdrop-blur-md border border-white/10 rounded-xl shadow-2xl overflow-hidden transition-all duration-300 ${activeDropdown === category.label
-                          ? 'opacity-100 visible translate-y-0'
-                          : 'opacity-0 invisible -translate-y-2'
+                        ? 'opacity-100 visible translate-y-0'
+                        : 'opacity-0 invisible -translate-y-2'
                         }`}
                       style={{ boxShadow: '0 20px 60px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.05)' }}
                     >
@@ -263,9 +269,12 @@ export default function Header() {
                           sub.items ? (
                             // Nested subcategory with items (e.g., Western Wear, Ethnic Fusion)
                             <div key={sub.href} className="mb-2">
-                              <div className="px-5 py-2 text-xs font-bold uppercase tracking-wider text-[#C83232] border-b border-white/5">
+                              <Link
+                                href={sub.href}
+                                className="block px-5 py-2 text-xs font-bold uppercase tracking-wider text-[#C83232] hover:text-[#e63946] border-b border-white/5 transition-colors duration-200"
+                              >
                                 {sub.label}
-                              </div>
+                              </Link>
                               {sub.items.map((item) => (
                                 <Link
                                   key={item.href}
