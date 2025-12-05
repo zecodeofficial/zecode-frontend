@@ -1,8 +1,6 @@
 import Link from "next/link";
-import { MOCK_DATA } from "@/lib/mock-data";
 
-export default function Hero() {
-    const { title, subtitle, cta } = MOCK_DATA.hero;
+export default function Hero({ title = 'YOUR NEW FASHION CODE', subtitle = 'Urban Clothing Stores in India', cta = 'FIND YOUR CODE' }: { title?: string; subtitle?: string; cta?: string }) {
 
     return (
         <section className="relative h-[80vh] w-full bg-gray-900 flex items-center justify-center overflow-hidden">

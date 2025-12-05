@@ -1,8 +1,9 @@
 // src/components/v2/SubcategoryGrid.tsx
 "use client";
+import { useEffect, useState } from 'react';
 import Link from "next/link";
 import SubcategoryThumbnailSlider from "@/components/SubcategoryThumbnailSlider";
-import { MOCK_DATA } from "@/lib/mock-data";
+import { fetchProductsByCategory, fileUrl } from '@/lib/directus';
 
 /**
  * SubcategoryGridV2 - Bold Subcategory Display
@@ -49,6 +50,22 @@ const CATEGORY_TITLES = {
 export default function SubcategoryGrid({ category }: SubcategoryGridProps) {
   const subcategories = SUBCATEGORIES[category];
   const title = CATEGORY_TITLES[category];
+  const [productsByCategory, setProductsByCategory] = useState<any[] | null>(null);
+
+  useEffect(() => {
+    let mounted = true;
+    async function load() {
+      try {
+        const data = await fetchProductsByCategory(category);
+        if (mounted) setProductsByCategory(data ?? []);
+      } catch (e) {
+        console.error('Failed to load products for category', category, e);
+        if (mounted) setProductsByCategory([]);
+      }
+    }
+    load();
+    return () => { mounted = false; };
+  }, [category]);
 
   return (
     <section className="relative bg-black py-20 md:py-32 overflow-hidden">
@@ -94,13 +111,16 @@ export default function SubcategoryGrid({ category }: SubcategoryGridProps) {
             }
 
             // Collect matches, up to 4 products; if none found fall back to category-level products
-            let products = MOCK_DATA.products.filter(matchesProduct).slice(0, 4);
-            if (products.length === 0) {
-              products = MOCK_DATA.products.filter((p) => p.category === category).slice(0, 4);
+            let products: any[] = [];
+            if (productsByCategory && productsByCategory.length > 0) {
+              products = productsByCategory.filter(matchesProduct).slice(0, 4);
+              if (products.length === 0) {
+                products = productsByCategory.slice(0, 4);
+              }
             }
 
             // Build image list from product galleries and images
-            const images = products.flatMap((p) => (p.gallery?.length ? p.gallery : [p.image])).filter(Boolean);
+            const images = products.flatMap((p) => (p.gallery?.length ? p.gallery : [p.image])).filter(Boolean).map((img) => fileUrl(img) || img).filter(Boolean);
             // Deduplicate and cap the number of images shown
             const imagesToShow = Array.from(new Set(images)).slice(0, 6);
             return (

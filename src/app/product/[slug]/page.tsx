@@ -1,11 +1,11 @@
 import ProductDetailContent from '@/components/ProductDetailContent';
-import { MOCK_DATA } from '@/lib/mock-data';
+import { fetchProductBySlug } from '@/lib/directus';
 import { notFound } from 'next/navigation';
 
 export default async function ProductPage({ params }: { params: Promise<{ slug: string }> }) {
     const { slug } = await params;
     const productSlug = slug;
-    const product = MOCK_DATA.products.find((p) => p.slug === productSlug);
+    const product = await fetchProductBySlug(productSlug);
 
     if (!product) {
         notFound();

@@ -1,6 +1,6 @@
-import { MOCK_DATA } from "@/lib/mock-data";
-import ProductCard from "@/components/ProductCard";
 import { notFound } from "next/navigation";
+import ProductCard from "@/components/ProductCard";
+import { fetchProductsByCategory, fetchCategories } from '@/lib/directus';
 
 // Correctly type the props for a Next.js page component
 // params is a Promise in newer Next.js versions, but for 14/15 it might be just an object.
@@ -13,15 +13,12 @@ export default async function CategoryPage({ params }: { params: Promise<{ categ
     // Normalize category to lowercase for matching
     const normalizedCategory = category.toLowerCase();
 
-    // Filter products
-    const products = MOCK_DATA.products.filter(
-        (p) => p.category === normalizedCategory
-    );
+    // Fetch category products from CMS
+    const products = (await fetchProductsByCategory(normalizedCategory)) ?? [];
 
-    // Check if category is valid (exists in our mock links or has products)
-    const isValidCategory = MOCK_DATA.header.links.some(
-        (link) => link.href === `/${normalizedCategory}`
-    ) || products.length > 0;
+    // Validate category existence using CMS categories OR presence of products
+    const categories = (await fetchCategories()) ?? [];
+    const isValidCategory = (categories && categories.some((c) => c.slug === normalizedCategory)) || products.length > 0;
 
     if (!isValidCategory) {
         notFound();

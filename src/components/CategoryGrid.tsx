@@ -1,24 +1,23 @@
 import Link from "next/link";
 import Image from "next/image";
-import { MOCK_DATA } from "@/lib/mock-data";
 import type { Category } from "@/lib/directus";
+import { fetchCategories, fileUrl } from '@/lib/directus';
 
 interface CategoryGridProps {
   categories?: Category[];
 }
 
-export default function CategoryGrid({ categories }: CategoryGridProps) {
-    // Use provided categories or fallback to MOCK_DATA
-    const displayCategories = categories && categories.length > 0 
-        ? categories 
-        : MOCK_DATA.categories.map(cat => ({
-            id: cat.id,
-            title: cat.title,
-            slug: cat.title.toLowerCase(),
-            image: cat.image,
-            link: cat.link,
-            subcategories: cat.subcategories
-        }));
+export default async function CategoryGrid({ categories }: CategoryGridProps) {
+    // Use provided categories or fetch from CMS
+    let displayCategories: Category[] = categories && categories.length > 0 ? categories : [];
+    if (!displayCategories || displayCategories.length === 0) {
+        try {
+            const fetched = await fetchCategories();
+            displayCategories = fetched ?? [];
+        } catch (e) {
+            displayCategories = [];
+        }
+    }
     return (
         <section style={{ padding: '80px 0', margin: 0, width: '100%', backgroundColor: '#ffffff' }}>
             {/* Section Header */}
@@ -64,7 +63,7 @@ export default function CategoryGrid({ categories }: CategoryGridProps) {
                         >
                             {/* Background Image using Next.js Image */}
                             <Image
-                                src={cat.image}
+                                src={fileUrl(cat.image) || cat.image}
                                 alt={cat.title}
                                 fill
                                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
