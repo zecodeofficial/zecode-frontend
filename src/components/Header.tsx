@@ -32,6 +32,7 @@ const SLUG_TO_CMS_SUBCATEGORY: Record<string, string[]> = {
 type Subcategory = {
   label: string;
   href: string;
+  type?: 'section' | 'link'; // Explicit type to control styling
   items?: { label: string; href: string }[]; // For nested sub-sections like Western Wear, Ethnic Fusion
 };
 
@@ -68,6 +69,7 @@ const DEFAULT_CATEGORIES: Category[] = [
       {
         label: "WESTERN WEAR",
         href: "/women",
+        type: 'section',
         items: [
           { label: "TOPS", href: "/women/tops" },
           { label: "DRESSES", href: "/women/dresses" },
@@ -80,9 +82,8 @@ const DEFAULT_CATEGORIES: Category[] = [
       {
         label: "ETHNIC FUSION",
         href: "/women/ethnic-wear",
-        items: [
-          { label: "VIEW ALL", href: "/women/ethnic-wear" },
-        ]
+        type: 'section',
+        // No items - standalone link with section styling
       },
       { label: "SHOES", href: "/women/shoes" },
     ],
@@ -266,8 +267,8 @@ export default function Header() {
                       {/* Subcategory Links */}
                       <div className="py-2">
                         {category.subcategories.map((sub, idx) => (
-                          sub.items ? (
-                            // Nested subcategory with items (e.g., Western Wear, Ethnic Fusion)
+                          sub.type === 'section' || sub.items ? (
+                            // Section header (red style) - e.g., Western Wear, Ethnic Fusion
                             <div key={sub.href} className="mb-2">
                               <Link
                                 href={sub.href}
@@ -275,7 +276,7 @@ export default function Header() {
                               >
                                 {sub.label}
                               </Link>
-                              {sub.items.map((item) => (
+                              {sub.items?.map((item) => (
                                 <Link
                                   key={item.href}
                                   href={item.href}
@@ -424,13 +425,17 @@ export default function Header() {
 
                     {/* Subcategory Links */}
                     {category.subcategories.map((sub) => (
-                      sub.items ? (
+                      sub.type === 'section' || sub.items ? (
                         // Nested subcategory with items (e.g., Western Wear, Ethnic Fusion)
                         <div key={sub.href} className="mb-3">
-                          <div className="py-2 px-4 text-xs font-bold uppercase tracking-wider text-[#C83232] border-b border-white/10 mb-1">
+                          <Link
+                            href={sub.href}
+                            onClick={() => setMobileMenuOpen(false)}
+                            className="block py-2 px-4 text-xs font-bold uppercase tracking-wider text-[#C83232] border-b border-white/10 mb-1"
+                          >
                             {sub.label}
-                          </div>
-                          {sub.items.map((item) => (
+                          </Link>
+                          {sub.items?.map((item) => (
                             <Link
                               key={item.href}
                               href={item.href}
