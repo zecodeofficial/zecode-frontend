@@ -289,9 +289,13 @@ export default function SubcategoryGridDynamic({ title, categorySlug, subcategor
           const count = c.count || 0;
           if (count <= 0) return;
 
-          const g = (c.gender_category || "").toString().toLowerCase();
+          // Gender normalization: check if starts with the category slug (e.g. "men's" starts with "men")
+          // or if the category slug is contained in the gender string
+          const rawGender = (c.gender_category || "").toString().toLowerCase();
           const sub = normalizeSub(c.subcategory || "");
-          const key = `${g}||${sub}`;
+
+          // Store with raw gender for now, we'll fuzzy match in hasProducts
+          const key = `${rawGender}||${sub}`;
           countsByGenderSub.set(key, (countsByGenderSub.get(key) || 0) + count);
         });
 
@@ -308,11 +312,23 @@ export default function SubcategoryGridDynamic({ title, categorySlug, subcategor
           }
 
           // Normal case: categorySlug is the gender
-          const gender = categorySlug.toLowerCase();
+          const targetGender = categorySlug.toLowerCase();
           const cmsMappings = SLUG_TO_CMS_SUBCATEGORY[slug] || [normalizeSub(slug)];
+
           return cmsMappings.some(cmsVal => {
-            const key = `${gender}||${cmsVal}`;
-            return (countsByGenderSub.get(key) || 0) > 0;
+            // Check all keys in the map to find matching gender and subcategory
+            for (const [key, count] of countsByGenderSub.entries()) {
+              const [keyGender, keySub] = key.split('||');
+
+              // Gender match: target "men" matches "men's", "men", "mens", etc.
+              const genderMatch = keyGender.includes(targetGender) || targetGender.includes(keyGender);
+
+              // Subcategory match
+              const subMatch = keySub === normalizeSub(cmsVal);
+
+              if (genderMatch && subMatch && count > 0) return true;
+            }
+            return false;
           });
         };
 
