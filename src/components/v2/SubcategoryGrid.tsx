@@ -9,7 +9,8 @@ async function fetchProductCountForSubcategory(category: string, subcategoryLabe
   // You may want to adjust this filter to match your Directus schema
   // For now, we assume products have a 'category' and 'subcategory' field
   try {
-    const products = await fetchProductsByCategory(category);
+    const productsRaw = await fetchProductsByCategory(category);
+    const products = productsRaw ?? [];
     const label = subcategoryLabel.toLowerCase();
     const cleanTokens = Array.from(new Set(label.split(/[^a-z0-9]+/).filter(Boolean)));
     function matchesProduct(p: any) {
