@@ -108,53 +108,24 @@ const KIDS_SUB_MAP: Record<string, string | string[]> = {
   'shoes': ['Footwear', 'Flats', 'Flat'],
 };
 
-// Helper to check strict match
-function isStrictMatch(product: any, category: string, slug: string): boolean {
-  // 1. Gender/Category Check
-  // We check 'category' field (which usually holds the slug) OR 'gender_category' if populated.
-  const pCat = (product.category || "").toLowerCase();
-  const pGender = (product.gender_category || "").toLowerCase();
+const label = subcatLabel.toLowerCase();
+const cleanTokens = Array.from(new Set(label.split(/[^a-z0-9]+/).filter(Boolean)));
+const name = (p.name || "").toLowerCase();
+const catLabel = (p.categoryLabel || "").toLowerCase();
+const slug = (p.slug || "").toLowerCase();
+const subcategory = (p.subcategory || "").toLowerCase();
+const tags = (p.tags || []).map((t: string) => t.toLowerCase());
 
-  // 2. Subcategory Check
-  const pSub = product.subcategory; // CMS value e.g. "T-Shirt"
-  if (!pSub) return false;
-
-  let map: Record<string, string | string[]> = {};
-  if (category === 'men') map = MEN_SUB_MAP;
-  else if (category === 'women') map = WOMEN_SUB_MAP;
-  else if (category === 'kids') map = KIDS_SUB_MAP;
-
-  const validValues = map[slug];
-  if (!validValues) return false; // Unknown slug in map
-
-  if (Array.isArray(validValues)) {
-    return validValues.some(v => v.toLowerCase() === pSub.toLowerCase());
-  }
-  return validValues.toLowerCase() === pSub.toLowerCase();
-}
-
-// Helper for fuzzy match (Fallback for images)
-function isFuzzyMatch(p: any, category: string, subcatLabel: string) {
-  if ((p.category || "").toLowerCase() !== category.toLowerCase() && (p.gender_category || "").toLowerCase() !== category.toLowerCase()) return false;
-
-  const label = subcatLabel.toLowerCase();
-  const cleanTokens = Array.from(new Set(label.split(/[^a-z0-9]+/).filter(Boolean)));
-  const name = (p.name || "").toLowerCase();
-  const catLabel = (p.categoryLabel || "").toLowerCase();
-  const slug = (p.slug || "").toLowerCase();
-  const subcategory = (p.subcategory || "").toLowerCase();
-  const tags = (p.tags || []).map((t: string) => t.toLowerCase());
-
-  return cleanTokens.some((tok) => {
-    if (!tok) return false;
-    const singular = tok.endsWith('s') ? tok.slice(0, -1) : tok;
-    if (name.includes(tok) || name.includes(singular)) return true;
-    if (catLabel.includes(tok) || catLabel.includes(singular)) return true;
-    if (slug.includes(tok) || slug.includes(singular)) return true;
-    if (subcategory.includes(tok) || subcategory.includes(singular)) return true;
-    if (tags.some((t: string) => t.includes(tok) || t.includes(singular))) return true;
-    return false;
-  });
+return cleanTokens.some((tok) => {
+  if (!tok) return false;
+  const singular = tok.endsWith('s') ? tok.slice(0, -1) : tok;
+  if (name.includes(tok) || name.includes(singular)) return true;
+  if (catLabel.includes(tok) || catLabel.includes(singular)) return true;
+  if (slug.includes(tok) || slug.includes(singular)) return true;
+  if (subcategory.includes(tok) || subcategory.includes(singular)) return true;
+  if (tags.some((t: string) => t.includes(tok) || t.includes(singular))) return true;
+  return false;
+});
 }
 
 export default function SubcategoryGrid({ category }: SubcategoryGridProps) {
