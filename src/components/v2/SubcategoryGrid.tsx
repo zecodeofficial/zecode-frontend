@@ -111,9 +111,9 @@ export default function SubcategoryGrid({ category }: SubcategoryGridProps) {
         // For each subcategory, fetch product count
         const counts: { [key: string]: number } = {};
         if (category === "women") {
-          // For grouped subcategories
+          // For grouped subcategories, use a type guard
           await Promise.all(subcategories.map(async (groupObj) => {
-            if (groupObj.items) {
+            if (typeof groupObj === 'object' && 'items' in groupObj && Array.isArray(groupObj.items)) {
               await Promise.all(groupObj.items.map(async (subcat) => {
                 counts[subcat.label] = await fetchProductCountForSubcategory(category, subcat.label);
               }));
