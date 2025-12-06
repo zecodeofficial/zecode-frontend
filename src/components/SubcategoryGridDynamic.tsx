@@ -154,18 +154,25 @@ function SubcategoryCard({ title, slug, categorySlug }: SubcategoryCardProps) {
           setProducts(chosen);
         }
 
-        // Fetch actual count separately (without limit)
-        const countParams = new URLSearchParams();
-        countParams.set('aggregate[count]', 'id');
-        countParams.set(`filter[subcategory][_eq]`, subcategoryValue);
-        if (genderFilter) countParams.set(`filter[gender_category][_eq]`, genderFilter);
+        // Fetch actual count for ALL subcategory variations
+        // For example, for 'tshirts' count: 'T', 'T-Shirt', 'tshirts', etc.
+        const subcategoryVariations = SLUG_TO_CMS_SUBCATEGORY[slug] || [subcategoryValue];
 
-        const countResponse = await fetch(`/api/directus/items/products?${countParams.toString()}`);
-        if (countResponse.ok) {
-          const countData = await countResponse.json();
-          const count = countData?.data?.[0]?.count?.id || 0;
-          setProductCount(count);
+        let totalCount = 0;
+        for (const variation of subcategoryVariations) {
+          const countParams = new URLSearchParams();
+          countParams.set('aggregate[count]', 'id');
+          countParams.set(`filter[subcategory][_eq]`, variation);
+          if (genderFilter) countParams.set(`filter[gender_category][_eq]`, genderFilter);
+
+          const countResponse = await fetch(`/api/directus/items/products?${countParams.toString()}`);
+          if (countResponse.ok) {
+            const countData = await countResponse.json();
+            const count = countData?.data?.[0]?.count?.id || 0;
+            totalCount += count;
+          }
         }
+        setProductCount(totalCount);
       } catch (error) {
         console.error('Error fetching products for subcategory:', slug, error);
       } finally {
