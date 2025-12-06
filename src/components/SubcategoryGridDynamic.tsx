@@ -68,6 +68,7 @@ interface SubcategoryCardProps {
 
 function SubcategoryCard({ title, slug, categorySlug }: SubcategoryCardProps) {
   const [products, setProducts] = useState<Array<{ image_url?: string; image?: string; name: string }>>([]);
+  const [productCount, setProductCount] = useState<number>(0);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -151,14 +152,19 @@ function SubcategoryCard({ title, slug, categorySlug }: SubcategoryCardProps) {
           const withImages = data.data.filter((p: any) => p.image || p.image_url);
           const chosen = withImages.length > 0 ? withImages : data.data;
           setProducts(chosen);
-          // Debug: log fetched products (image fields) for troubleshooting blank thumbnails
-          // Remove this log after verifying behavior in the browser console
-          try {
-            // eslint-disable-next-line no-console
-            console.log('Subcategory fetch:', slug, chosen.map((p: any) => ({ name: p.name, image: !!p.image, image_url: p.image_url })));
-          } catch (e) {
-            // ignore
-          }
+        }
+
+        // Fetch actual count separately (without limit)
+        const countParams = new URLSearchParams();
+        countParams.set('aggregate[count]', 'id');
+        countParams.set(`filter[subcategory][_eq]`, subcategoryValue);
+        if (genderFilter) countParams.set(`filter[gender_category][_eq]`, genderFilter);
+
+        const countResponse = await fetch(`/api/directus/items/products?${countParams.toString()}`);
+        if (countResponse.ok) {
+          const countData = await countResponse.json();
+          const count = countData?.data?.[0]?.count?.id || 0;
+          setProductCount(count);
         }
       } catch (error) {
         console.error('Error fetching products for subcategory:', slug, error);
@@ -225,9 +231,9 @@ function SubcategoryCard({ title, slug, categorySlug }: SubcategoryCardProps) {
         <h3 className="text-lg font-semibold mb-1 group-hover:text-yellow-400 transition-colors">
           {title}
         </h3>
-        {products.length > 0 && (
+        {productCount > 0 && (
           <p className="text-sm text-gray-300 mb-2">
-            {products.length} products
+            {productCount} products
           </p>
         )}
 
