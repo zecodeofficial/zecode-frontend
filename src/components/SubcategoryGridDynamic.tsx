@@ -34,12 +34,12 @@ const SUBCATEGORY_TO_CMS: Record<string, string> = {
 // Mapping from URL slugs to normalized CMS subcategory values for matching
 const SLUG_TO_CMS_SUBCATEGORY: Record<string, string[]> = {
   // Men
-  'tshirts': ['t', 'tshirt', 't-shirt'],
-  'shirts': ['shirt'],
+  'tshirts': ['t', 'tshirt', 't-shirt', 'tshirts'],
+  'shirts': ['shirt', 'shirts', 'casual shirt'],
   'jeans': ['jean', 'jeans'],
   'trousers': ['trouser', 'trousers', 'pants', 'pant'],
-  'jackets': ['jacket', 'outerwear'],
-  'shoes': ['shoe', 'flats', 'flat'],
+  'jackets': ['jacket', 'jackets', 'outerwear'],
+  'shoes': ['shoe', 'shoes', 'flats', 'flat', 'formal shoes', 'sneakers'],
   // Women
   'tops': ['top', 'tops'],
   'dresses': ['dress', 'dresses'],
@@ -76,10 +76,10 @@ function SubcategoryCard({ title, slug, categorySlug }: SubcategoryCardProps) {
       try {
         // Special handling for Footwear category - slug is gender (men/women)
         const isFootwearCategory = categorySlug === 'footwear';
-        
+
         let genderFilter: string | null = null;
         let subcategoryValue: string;
-        
+
         if (isFootwearCategory) {
           // For footwear, the slug IS the gender, and we filter by footwear subcategories
           genderFilter = slug === 'men' ? 'Men' : slug === 'women' ? 'Women' : null;
@@ -105,7 +105,7 @@ function SubcategoryCard({ title, slug, categorySlug }: SubcategoryCardProps) {
         // If no products returned, try footwear variants for footwear category
         if (isFootwearCategory && (!data || !data.data || data.data.length === 0)) {
           const footwearTypes = ['Mules', 'Heels', 'Sandals', 'Boots', 'Sneakers', 'Loafers'];
-          
+
           for (const footwearType of footwearTypes) {
             const altParams = new URLSearchParams();
             altParams.set('limit', '10');
@@ -155,7 +155,7 @@ function SubcategoryCard({ title, slug, categorySlug }: SubcategoryCardProps) {
           // Remove this log after verifying behavior in the browser console
           try {
             // eslint-disable-next-line no-console
-            console.log('Subcategory fetch:', slug, chosen.map((p: any) => ({ name: p.name, image: !!p.image, image_url: p.image_url })) );
+            console.log('Subcategory fetch:', slug, chosen.map((p: any) => ({ name: p.name, image: !!p.image, image_url: p.image_url })));
           } catch (e) {
             // ignore
           }
@@ -230,16 +230,15 @@ function SubcategoryCard({ title, slug, categorySlug }: SubcategoryCardProps) {
             {products.length} products
           </p>
         )}
-        
+
         {/* Image indicators */}
         {products.length > 1 && (
           <div className="flex gap-1 mt-2">
             {products.slice(0, 5).map((_, index) => (
               <div
                 key={index}
-                className={`h-1 w-6 rounded-full transition-all duration-300 ${
-                  index === currentImageIndex % 5 ? 'bg-white' : 'bg-white/40'
-                }`}
+                className={`h-1 w-6 rounded-full transition-all duration-300 ${index === currentImageIndex % 5 ? 'bg-white' : 'bg-white/40'
+                  }`}
               />
             ))}
             {products.length > 5 && (
@@ -276,7 +275,7 @@ export default function SubcategoryGridDynamic({ title, categorySlug, subcategor
     async function filterByProductCounts() {
       try {
         const counts = await fetchProductCounts();
-        
+
         if (!counts || counts.length === 0) {
           // If no counts, show all subcategories
           setFilteredSubcategories(subcategories);
@@ -289,7 +288,7 @@ export default function SubcategoryGridDynamic({ title, categorySlug, subcategor
         counts.forEach((c) => {
           const count = c.count || 0;
           if (count <= 0) return;
-          
+
           const g = (c.gender_category || "").toString().toLowerCase();
           const sub = normalizeSub(c.subcategory || "");
           const key = `${g}||${sub}`;
@@ -307,7 +306,7 @@ export default function SubcategoryGridDynamic({ title, categorySlug, subcategor
               return (countsByGenderSub.get(key) || 0) > 0;
             });
           }
-          
+
           // Normal case: categorySlug is the gender
           const gender = categorySlug.toLowerCase();
           const cmsMappings = SLUG_TO_CMS_SUBCATEGORY[slug] || [normalizeSub(slug)];
@@ -371,7 +370,7 @@ export default function SubcategoryGridDynamic({ title, categorySlug, subcategor
         <h2 className="text-3xl font-bold text-center mb-8 text-gray-900">
           Shop {title}&apos;s Collection
         </h2>
-        
+
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
           {filteredSubcategories.map((subcategory) => (
             <SubcategoryCard
