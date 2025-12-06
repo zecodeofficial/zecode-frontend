@@ -44,6 +44,17 @@ interface SubcategoryGridProps {
   category: "men" | "women" | "kids";
 }
 
+interface SubcategoryItem {
+  label: string;
+  href: string;
+  image: string;
+}
+
+interface SubcategoryGroup {
+  group: string;
+  items: SubcategoryItem[];
+}
+
 const SUBCATEGORIES = {
   men: [
     { label: "T-SHIRTS", href: "/men/tshirts", image: "/products/men-tshirt.jpg" },
@@ -111,20 +122,16 @@ export default function SubcategoryGrid({ category }: SubcategoryGridProps) {
         // For each subcategory, fetch product count
         const counts: { [key: string]: number } = {};
         if (category === "women") {
-          // For grouped subcategories, use a type guard
-          await Promise.all(subcategories.map(async (groupObj) => {
-            if (typeof groupObj === 'object' && 'items' in groupObj && Array.isArray(groupObj.items)) {
-              await Promise.all(groupObj.items.map(async (subcat) => {
-                counts[subcat.label] = await fetchProductCountForSubcategory(category, subcat.label);
-              }));
-            }
+          // For grouped subcategories, use a type assertion
+          await Promise.all((subcategories as SubcategoryGroup[]).map(async (groupObj) => {
+            await Promise.all(groupObj.items.map(async (subcat) => {
+              counts[subcat.label] = await fetchProductCountForSubcategory(category, subcat.label);
+            }));
           }));
         } else {
-          // For ungrouped subcategories, use a type guard
-          await Promise.all(subcategories.map(async (subcat) => {
-            if (typeof subcat === 'object' && 'label' in subcat) {
-              counts[subcat.label] = await fetchProductCountForSubcategory(category, subcat.label);
-            }
+          // For ungrouped subcategories, use a type assertion
+          await Promise.all((subcategories as SubcategoryItem[]).map(async (subcat) => {
+            counts[subcat.label] = await fetchProductCountForSubcategory(category, subcat.label);
           }));
         }
         if (mounted) setProductCounts(counts);
@@ -146,7 +153,7 @@ export default function SubcategoryGrid({ category }: SubcategoryGridProps) {
           <span className="text-xs tracking-[0.4em] uppercase text-[#C83232] font-semibold mb-3 block">
             BROWSE STYLES
           </span>
-          <h2 
+          <h2
             className="text-4xl md:text-5xl lg:text-6xl font-black text-white tracking-tight"
             style={{ fontFamily: '"DIN Condensed", Impact, sans-serif' }}
           >
@@ -159,74 +166,69 @@ export default function SubcategoryGrid({ category }: SubcategoryGridProps) {
       <div className="max-w-[1600px] mx-auto px-6 md:px-16">
         {category === "women" ? (
           <>
-            {subcategories.map((groupObj, groupIdx) => {
-              if (typeof groupObj === 'object' && 'group' in groupObj && 'items' in groupObj && Array.isArray(groupObj.items)) {
-                return (
-                  <div key={groupObj.group} className="mb-10">
-                    <h3 className="text-lg md:text-2xl font-bold text-[#C83232] mb-4" style={{ fontFamily: '"DIN Condensed", Impact, sans-serif' }}>{groupObj.group}</h3>
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
-                      {groupObj.items.map((subcat, index) => {
-                        const label = subcat.label.toLowerCase();
-                        const cleanTokens = Array.from(new Set(label.split(/[^a-z0-9]+/).filter(Boolean)));
-                        function matchesProduct(p: any) {
-                          if (p.category !== category) return false;
-                          const name = (p.name || "").toLowerCase();
-                          const catLabel = (p.categoryLabel || "").toLowerCase();
-                          const slug = (p.slug || "").toLowerCase();
-                          const tags = (p.tags || []).map((t: string) => t.toLowerCase());
-                          return cleanTokens.some((tok) => {
-                            if (!tok) return false;
-                            const singular = tok.endsWith('s') ? tok.slice(0, -1) : tok;
-                            if (name.includes(tok) || name.includes(singular)) return true;
-                            if (catLabel.includes(tok) || catLabel.includes(singular)) return true;
-                            if (slug.includes(tok) || slug.includes(singular)) return true;
-                            if (tags.some((t: string) => t.includes(tok) || t.includes(singular))) return true;
-                            return false;
-                          });
-                        }
-                        let products: any[] = [];
-                        if (productsByCategory && productsByCategory.length > 0) {
-                          products = productsByCategory.filter(matchesProduct).slice(0, 4);
-                          if (products.length === 0) {
-                            products = productsByCategory.slice(0, 4);
-                          }
-                        }
-                        const images = products.flatMap((p) => (p.gallery?.length ? p.gallery : [p.image])).filter(Boolean).map((img) => fileUrl(img) || img).filter(Boolean);
-                        const imagesToShow = Array.from(new Set(images)).slice(0, 6);
-                        return (
-                          <Link
-                            key={subcat.href}
-                            href={subcat.href}
-                            className="group relative aspect-square overflow-hidden"
-                            style={{ animationDelay: `${index * 0.05}s` }}
-                          >
-                            <div className="absolute inset-0 transition-transform duration-700 group-hover:scale-110">
-                              <SubcategoryThumbnailSlider images={imagesToShow} alt={subcat.label} />
-                              <div className="absolute inset-0 bg-black/40 group-hover:bg-black/60 transition-colors duration-500" />
-                            </div>
-                            <div className="relative z-10 h-full flex flex-col items-center justify-center p-6">
-                              <h3 className="text-xl md:text-2xl lg:text-3xl font-black text-white text-center tracking-tight group-hover:scale-110 transition-transform duration-500" style={{ fontFamily: '"DIN Condensed", Impact, sans-serif' }}>{subcat.label}</h3>
-                              <span className="block mt-2 text-xs text-white/80 font-semibold">{productCounts[subcat.label] !== undefined ? `${productCounts[subcat.label]} Products` : ""}</span>
-                              <div className="absolute bottom-6 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 translate-y-4 group-hover:translate-y-0 transition-all duration-300">
-                                <span className="inline-flex items-center gap-2 text-[#C83232] text-xs font-bold tracking-[0.15em] uppercase">EXPLORE<svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" /></svg></span>
-                              </div>
-                              <div className="absolute inset-2 border border-white/0 group-hover:border-white/20 transition-colors duration-500" />
-                            </div>
-                            <div className="absolute top-3 left-3 w-6 h-6 border-l-2 border-t-2 border-white/0 group-hover:border-[#C83232] transition-colors duration-500" />
-                            <div className="absolute bottom-3 right-3 w-6 h-6 border-r-2 border-b-2 border-white/0 group-hover:border-[#C83232] transition-colors duration-500" />
-                          </Link>
-                        );
-                      })}
-                    </div>
-                  </div>
-                );
-              }
-              return null;
-            })}
+            {(subcategories as SubcategoryGroup[]).map((groupObj) => (
+              <div key={groupObj.group} className="mb-10">
+                <h3 className="text-lg md:text-2xl font-bold text-[#C83232] mb-4" style={{ fontFamily: '"DIN Condensed", Impact, sans-serif' }}>{groupObj.group}</h3>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
+                  {groupObj.items.map((subcat, index) => {
+                    const label = subcat.label.toLowerCase();
+                    const cleanTokens = Array.from(new Set(label.split(/[^a-z0-9]+/).filter(Boolean)));
+                    function matchesProduct(p: any) {
+                      if (p.category !== category) return false;
+                      const name = (p.name || "").toLowerCase();
+                      const catLabel = (p.categoryLabel || "").toLowerCase();
+                      const slug = (p.slug || "").toLowerCase();
+                      const tags = (p.tags || []).map((t: string) => t.toLowerCase());
+                      return cleanTokens.some((tok) => {
+                        if (!tok) return false;
+                        const singular = tok.endsWith('s') ? tok.slice(0, -1) : tok;
+                        if (name.includes(tok) || name.includes(singular)) return true;
+                        if (catLabel.includes(tok) || catLabel.includes(singular)) return true;
+                        if (slug.includes(tok) || slug.includes(singular)) return true;
+                        if (tags.some((t: string) => t.includes(tok) || t.includes(singular))) return true;
+                        return false;
+                      });
+                    }
+                    let products: any[] = [];
+                    if (productsByCategory && productsByCategory.length > 0) {
+                      products = productsByCategory.filter(matchesProduct).slice(0, 4);
+                      if (products.length === 0) {
+                        products = productsByCategory.slice(0, 4);
+                      }
+                    }
+                    const images = products.flatMap((p) => (p.gallery?.length ? p.gallery : [p.image])).filter(Boolean).map((img) => fileUrl(img) || img).filter(Boolean);
+                    const imagesToShow = Array.from(new Set(images)).slice(0, 6);
+                    return (
+                      <Link
+                        key={subcat.href}
+                        href={subcat.href}
+                        className="group relative aspect-square overflow-hidden"
+                        style={{ animationDelay: `${index * 0.05}s` }}
+                      >
+                        <div className="absolute inset-0 transition-transform duration-700 group-hover:scale-110">
+                          <SubcategoryThumbnailSlider images={imagesToShow} alt={subcat.label} />
+                          <div className="absolute inset-0 bg-black/40 group-hover:bg-black/60 transition-colors duration-500" />
+                        </div>
+                        <div className="relative z-10 h-full flex flex-col items-center justify-center p-6">
+                          <h3 className="text-xl md:text-2xl lg:text-3xl font-black text-white text-center tracking-tight group-hover:scale-110 transition-transform duration-500" style={{ fontFamily: '"DIN Condensed", Impact, sans-serif' }}>{subcat.label}</h3>
+                          <span className="block mt-2 text-xs text-white/80 font-semibold">{productCounts[subcat.label] !== undefined ? `${productCounts[subcat.label]} Products` : ""}</span>
+                          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 translate-y-4 group-hover:translate-y-0 transition-all duration-300">
+                            <span className="inline-flex items-center gap-2 text-[#C83232] text-xs font-bold tracking-[0.15em] uppercase">EXPLORE<svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" /></svg></span>
+                          </div>
+                          <div className="absolute inset-2 border border-white/0 group-hover:border-white/20 transition-colors duration-500" />
+                        </div>
+                        <div className="absolute top-3 left-3 w-6 h-6 border-l-2 border-t-2 border-white/0 group-hover:border-[#C83232] transition-colors duration-500" />
+                        <div className="absolute bottom-3 right-3 w-6 h-6 border-r-2 border-b-2 border-white/0 group-hover:border-[#C83232] transition-colors duration-500" />
+                      </Link>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
           </>
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
-            {subcategories.map((subcat, index) => {
+            {(subcategories as SubcategoryItem[]).map((subcat, index) => {
               // ...existing code for men/kids...
               const label = subcat.label.toLowerCase();
               const cleanTokens = Array.from(new Set(label.split(/[^a-z0-9]+/).filter(Boolean)));
