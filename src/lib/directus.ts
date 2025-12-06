@@ -362,7 +362,8 @@ async function _fetchProductsByCategory(categorySlug: string): Promise<Product[]
       params: {
         sort: "sort,name",
         "filter[category][_eq]": categorySlug,
-        "filter[status][_eq]": "published"
+        "filter[status][_eq]": "published",
+        limit: -1,
       },
       timeout: TIMEOUT_DEFAULT,
     });

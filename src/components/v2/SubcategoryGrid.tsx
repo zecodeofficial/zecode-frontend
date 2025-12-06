@@ -14,17 +14,21 @@ async function fetchProductCountForSubcategory(category: string, subcategoryLabe
     const label = subcategoryLabel.toLowerCase();
     const cleanTokens = Array.from(new Set(label.split(/[^a-z0-9]+/).filter(Boolean)));
     function matchesProduct(p: any) {
-      if (p.category !== category) return false;
+      // Case-insensitive check for category
+      if ((p.category || "").toLowerCase() !== category.toLowerCase()) return false;
       const name = (p.name || "").toLowerCase();
       const catLabel = (p.categoryLabel || "").toLowerCase();
       const slug = (p.slug || "").toLowerCase();
+      const subcategory = (p.subcategory || "").toLowerCase();
       const tags = (p.tags || []).map((t: string) => t.toLowerCase());
+
       return cleanTokens.some((tok) => {
         if (!tok) return false;
         const singular = tok.endsWith('s') ? tok.slice(0, -1) : tok;
         if (name.includes(tok) || name.includes(singular)) return true;
         if (catLabel.includes(tok) || catLabel.includes(singular)) return true;
         if (slug.includes(tok) || slug.includes(singular)) return true;
+        if (subcategory.includes(tok) || subcategory.includes(singular)) return true;
         if (tags.some((t: string) => t.includes(tok) || t.includes(singular))) return true;
         return false;
       });
@@ -174,17 +178,22 @@ export default function SubcategoryGrid({ category }: SubcategoryGridProps) {
                     const label = subcat.label.toLowerCase();
                     const cleanTokens = Array.from(new Set(label.split(/[^a-z0-9]+/).filter(Boolean)));
                     function matchesProduct(p: any) {
-                      if (p.category !== category) return false;
+                      // Case-insensitive check for category
+                      if ((p.category || "").toLowerCase() !== category.toLowerCase()) return false;
                       const name = (p.name || "").toLowerCase();
                       const catLabel = (p.categoryLabel || "").toLowerCase();
                       const slug = (p.slug || "").toLowerCase();
+                      const subcategory = (p.subcategory || "").toLowerCase();
+                      const genderCategory = (p.gender_category || "").toLowerCase();
                       const tags = (p.tags || []).map((t: string) => t.toLowerCase());
+
                       return cleanTokens.some((tok) => {
                         if (!tok) return false;
                         const singular = tok.endsWith('s') ? tok.slice(0, -1) : tok;
                         if (name.includes(tok) || name.includes(singular)) return true;
                         if (catLabel.includes(tok) || catLabel.includes(singular)) return true;
                         if (slug.includes(tok) || slug.includes(singular)) return true;
+                        if (subcategory.includes(tok) || subcategory.includes(singular)) return true;
                         if (tags.some((t: string) => t.includes(tok) || t.includes(singular))) return true;
                         return false;
                       });
@@ -192,7 +201,18 @@ export default function SubcategoryGrid({ category }: SubcategoryGridProps) {
                     let products: any[] = [];
                     if (productsByCategory && productsByCategory.length > 0) {
                       products = productsByCategory.filter(matchesProduct).slice(0, 4);
+                      // Debug log to see why products might be missing
                       if (products.length === 0) {
+                        // console.log(`No products found for ${label} in ${category}`, { cleanTokens });
+                      }
+                      if (products.length === 0) {
+                        // Fallback: try relaxed matching if strict match fails?
+                        // For now just keep existing fallback logic
+                        // products = productsByCategory.slice(0, 4); 
+                        // Actually, the previous fallback logic was:
+                        // if filters return nothing, show ANY 4 products from the category.
+                        // This might result in wrong products but at least shows something.
+                        // Let's keep it but maybe it's better to show specific ones.
                         products = productsByCategory.slice(0, 4);
                       }
                     }
@@ -229,21 +249,24 @@ export default function SubcategoryGrid({ category }: SubcategoryGridProps) {
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
             {(subcategories as SubcategoryItem[]).map((subcat, index) => {
-              // ...existing code for men/kids...
               const label = subcat.label.toLowerCase();
               const cleanTokens = Array.from(new Set(label.split(/[^a-z0-9]+/).filter(Boolean)));
               function matchesProduct(p: any) {
-                if (p.category !== category) return false;
+                // Case-insensitive check for category
+                if ((p.category || "").toLowerCase() !== category.toLowerCase()) return false;
                 const name = (p.name || "").toLowerCase();
                 const catLabel = (p.categoryLabel || "").toLowerCase();
                 const slug = (p.slug || "").toLowerCase();
+                const subcategory = (p.subcategory || "").toLowerCase();
                 const tags = (p.tags || []).map((t: string) => t.toLowerCase());
+
                 return cleanTokens.some((tok) => {
                   if (!tok) return false;
                   const singular = tok.endsWith('s') ? tok.slice(0, -1) : tok;
                   if (name.includes(tok) || name.includes(singular)) return true;
                   if (catLabel.includes(tok) || catLabel.includes(singular)) return true;
                   if (slug.includes(tok) || slug.includes(singular)) return true;
+                  if (subcategory.includes(tok) || subcategory.includes(singular)) return true;
                   if (tags.some((t: string) => t.includes(tok) || t.includes(singular))) return true;
                   return false;
                 });
@@ -252,11 +275,13 @@ export default function SubcategoryGrid({ category }: SubcategoryGridProps) {
               if (productsByCategory && productsByCategory.length > 0) {
                 products = productsByCategory.filter(matchesProduct).slice(0, 4);
                 if (products.length === 0) {
+                  // Fallback
                   products = productsByCategory.slice(0, 4);
                 }
               }
               const images = products.flatMap((p) => (p.gallery?.length ? p.gallery : [p.image])).filter(Boolean).map((img) => fileUrl(img) || img).filter(Boolean);
               const imagesToShow = Array.from(new Set(images)).slice(0, 6);
+
               return (
                 <Link
                   key={subcat.href}
