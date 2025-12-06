@@ -120,9 +120,11 @@ export default function SubcategoryGrid({ category }: SubcategoryGridProps) {
             }
           }));
         } else {
-          // For ungrouped subcategories
+          // For ungrouped subcategories, use a type guard
           await Promise.all(subcategories.map(async (subcat) => {
-            counts[subcat.label] = await fetchProductCountForSubcategory(category, subcat.label);
+            if (typeof subcat === 'object' && 'label' in subcat) {
+              counts[subcat.label] = await fetchProductCountForSubcategory(category, subcat.label);
+            }
           }));
         }
         if (mounted) setProductCounts(counts);
