@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react';
 import Link from "next/link";
 import SubcategoryThumbnailSlider from "@/components/SubcategoryThumbnailSlider";
-import { fetchProductsByCategory, fileUrl } from '@/lib/directus';
+import { fetchProductsByGender, fileUrl } from '@/lib/directus';
 
 /**
  * SubcategoryGridV2 - Bold Subcategory Display
@@ -167,8 +167,8 @@ export default function SubcategoryGrid({ category }: SubcategoryGridProps) {
     let mounted = true;
     async function load() {
       try {
-        // Now fetches ALL products for category (limit: -1)
-        const data = await fetchProductsByCategory(category);
+        // Now fetches ALL products for gender (limit: -1)
+        const data = await fetchProductsByGender(category);
         if (mounted) setProductsByCategory(data ?? []);
 
         // Calculate counts locally since we have all data

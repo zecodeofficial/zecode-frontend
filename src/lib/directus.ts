@@ -384,6 +384,37 @@ export const fetchProductsByCategory = typeof window === 'undefined'
   : _fetchProductsByCategory;
 
 /**
+ * fetchProductsByGender - fetch products by gender_category (cached)
+ * This aligns with how listing pages filter products.
+ */
+async function _fetchProductsByGender(gender: string): Promise<Product[] | null> {
+  try {
+    const url = getApiUrl("/items/products");
+    const res = await axios.get(url, {
+      params: {
+        sort: "sort,name",
+        "filter[gender_category][_istarts_with]": gender, // Matches "Women", "Women's", etc.
+        "filter[status][_eq]": "published",
+        limit: -1,
+      },
+      timeout: TIMEOUT_DEFAULT,
+    });
+    return res?.data?.data ?? null;
+  } catch (err: any) {
+    console.error("Directus fetchProductsByGender error:", err.message);
+    return null;
+  }
+}
+
+export const fetchProductsByGender = typeof window === 'undefined'
+  ? (gender: string) => unstable_cache(
+    () => _fetchProductsByGender(gender),
+    [`products-gender-${gender}`],
+    { revalidate: CACHE_PRODUCTS, tags: ['products'] }
+  )()
+  : _fetchProductsByGender;
+
+/**
  * fetchProductsByGenderAndSubcategory - optimized fetch with server-side filtering
  */
 export async function fetchProductsByGenderAndSubcategory(gender: string | null, subcategory: string | string[]): Promise<Product[] | null> {
