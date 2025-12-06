@@ -4,6 +4,35 @@ import { useEffect, useState } from 'react';
 import Link from "next/link";
 import SubcategoryThumbnailSlider from "@/components/SubcategoryThumbnailSlider";
 import { fetchProductsByCategory, fileUrl } from '@/lib/directus';
+// Add a helper to fetch product count for a subcategory
+async function fetchProductCountForSubcategory(category: string, subcategoryLabel: string) {
+  // You may want to adjust this filter to match your Directus schema
+  // For now, we assume products have a 'category' and 'subcategory' field
+  try {
+    const products = await fetchProductsByCategory(category);
+    const label = subcategoryLabel.toLowerCase();
+    const cleanTokens = Array.from(new Set(label.split(/[^a-z0-9]+/).filter(Boolean)));
+    function matchesProduct(p: any) {
+      if (p.category !== category) return false;
+      const name = (p.name || "").toLowerCase();
+      const catLabel = (p.categoryLabel || "").toLowerCase();
+      const slug = (p.slug || "").toLowerCase();
+      const tags = (p.tags || []).map((t: string) => t.toLowerCase());
+      return cleanTokens.some((tok) => {
+        if (!tok) return false;
+        const singular = tok.endsWith('s') ? tok.slice(0, -1) : tok;
+        if (name.includes(tok) || name.includes(singular)) return true;
+        if (catLabel.includes(tok) || catLabel.includes(singular)) return true;
+        if (slug.includes(tok) || slug.includes(singular)) return true;
+        if (tags.some((t: string) => t.includes(tok) || t.includes(singular))) return true;
+        return false;
+      });
+    }
+    return products.filter(matchesProduct).length;
+  } catch {
+    return 0;
+  }
+}
 
 /**
  * SubcategoryGridV2 - Bold Subcategory Display
@@ -51,6 +80,7 @@ export default function SubcategoryGrid({ category }: SubcategoryGridProps) {
   const subcategories = SUBCATEGORIES[category];
   const title = CATEGORY_TITLES[category];
   const [productsByCategory, setProductsByCategory] = useState<any[] | null>(null);
+  const [productCounts, setProductCounts] = useState<{ [key: string]: number }>({});
 
   useEffect(() => {
     let mounted = true;
@@ -58,9 +88,16 @@ export default function SubcategoryGrid({ category }: SubcategoryGridProps) {
       try {
         const data = await fetchProductsByCategory(category);
         if (mounted) setProductsByCategory(data ?? []);
+        // For each subcategory, fetch product count
+        const counts: { [key: string]: number } = {};
+        await Promise.all(subcategories.map(async (subcat) => {
+          counts[subcat.label] = await fetchProductCountForSubcategory(category, subcat.label);
+        }));
+        if (mounted) setProductCounts(counts);
       } catch (e) {
         console.error('Failed to load products for category', category, e);
         if (mounted) setProductsByCategory([]);
+        if (mounted) setProductCounts({});
       }
     }
     load();
@@ -148,6 +185,10 @@ export default function SubcategoryGrid({ category }: SubcategoryGridProps) {
                   >
                     {subcat.label}
                   </h3>
+                  {/* Product Count */}
+                  <span className="block mt-2 text-xs text-white/80 font-semibold">
+                    {productCounts[subcat.label] !== undefined ? `${productCounts[subcat.label]} Products` : ""}
+                  </span>
 
                   {/* Hover CTA */}
                   <div className="absolute bottom-6 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 translate-y-4 group-hover:translate-y-0 transition-all duration-300">
