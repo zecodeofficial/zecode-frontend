@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { fileUrl, fetchProductCounts, fetchProductsByGenderAndSubcategory } from '@/lib/directus';
+import { fileUrl, fetchProductCounts } from '@/lib/directus';
 
 // Map from URL slug to CMS subcategory values
 const SUBCATEGORY_TO_CMS: Record<string, string> = {
@@ -154,33 +154,18 @@ function SubcategoryCard({ title, slug, categorySlug }: SubcategoryCardProps) {
           setProducts(chosen);
         }
 
-        // Fetch ALL matching products to get accurate count (same approach as dresses page)
-        const subcategoryVariations = SLUG_TO_CMS_SUBCATEGORY[slug] || [subcategoryValue];
+        // Fetch actual count separately (without limit)
+        const countParams = new URLSearchParams();
+        countParams.set('aggregate[count]', 'id');
+        countParams.set(`filter[subcategory][_eq]`, subcategoryValue);
+        if (genderFilter) countParams.set(`filter[gender_category][_eq]`, genderFilter);
 
-        const allProducts: any[] = [];
-        for (const variation of subcategoryVariations) {
-          const countParams = new URLSearchParams();
-          countParams.set('limit', '-1'); // Get ALL products
-          countParams.set('fields', 'name,image_url,image');
-          countParams.set(`filter[subcategory][_eq]`, variation);
-          if (genderFilter) countParams.set(`filter[gender_category][_eq]`, genderFilter);
-
-          const response = await fetch(`/api/directus/items/products?${countParams.toString()}`);
-          if (response.ok) {
-            const data = await response.json();
-            if (data?.data) {
-              allProducts.push(...data.data);
-            }
-          }
+        const countResponse = await fetch(`/api/directus/items/products?${countParams.toString()}`);
+        if (countResponse.ok) {
+          const countData = await countResponse.json();
+          const count = countData?.data?.[0]?.count?.id || 0;
+          setProductCount(count);
         }
-
-        // Set the count from the fetched products (same as dresses page: products.length)
-        setProductCount(allProducts.length);
-
-        // For display images, prefer products with images and limit to 10
-        const withImages = allProducts.filter((p: any) => p.image || p.image_url);
-        const chosen = withImages.length > 0 ? withImages.slice(0, 10) : allProducts.slice(0, 10);
-        setProducts(chosen);
       } catch (error) {
         console.error('Error fetching products for subcategory:', slug, error);
       } finally {
