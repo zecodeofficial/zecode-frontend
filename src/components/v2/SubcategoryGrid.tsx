@@ -110,9 +110,21 @@ export default function SubcategoryGrid({ category }: SubcategoryGridProps) {
         if (mounted) setProductsByCategory(data ?? []);
         // For each subcategory, fetch product count
         const counts: { [key: string]: number } = {};
-        await Promise.all(subcategories.map(async (subcat) => {
-          counts[subcat.label] = await fetchProductCountForSubcategory(category, subcat.label);
-        }));
+        if (category === "women") {
+          // For grouped subcategories
+          await Promise.all(subcategories.map(async (groupObj) => {
+            if (groupObj.items) {
+              await Promise.all(groupObj.items.map(async (subcat) => {
+                counts[subcat.label] = await fetchProductCountForSubcategory(category, subcat.label);
+              }));
+            }
+          }));
+        } else {
+          // For ungrouped subcategories
+          await Promise.all(subcategories.map(async (subcat) => {
+            counts[subcat.label] = await fetchProductCountForSubcategory(category, subcat.label);
+          }));
+        }
         if (mounted) setProductCounts(counts);
       } catch (e) {
         console.error('Failed to load products for category', category, e);
