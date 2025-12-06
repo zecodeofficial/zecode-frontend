@@ -61,19 +61,11 @@ export default function HeroSlider({ slides }: HeroSliderProps) {
   // Normalize slides to handle both old format and CMS format
   const baseSlides = slides && slides.length > 0 ? slides : DEFAULT_SLIDES;
 
-  // Ensure Footwear slide is always included
-  const footwearSlide = DEFAULT_SLIDES.find(s => s.link === '/footwear');
-  const hasFootwearSlide = baseSlides.some(s => s.link === '/footwear' || (s as any).cta_link === '/footwear');
-
-  const slidesWithFootwear = hasFootwearSlide ? baseSlides : [...baseSlides, footwearSlide!];
-
-  const normalizedSlides = slidesWithFootwear.map(s => ({
+  // Only use provided slides or default slides
+  const normalizedSlides = baseSlides.map(s => ({
     ...s,
-    // Handle image: use image_url if image is null/empty
     image: s.image || (s as any).image_url || '/hero/hero1.png',
-    // Handle cta: use cta_text if cta is undefined
     cta: s.cta || (s as any).cta_text || 'SHOP NOW',
-    // Handle link: use cta_link if link is undefined
     link: s.link || (s as any).cta_link || '/',
   }));
 
