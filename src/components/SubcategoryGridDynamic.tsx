@@ -154,21 +154,33 @@ function SubcategoryCard({ title, slug, categorySlug }: SubcategoryCardProps) {
           setProducts(chosen);
         }
 
-        // Fetch ALL matching products using the same logic as the dresses page
-        // This matches the approach in /women/[subcategory]/page.tsx
+        // Fetch ALL matching products to get accurate count (same approach as dresses page)
         const subcategoryVariations = SLUG_TO_CMS_SUBCATEGORY[slug] || [subcategoryValue];
 
-        const allProducts = await fetchProductsByGenderAndSubcategory(genderFilter, subcategoryVariations);
+        const allProducts: any[] = [];
+        for (const variation of subcategoryVariations) {
+          const countParams = new URLSearchParams();
+          countParams.set('limit', '-1'); // Get ALL products
+          countParams.set('fields', 'name,image_url,image');
+          countParams.set(`filter[subcategory][_eq]`, variation);
+          if (genderFilter) countParams.set(`filter[gender_category][_eq]`, genderFilter);
+
+          const response = await fetch(`/api/directus/items/products?${countParams.toString()}`);
+          if (response.ok) {
+            const data = await response.json();
+            if (data?.data) {
+              allProducts.push(...data.data);
+            }
+          }
+        }
 
         // Set the count from the fetched products (same as dresses page: products.length)
-        setProductCount(allProducts?.length || 0);
+        setProductCount(allProducts.length);
 
         // For display images, prefer products with images and limit to 10
-        if (allProducts && allProducts.length > 0) {
-          const withImages = allProducts.filter((p: any) => p.image || p.image_url);
-          const chosen = withImages.length > 0 ? withImages.slice(0, 10) : allProducts.slice(0, 10);
-          setProducts(chosen);
-        }
+        const withImages = allProducts.filter((p: any) => p.image || p.image_url);
+        const chosen = withImages.length > 0 ? withImages.slice(0, 10) : allProducts.slice(0, 10);
+        setProducts(chosen);
       } catch (error) {
         console.error('Error fetching products for subcategory:', slug, error);
       } finally {
