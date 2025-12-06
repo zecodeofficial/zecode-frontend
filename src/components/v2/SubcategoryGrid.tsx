@@ -111,12 +111,11 @@ const KIDS_SUB_MAP: Record<string, string | string[]> = {
 // Helper to check strict match
 function isStrictMatch(product: any, category: string, slug: string): boolean {
   // 1. Gender/Category Check
-  // We check 'category' field (which usually holds the slug) OR 'gender_category' if populated.
   const pCat = (product.category || "").toLowerCase();
   const pGender = (product.gender_category || "").toLowerCase();
 
   // 2. Subcategory Check
-  const pSub = product.subcategory; // CMS value e.g. "T-Shirt" OR ["Summer", "T-Shirt"]
+  const pSub = product.subcategory;
   if (!pSub) return false;
 
   let map: Record<string, string | string[]> = {};
@@ -130,14 +129,21 @@ function isStrictMatch(product: any, category: string, slug: string): boolean {
   // Normalize product subcategories to an array of lowercase strings
   const pSubArray = (Array.isArray(pSub) ? pSub : [pSub])
     .filter(Boolean)
-    .map((s: string) => s.toLowerCase());
+    .map((s: string) => s.toLowerCase().trim());
 
   // Normalize valid map values to an array of lowercase strings
   const validArray = (Array.isArray(validValues) ? validValues : [validValues])
-    .map(s => s.toLowerCase());
+    .map(s => s.toLowerCase().trim());
 
   // Check for intersection: Does element in pSubArray exist in validArray?
-  return pSubArray.some(sub => validArray.includes(sub));
+  const isMatch = pSubArray.some(sub => validArray.includes(sub));
+
+  // Debug Log for T-Shirts mismatch or general debugging
+  if (category === 'men' && (slug === 'tshirts' || slug === 'shirts')) {
+    // console.log(`[StrictMatch Debug] ${slug}: Product=${product.name}, Sub=${JSON.stringify(pSubArray)}, Valid=${JSON.stringify(validArray)}, Match=${isMatch}`);
+  }
+
+  return isMatch;
 }
 
 // Helper for fuzzy match (Fallback for images)
@@ -176,6 +182,7 @@ export default function SubcategoryGrid({ category }: SubcategoryGridProps) {
       try {
         // Now fetches ALL products for gender (limit: -1)
         const data = await fetchProductsByGender(category);
+        if (mounted) console.log(`[SubcategoryGrid] Fetched ${data?.length} products for ${category}`);
         if (mounted) setProductsByCategory(data ?? []);
 
         // Calculate counts locally since we have all data
@@ -321,4 +328,3 @@ export default function SubcategoryGrid({ category }: SubcategoryGridProps) {
     </section>
   );
 }
-// Verified fix for syntax error
