@@ -94,60 +94,30 @@ const WOMEN_SUB_MAP: Record<string, string | string[]> = {
   'jackets': ['Jacket', 'Casual Jacket', 'Denim Jacket'],
   'kurtas': ['Kurti', 'Kurta'],
   'ethnic-dresses': ['Kurti', 'Kurta', 'Lehenga'],
-  'palazzos': 'Palazzos',
-  'fusion-tops': 'Fusion Top',
-  'shoes': 'Footwear',
+  const slug = parts[parts.length - 1];
+
+  const count = data.filter(p => isStrictMatch(p, category, slug)).length;
+  counts[item.label] = count;
 };
 
-const KIDS_SUB_MAP: Record<string, string | string[]> = {
-  'boys-tshirts': ['T', 'T-Shirt', 'Classic T-Shirt'],
-  'girls-tops': ['Tops', 'Top', 'Casual Top'],
-  'boys-jeans': ['Bottoms', 'Jeans', 'Slim Jeans'],
-  export default function SubcategoryGrid({ category }: SubcategoryGridProps) {
-    const subcategories = SUBCATEGORIES[category];
-const title = CATEGORY_TITLES[category];
-const [productsByCategory, setProductsByCategory] = useState<any[] | null>(null);
-const [productCounts, setProductCounts] = useState<{ [key: string]: number }>({});
-
-useEffect(() => {
-  let mounted = true;
-  async function load() {
-    try {
-      // Now fetches ALL products for gender (limit: -1)
-      const data = await fetchProductsByGender(category);
-      if (mounted) setProductsByCategory(data ?? []);
-
-      // Calculate counts locally since we have all data
-      if (data) {
-        const counts: { [key: string]: number } = {};
-
-        const processItem = (item: SubcategoryItem) => {
-          // extract slug from href e.g. /men/tshirts -> tshirts
-          const parts = item.href.split('/');
-          const slug = parts[parts.length - 1];
-
-          const count = data.filter(p => isStrictMatch(p, category, slug)).length;
-          counts[item.label] = count;
-        };
-
-        if (category === 'women') {
-          (subcategories as SubcategoryGroup[]).forEach(group => {
-            group.items.forEach(processItem);
-          });
-        } else {
-          (subcategories as SubcategoryItem[]).forEach(processItem);
-        }
-        if (mounted) setProductCounts(counts);
+if (category === 'women') {
+  (subcategories as SubcategoryGroup[]).forEach(group => {
+    group.items.forEach(processItem);
+  });
+} else {
+  (subcategories as SubcategoryItem[]).forEach(processItem);
+}
+if (mounted) setProductCounts(counts);
       }
 
     } catch (e) {
-      console.error('Failed to load products for category', category, e);
-      if (mounted) setProductsByCategory([]);
-      if (mounted) setProductCounts({});
-    }
+  console.error('Failed to load products for category', category, e);
+  if (mounted) setProductsByCategory([]);
+  if (mounted) setProductCounts({});
+}
   }
-  load();
-  return () => { mounted = false; };
+load();
+return () => { mounted = false; };
 }, [category, subcategories]);
 
 // Helper to get products for rendering a specific subcategory card
