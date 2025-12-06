@@ -111,6 +111,62 @@ const CATEGORY_TITLES = {
   kids: "KIDS COLLECTION",
 };
 
+// Maps from listing pages to ensure consistent counts
+const MEN_SUB_MAP: Record<string, string | string[]> = {
+  'tshirts': ['T', 'T-Shirt', 'Classic T-Shirt'],
+  'shirts': ['Shirt', 'Casual Shirt', 'Button-Up Shirt', 'Short Sleeve Shirt'],
+  'jeans': ['Jeans', 'Slim Jeans'],
+  'trousers': 'Trousers',
+  'jackets': ['Jacket', 'Casual Jacket', 'Denim Jacket', 'Varsity Jacket'],
+  'shoes': 'Footwear',
+};
+
+const WOMEN_SUB_MAP: Record<string, string | string[]> = {
+  'tops': ['Top', 'Tops', 'Casual Top', 'Tank Top'],
+  'dresses': ['Dress', 'Dresses', 'Midi Dress', 'Mini Dress', 'Slip Dress'],
+  'jeans': ['Jeans', 'Slim Jeans'],
+  'skirts': 'Skirt',
+  'jackets': ['Jacket', 'Casual Jacket', 'Denim Jacket'],
+  'kurtas': ['Kurti', 'Kurta'],
+  'ethnic-dresses': ['Kurti', 'Kurta', 'Lehenga'],
+  'palazzos': 'Palazzos',
+  'fusion-tops': 'Fusion Top',
+  'shoes': 'Footwear',
+};
+
+const KIDS_SUB_MAP: Record<string, string | string[]> = {
+  'boys-tshirts': ['T', 'T-Shirt', 'Classic T-Shirt'],
+  'girls-tops': ['Tops', 'Top', 'Casual Top'],
+  'boys-jeans': ['Bottoms', 'Jeans', 'Slim Jeans'],
+  'girls-dresses': ['Dresses', 'Dress', 'Midi Dress'],
+  'jackets': ['Jacket', 'Outerwear', 'Casual Jacket', 'Denim Jacket'],
+  'shoes': ['Footwear', 'Flats', 'Flat'],
+};
+
+// Helper to check strict match
+function isStrictMatch(product: any, category: string, slug: string): boolean {
+  // 1. Gender Check
+  const pGender = (product.gender_category || "").toLowerCase();
+  if (pGender !== category) return false;
+
+  // 2. Subcategory Check
+  const pSub = product.subcategory; // CMS value e.g. "T-Shirt"
+  if (!pSub) return false;
+
+  let map: Record<string, string | string[]> = {};
+  if (category === 'men') map = MEN_SUB_MAP;
+  else if (category === 'women') map = WOMEN_SUB_MAP;
+  else if (category === 'kids') map = KIDS_SUB_MAP;
+
+  const validValues = map[slug];
+  if (!validValues) return false; // Unknown slug in map
+
+  if (Array.isArray(validValues)) {
+    return validValues.some(v => v.toLowerCase() === pSub.toLowerCase());
+  }
+  return validValues.toLowerCase() === pSub.toLowerCase();
+}
+
 export default function SubcategoryGrid({ category }: SubcategoryGridProps) {
   const subcategories = SUBCATEGORIES[category];
   const title = CATEGORY_TITLES[category];
@@ -121,24 +177,33 @@ export default function SubcategoryGrid({ category }: SubcategoryGridProps) {
     let mounted = true;
     async function load() {
       try {
+        // Now fetches ALL products for category (limit: -1)
         const data = await fetchProductsByCategory(category);
         if (mounted) setProductsByCategory(data ?? []);
-        // For each subcategory, fetch product count
-        const counts: { [key: string]: number } = {};
-        if (category === "women") {
-          // For grouped subcategories, use a type assertion
-          await Promise.all((subcategories as SubcategoryGroup[]).map(async (groupObj) => {
-            await Promise.all(groupObj.items.map(async (subcat) => {
-              counts[subcat.label] = await fetchProductCountForSubcategory(category, subcat.label);
-            }));
-          }));
-        } else {
-          // For ungrouped subcategories, use a type assertion
-          await Promise.all((subcategories as SubcategoryItem[]).map(async (subcat) => {
-            counts[subcat.label] = await fetchProductCountForSubcategory(category, subcat.label);
-          }));
+
+        // Calculate counts locally since we have all data
+        if (data) {
+          const counts: { [key: string]: number } = {};
+
+          const processItem = (item: SubcategoryItem) => {
+            // extract slug from href e.g. /men/tshirts -> tshirts
+            const parts = item.href.split('/');
+            const slug = parts[parts.length - 1];
+
+            const count = data.filter(p => isStrictMatch(p, category, slug)).length;
+            counts[item.label] = count;
+          };
+
+          if (category === 'women') {
+            (subcategories as SubcategoryGroup[]).forEach(group => {
+              group.items.forEach(processItem);
+            });
+          } else {
+            (subcategories as SubcategoryItem[]).forEach(processItem);
+          }
+          if (mounted) setProductCounts(counts);
         }
-        if (mounted) setProductCounts(counts);
+
       } catch (e) {
         console.error('Failed to load products for category', category, e);
         if (mounted) setProductsByCategory([]);
@@ -147,7 +212,15 @@ export default function SubcategoryGrid({ category }: SubcategoryGridProps) {
     }
     load();
     return () => { mounted = false; };
-  }, [category]);
+  }, [category, subcategories]);
+
+  // Helper to get products for rendering a specific subcategory card
+  const getSubcategoryProducts = (subcatLabel: string, subcatHref: string) => {
+    if (!productsByCategory) return [];
+    const parts = subcatHref.split('/');
+    const slug = parts[parts.length - 1];
+    return productsByCategory.filter(p => isStrictMatch(p, category, slug));
+  };
 
   return (
     <section className="relative bg-black py-20 md:py-32 overflow-hidden">
@@ -175,46 +248,10 @@ export default function SubcategoryGrid({ category }: SubcategoryGridProps) {
                 <h3 className="text-lg md:text-2xl font-bold text-[#C83232] mb-4" style={{ fontFamily: '"DIN Condensed", Impact, sans-serif' }}>{groupObj.group}</h3>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
                   {groupObj.items.map((subcat, index) => {
-                    const label = subcat.label.toLowerCase();
-                    const cleanTokens = Array.from(new Set(label.split(/[^a-z0-9]+/).filter(Boolean)));
-                    function matchesProduct(p: any) {
-                      // Case-insensitive check for category
-                      if ((p.category || "").toLowerCase() !== category.toLowerCase()) return false;
-                      const name = (p.name || "").toLowerCase();
-                      const catLabel = (p.categoryLabel || "").toLowerCase();
-                      const slug = (p.slug || "").toLowerCase();
-                      const subcategory = (p.subcategory || "").toLowerCase();
-                      const genderCategory = (p.gender_category || "").toLowerCase();
-                      const tags = (p.tags || []).map((t: string) => t.toLowerCase());
-
-                      return cleanTokens.some((tok) => {
-                        if (!tok) return false;
-                        const singular = tok.endsWith('s') ? tok.slice(0, -1) : tok;
-                        if (name.includes(tok) || name.includes(singular)) return true;
-                        if (catLabel.includes(tok) || catLabel.includes(singular)) return true;
-                        if (slug.includes(tok) || slug.includes(singular)) return true;
-                        if (subcategory.includes(tok) || subcategory.includes(singular)) return true;
-                        if (tags.some((t: string) => t.includes(tok) || t.includes(singular))) return true;
-                        return false;
-                      });
-                    }
-                    let products: any[] = [];
-                    if (productsByCategory && productsByCategory.length > 0) {
-                      products = productsByCategory.filter(matchesProduct).slice(0, 4);
-                      // Debug log to see why products might be missing
-                      if (products.length === 0) {
-                        // console.log(`No products found for ${label} in ${category}`, { cleanTokens });
-                      }
-                      if (products.length === 0) {
-                        // Fallback: try relaxed matching if strict match fails?
-                        // For now just keep existing fallback logic
-                        // products = productsByCategory.slice(0, 4); 
-                        // Actually, the previous fallback logic was:
-                        // if filters return nothing, show ANY 4 products from the category.
-                        // This might result in wrong products but at least shows something.
-                        // Let's keep it but maybe it's better to show specific ones.
-                        products = productsByCategory.slice(0, 4);
-                      }
+                    let products = getSubcategoryProducts(subcat.label, subcat.href);
+                    // Fallback to generic slice if no strict match found (to avoid empty boxes if map missing)
+                    if (products.length === 0 && productsByCategory) {
+                      // keeping empty is better for debugging than lying.
                     }
                     const images = products.flatMap((p) => (p.gallery?.length ? p.gallery : [p.image])).filter(Boolean).map((img) => fileUrl(img) || img).filter(Boolean);
                     const imagesToShow = Array.from(new Set(images)).slice(0, 6);
@@ -249,36 +286,7 @@ export default function SubcategoryGrid({ category }: SubcategoryGridProps) {
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
             {(subcategories as SubcategoryItem[]).map((subcat, index) => {
-              const label = subcat.label.toLowerCase();
-              const cleanTokens = Array.from(new Set(label.split(/[^a-z0-9]+/).filter(Boolean)));
-              function matchesProduct(p: any) {
-                // Case-insensitive check for category
-                if ((p.category || "").toLowerCase() !== category.toLowerCase()) return false;
-                const name = (p.name || "").toLowerCase();
-                const catLabel = (p.categoryLabel || "").toLowerCase();
-                const slug = (p.slug || "").toLowerCase();
-                const subcategory = (p.subcategory || "").toLowerCase();
-                const tags = (p.tags || []).map((t: string) => t.toLowerCase());
-
-                return cleanTokens.some((tok) => {
-                  if (!tok) return false;
-                  const singular = tok.endsWith('s') ? tok.slice(0, -1) : tok;
-                  if (name.includes(tok) || name.includes(singular)) return true;
-                  if (catLabel.includes(tok) || catLabel.includes(singular)) return true;
-                  if (slug.includes(tok) || slug.includes(singular)) return true;
-                  if (subcategory.includes(tok) || subcategory.includes(singular)) return true;
-                  if (tags.some((t: string) => t.includes(tok) || t.includes(singular))) return true;
-                  return false;
-                });
-              }
-              let products: any[] = [];
-              if (productsByCategory && productsByCategory.length > 0) {
-                products = productsByCategory.filter(matchesProduct).slice(0, 4);
-                if (products.length === 0) {
-                  // Fallback
-                  products = productsByCategory.slice(0, 4);
-                }
-              }
+              let products = getSubcategoryProducts(subcat.label, subcat.href);
               const images = products.flatMap((p) => (p.gallery?.length ? p.gallery : [p.image])).filter(Boolean).map((img) => fileUrl(img) || img).filter(Boolean);
               const imagesToShow = Array.from(new Set(images)).slice(0, 6);
 
