@@ -322,13 +322,6 @@ export default function SubcategoryGrid({ category }: SubcategoryGridProps) {
   );
 }
 
-// If we have products, great!
-if (strictMatches.length > 0) return strictMatches;
-
-// FALLBACK: If strict match fails (e.g. data inconsistency), try fuzzy match to show SOMETHING for thumbnails
-return productsByCategory.filter(p => isFuzzyMatch(p, category, subcatLabel));
-};
-
 return (
   <section className="relative bg-black py-20 md:py-32 overflow-hidden">
     {/* Section Header */}
