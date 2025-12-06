@@ -139,94 +139,7 @@ const KIDS_SUB_MAP: Record<string, string | string[]> = {
   'girls-tops': ['Tops', 'Top', 'Casual Top'],
   'boys-jeans': ['Bottoms', 'Jeans', 'Slim Jeans'],
   'girls-dresses': ['Dresses', 'Dress', 'Midi Dress'],
-  'jackets': ['Jacket', 'Outerwear', 'Casual Jacket', 'Denim Jacket'],
-  'shoes': ['Footwear', 'Flats', 'Flat'],
-};
-
-// Helper to check strict match
-function isStrictMatch(product: any, category: string, slug: string): boolean {
-  // 1. Gender Check
-  const pGender = (product.gender_category || "").toLowerCase();
-  if (pGender !== category) return false;
-
-  // 2. Subcategory Check
-  const pSub = product.subcategory; // CMS value e.g. "T-Shirt"
-  if (!pSub) return false;
-
-  let map: Record<string, string | string[]> = {};
-  if (category === 'men') map = MEN_SUB_MAP;
-  else if (category === 'women') map = WOMEN_SUB_MAP;
-  else if (category === 'kids') map = KIDS_SUB_MAP;
-
-  const validValues = map[slug];
-  if (!validValues) return false; // Unknown slug in map
-
-  if (Array.isArray(validValues)) {
-    return validValues.some(v => v.toLowerCase() === pSub.toLowerCase());
-  }
-  return validValues.toLowerCase() === pSub.toLowerCase();
-}
-
-export default function SubcategoryGrid({ category }: SubcategoryGridProps) {
-  const subcategories = SUBCATEGORIES[category];
-  const title = CATEGORY_TITLES[category];
-  const [productsByCategory, setProductsByCategory] = useState<any[] | null>(null);
-  const [productCounts, setProductCounts] = useState<{ [key: string]: number }>({});
-
-  useEffect(() => {
-    let mounted = true;
-    async function load() {
-      try {
-        // Now fetches ALL products for category (limit: -1)
-        const data = await fetchProductsByCategory(category);
-        if (mounted) setProductsByCategory(data ?? []);
-
-        // Calculate counts locally since we have all data
-        if (data) {
-          const counts: { [key: string]: number } = {};
-
-          const processItem = (item: SubcategoryItem) => {
-            // extract slug from href e.g. /men/tshirts -> tshirts
-            const parts = item.href.split('/');
-            const slug = parts[parts.length - 1];
-
-            const count = data.filter(p => isStrictMatch(p, category, slug)).length;
-            counts[item.label] = count;
-          };
-
-          if (category === 'women') {
-            (subcategories as SubcategoryGroup[]).forEach(group => {
-              group.items.forEach(processItem);
-            });
-          } else {
-            (subcategories as SubcategoryItem[]).forEach(processItem);
-          }
-          if (mounted) setProductCounts(counts);
-        }
-
-      } catch (e) {
-        console.error('Failed to load products for category', category, e);
-        if (mounted) setProductsByCategory([]);
-        if (mounted) setProductCounts({});
-      }
-    }
-    load();
-    return () => { mounted = false; };
-  }, [category, subcategories]);
-
-  // Helper to get products for rendering a specific subcategory card
-  const getSubcategoryProducts = (subcatLabel: string, subcatHref: string) => {
-    if (!productsByCategory) return [];
-    const parts = subcatHref.split('/');
-    const slug = parts[parts.length - 1];
-    return productsByCategory.filter(p => isStrictMatch(p, category, slug));
-  };
-
-  return (
-    <section className="relative bg-black py-20 md:py-32 overflow-hidden">
-      {/* Section Header */}
-      <div className="max-w-[1600px] mx-auto px-6 md:px-16 mb-12 md:mb-16">
-        <div className="text-center">
+        < div className = "text-center" >
           <span className="text-xs tracking-[0.4em] uppercase text-[#C83232] font-semibold mb-3 block">
             BROWSE STYLES
           </span>
@@ -236,60 +149,25 @@ export default function SubcategoryGrid({ category }: SubcategoryGridProps) {
           >
             {title}
           </h2>
-        </div>
-      </div>
+        </div >
+      </div >
 
-      {/* Subcategory Grid */}
-      <div className="max-w-[1600px] mx-auto px-6 md:px-16">
-        {category === "women" ? (
-          <>
-            {(subcategories as SubcategoryGroup[]).map((groupObj) => (
-              <div key={groupObj.group} className="mb-10">
-                <h3 className="text-lg md:text-2xl font-bold text-[#C83232] mb-4" style={{ fontFamily: '"DIN Condensed", Impact, sans-serif' }}>{groupObj.group}</h3>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
-                  {groupObj.items.map((subcat, index) => {
-                    let products = getSubcategoryProducts(subcat.label, subcat.href);
-                    // Fallback to generic slice if no strict match found (to avoid empty boxes if map missing)
-                    if (products.length === 0 && productsByCategory) {
-                      // keeping empty is better for debugging than lying.
-                    }
-                    const images = products.flatMap((p) => (p.gallery?.length ? p.gallery : [p.image])).filter(Boolean).map((img) => fileUrl(img) || img).filter(Boolean);
-                    const imagesToShow = Array.from(new Set(images)).slice(0, 6);
-                    return (
-                      <Link
-                        key={subcat.href}
-                        href={subcat.href}
-                        className="group relative aspect-square overflow-hidden"
-                        style={{ animationDelay: `${index * 0.05}s` }}
-                      >
-                        <div className="absolute inset-0 transition-transform duration-700 group-hover:scale-110">
-                          <SubcategoryThumbnailSlider images={imagesToShow} alt={subcat.label} />
-                          <div className="absolute inset-0 bg-black/40 group-hover:bg-black/60 transition-colors duration-500" />
-                        </div>
-                        <div className="relative z-10 h-full flex flex-col items-center justify-center p-6">
-                          <h3 className="text-xl md:text-2xl lg:text-3xl font-black text-white text-center tracking-tight group-hover:scale-110 transition-transform duration-500" style={{ fontFamily: '"DIN Condensed", Impact, sans-serif' }}>{subcat.label}</h3>
-                          <span className="block mt-2 text-xs text-white/80 font-semibold">{productCounts[subcat.label] !== undefined ? `${productCounts[subcat.label]} Products` : ""}</span>
-                          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 translate-y-4 group-hover:translate-y-0 transition-all duration-300">
-                            <span className="inline-flex items-center gap-2 text-[#C83232] text-xs font-bold tracking-[0.15em] uppercase">EXPLORE<svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" /></svg></span>
-                          </div>
-                          <div className="absolute inset-2 border border-white/0 group-hover:border-white/20 transition-colors duration-500" />
-                        </div>
-                        <div className="absolute top-3 left-3 w-6 h-6 border-l-2 border-t-2 border-white/0 group-hover:border-[#C83232] transition-colors duration-500" />
-                        <div className="absolute bottom-3 right-3 w-6 h-6 border-r-2 border-b-2 border-white/0 group-hover:border-[#C83232] transition-colors duration-500" />
-                      </Link>
-                    );
-                  })}
-                </div>
-              </div>
-            ))}
-          </>
-        ) : (
+  {/* Subcategory Grid */ }
+  < div className = "max-w-[1600px] mx-auto px-6 md:px-16" >
+    { category === "women" ? (
+    <>
+      {(subcategories as SubcategoryGroup[]).map((groupObj) => (
+        <div key={groupObj.group} className="mb-10">
+          <h3 className="text-lg md:text-2xl font-bold text-[#C83232] mb-4" style={{ fontFamily: '"DIN Condensed", Impact, sans-serif' }}>{groupObj.group}</h3>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
-            {(subcategories as SubcategoryItem[]).map((subcat, index) => {
+            {groupObj.items.map((subcat, index) => {
               let products = getSubcategoryProducts(subcat.label, subcat.href);
+              // Fallback to generic slice if no strict match found (to avoid empty boxes if map missing)
+              if (products.length === 0 && productsByCategory) {
+                // keeping empty is better for debugging than lying.
+              }
               const images = products.flatMap((p) => (p.gallery?.length ? p.gallery : [p.image])).filter(Boolean).map((img) => fileUrl(img) || img).filter(Boolean);
               const imagesToShow = Array.from(new Set(images)).slice(0, 6);
-
               return (
                 <Link
                   key={subcat.href}
@@ -315,8 +193,43 @@ export default function SubcategoryGrid({ category }: SubcategoryGridProps) {
               );
             })}
           </div>
-        )}
-      </div>
-    </section>
+        </div>
+      ))}
+    </>
+  ) : (
+    <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
+      {(subcategories as SubcategoryItem[]).map((subcat, index) => {
+        let products = getSubcategoryProducts(subcat.label, subcat.href);
+        const images = products.flatMap((p) => (p.gallery?.length ? p.gallery : [p.image])).filter(Boolean).map((img) => fileUrl(img) || img).filter(Boolean);
+        const imagesToShow = Array.from(new Set(images)).slice(0, 6);
+
+        return (
+          <Link
+            key={subcat.href}
+            href={subcat.href}
+            className="group relative aspect-square overflow-hidden"
+            style={{ animationDelay: `${index * 0.05}s` }}
+          >
+            <div className="absolute inset-0 transition-transform duration-700 group-hover:scale-110">
+              <SubcategoryThumbnailSlider images={imagesToShow} alt={subcat.label} />
+              <div className="absolute inset-0 bg-black/40 group-hover:bg-black/60 transition-colors duration-500" />
+            </div>
+            <div className="relative z-10 h-full flex flex-col items-center justify-center p-6">
+              <h3 className="text-xl md:text-2xl lg:text-3xl font-black text-white text-center tracking-tight group-hover:scale-110 transition-transform duration-500" style={{ fontFamily: '"DIN Condensed", Impact, sans-serif' }}>{subcat.label}</h3>
+              <span className="block mt-2 text-xs text-white/80 font-semibold">{productCounts[subcat.label] !== undefined ? `${productCounts[subcat.label]} Products` : ""}</span>
+              <div className="absolute bottom-6 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 translate-y-4 group-hover:translate-y-0 transition-all duration-300">
+                <span className="inline-flex items-center gap-2 text-[#C83232] text-xs font-bold tracking-[0.15em] uppercase">EXPLORE<svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" /></svg></span>
+              </div>
+              <div className="absolute inset-2 border border-white/0 group-hover:border-white/20 transition-colors duration-500" />
+            </div>
+            <div className="absolute top-3 left-3 w-6 h-6 border-l-2 border-t-2 border-white/0 group-hover:border-[#C83232] transition-colors duration-500" />
+            <div className="absolute bottom-3 right-3 w-6 h-6 border-r-2 border-b-2 border-white/0 group-hover:border-[#C83232] transition-colors duration-500" />
+          </Link>
+        );
+      })}
+    </div>
+  )}
+      </div >
+    </section >
   );
 }
