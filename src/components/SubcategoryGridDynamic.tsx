@@ -87,7 +87,9 @@ function SubcategoryCard({ title, slug, categorySlug }: SubcategoryCardProps) {
           // Search for common footwear types
           subcategoryValue = 'Flats'; // Start with Flats as primary
         } else {
-          subcategoryValue = SUBCATEGORY_TO_CMS[slug] || slug;
+          // Use the first value from SLUG_TO_CMS_SUBCATEGORY for better matching
+          const variations = SLUG_TO_CMS_SUBCATEGORY[slug];
+          subcategoryValue = variations ? variations[0] : (SUBCATEGORY_TO_CMS[slug] || slug);
           // Add gender filter based on category slug to avoid cross-gender matches
           genderFilter =
             categorySlug === 'men' ? 'Men' : categorySlug === 'women' ? 'Women' : categorySlug === 'kids' ? 'Kids' : null;
