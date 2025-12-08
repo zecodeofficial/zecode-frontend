@@ -32,9 +32,16 @@ export async function GET(
     const url = `${DIRECTUS_URL}/${pathString}${searchParams ? `?${searchParams}` : ''}`;
 
     const cacheDuration = getCacheDuration(pathString);
+    const directusToken = process.env.DIRECTUS_API_TOKEN;
+
+    const headers: HeadersInit = {};
+    if (directusToken) {
+      headers['Authorization'] = `Bearer ${directusToken}`;
+    }
 
     const response = await fetch(url, {
       next: { revalidate: cacheDuration },
+      headers,
     });
 
     const contentType = response.headers.get('content-type');
