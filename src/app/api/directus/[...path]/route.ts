@@ -37,6 +37,9 @@ export async function GET(
     const headers: HeadersInit = {};
     if (directusToken) {
       headers['Authorization'] = `Bearer ${directusToken}`;
+      console.log('[Proxy] Using Directus token for:', pathString);
+    } else {
+      console.error('[Proxy] DIRECTUS_API_TOKEN not found for:', pathString);
     }
 
     const response = await fetch(url, {
