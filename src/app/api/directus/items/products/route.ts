@@ -2,14 +2,22 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(request: NextRequest) {
   const directusUrl = process.env.NEXT_PUBLIC_DIRECTUS_URL || 'http://localhost:8055';
+  const directusToken = process.env.DIRECTUS_API_TOKEN;
   const url = new URL(request.url);
   const searchParams = url.searchParams;
 
   try {
+    const headers: HeadersInit = {
+      'Content-Type': 'application/json',
+    };
+
+    // Add authorization if token is available
+    if (directusToken) {
+      headers['Authorization'] = `Bearer ${directusToken}`;
+    }
+
     const response = await fetch(`${directusUrl}/items/products?${searchParams}`, {
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers,
     });
 
     if (!response.ok) {
