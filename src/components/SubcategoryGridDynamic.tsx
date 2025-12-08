@@ -177,6 +177,8 @@ export default function SubcategoryGridDynamic({ title, categorySlug, subcategor
   // Map of subcategory slug -> { products, count }
   const [subcategoryData, setSubcategoryData] = useState<Map<string, { products: any[]; count: number }>>(new Map());
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
 
   useEffect(() => {
     async function fetchAllSubcategories() {
@@ -213,6 +215,18 @@ export default function SubcategoryGridDynamic({ title, categorySlug, subcategor
         if (response.ok) {
           const data = await response.json();
           products = data.data || [];
+          setError(null); // Clear any previous errors
+        } else {
+          const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+          const errorMsg = errorData.details || errorData.error || 'Failed to load products';
+          console.error('API Error:', errorMsg);
+          setError(errorMsg);
+
+          // Auto-retry on server overload (max 2 retries)
+          if (errorMsg.includes('Under pressure') && retryCount < 2) {
+            console.log(`Retrying... (attempt ${retryCount + 1}/2)`);
+            setTimeout(() => setRetryCount(prev => prev + 1), 2000); // Retry after 2 seconds
+          }
         }
 
         // 3. Group products by subcategory slug
@@ -260,7 +274,7 @@ export default function SubcategoryGridDynamic({ title, categorySlug, subcategor
     }
 
     fetchAllSubcategories();
-  }, [categorySlug, subcategories]);
+  }, [categorySlug, subcategories, retryCount]); // Re-run on retry
 
   return (
     <section className="py-12 px-4 md:px-8 bg-white">
@@ -269,12 +283,26 @@ export default function SubcategoryGridDynamic({ title, categorySlug, subcategor
           Shop {title}&apos;s Collection
         </h2>
 
+        {/* Error message */}
+        {error && !isLoading && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-6 mb-6 text-center">
+            <p className="text-red-800 font-semibold mb-2">Unable to load products</p>
+            <p className="text-red-600 text-sm mb-3">{error}</p>
+            <button
+              onClick={() => setRetryCount(prev => prev + 1)}
+              className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors"
+            >
+              Retry
+            </button>
+          </div>
+        )}
+
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
           {subcategories.map((subcategory) => {
             const data = subcategoryData.get(subcategory.slug) || { products: [], count: 0 };
 
-            // Optional: Hide if 0 products found (after loading)
-            if (!isLoading && data.count === 0) return null;
+            // Show loading skeletons or hide if no products (but only if no error)
+            if (!isLoading && data.count === 0 && !error) return null;
 
             return (
               <SubcategoryCard
