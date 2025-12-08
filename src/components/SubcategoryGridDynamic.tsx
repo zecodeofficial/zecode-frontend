@@ -93,51 +93,31 @@ function SubcategoryCard({ title, slug, categorySlug }: SubcategoryCardProps) {
             categorySlug === 'men' ? 'Men' : categorySlug === 'women' ? 'Women' : categorySlug === 'kids' ? 'Kids' : null;
         }
 
-        // Try fetching images using ALL subcategory variations (same as count logic)
-        const imageVariations = SLUG_TO_CMS_SUBCATEGORY[slug] || [subcategoryValue];
+        // OPTIMIZED: Fetch both images AND count in a single API call
+        // Use _in filter to query all subcategory variations at once
+        const variations = SLUG_TO_CMS_SUBCATEGORY[slug] || [subcategoryValue];
 
-        let data: any = null;
-        for (const variation of imageVariations) {
-          const params = new URLSearchParams();
-          params.set('limit', '10');
-          params.set('fields', 'name,image_url,image');
-          params.set(`filter[subcategory][_eq]`, variation);
-          if (genderFilter) params.set(`filter[gender_category][_eq]`, genderFilter);
+        const params = new URLSearchParams();
+        params.set('limit', '10');
+        params.set('fields', 'name,image_url,image');
+        params.set('filter[subcategory][_in]', variations.join(','));
+        if (genderFilter) params.set('filter[gender_category][_eq]', genderFilter);
+        params.set('meta', 'total_count'); // Get total count in same response
 
-          const response = await fetch(`/api/directus/items/products?${params.toString()}`);
-          if (response.ok) {
-            data = await response.json();
-            if (data?.data?.length > 0) break; // Found products, stop searching
+        const response = await fetch(`/api/directus/items/products?${params.toString()}`);
+        if (response.ok) {
+          const data = await response.json();
+
+          // Set products from response
+          if (data?.data?.length > 0) {
+            const withImages = data.data.filter((p: any) => p.image || p.image_url);
+            const chosen = withImages.length > 0 ? withImages : data.data;
+            setProducts(chosen);
           }
+
+          // Set count from meta (total count of ALL matching products, not just the 10 returned)
+          setProductCount(data?.meta?.total_count || 0);
         }
-
-        // Set products if we found any
-        if (data && data.data && data.data.length > 0) {
-          // Prefer products that have images defined
-          const withImages = data.data.filter((p: any) => p.image || p.image_url);
-          const chosen = withImages.length > 0 ? withImages : data.data;
-          setProducts(chosen);
-        }
-
-        // Fetch actual count for ALL subcategory variations
-        // For example, for 'tshirts' count: 'T', 'T-Shirt', 'tshirts', etc.
-        const subcategoryVariations = SLUG_TO_CMS_SUBCATEGORY[slug] || [subcategoryValue];
-
-        let totalCount = 0;
-        for (const variation of subcategoryVariations) {
-          const countParams = new URLSearchParams();
-          countParams.set('aggregate[count]', 'id');
-          countParams.set(`filter[subcategory][_eq]`, variation);
-          if (genderFilter) countParams.set(`filter[gender_category][_eq]`, genderFilter);
-
-          const countResponse = await fetch(`/api/directus/items/products?${countParams.toString()}`);
-          if (countResponse.ok) {
-            const countData = await countResponse.json();
-            const count = Number(countData?.data?.[0]?.count?.id) || 0;
-            totalCount += count;
-          }
-        }
-        setProductCount(totalCount);
       } catch (error) {
         console.error('Error fetching products for subcategory:', slug, error);
       } finally {
