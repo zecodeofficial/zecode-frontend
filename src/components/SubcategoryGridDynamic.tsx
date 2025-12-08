@@ -198,8 +198,6 @@ export default function SubcategoryGridDynamic({ title, categorySlug, subcategor
         params.set('limit', '500');
         params.set('fields', 'name,image_url,image,subcategory,gender_category');
         params.set('filter[subcategory][_in]', allVariations.join(','));
-        // Sort by date to get newest items
-        params.set('sort', '-date_created');
 
         // Note: We can't strictly filter by gender here if it's mixed (e.g. footwear page might show men & women)
         // But if categorySlug matches a gender, we can pre-filter
@@ -268,6 +266,7 @@ export default function SubcategoryGridDynamic({ title, categorySlug, subcategor
         setSubcategoryData(grouped);
       } catch (error) {
         console.error('Error fetching batch products:', error);
+        setError(error instanceof Error ? error.message : 'Network error occurred');
       } finally {
         setIsLoading(false);
       }
