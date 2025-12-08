@@ -87,68 +87,31 @@ function SubcategoryCard({ title, slug, categorySlug }: SubcategoryCardProps) {
           // Search for common footwear types
           subcategoryValue = 'Flats'; // Start with Flats as primary
         } else {
-          // Use the first value from SLUG_TO_CMS_SUBCATEGORY for better matching
-          const variations = SLUG_TO_CMS_SUBCATEGORY[slug];
-          subcategoryValue = variations ? variations[0] : (SUBCATEGORY_TO_CMS[slug] || slug);
+          subcategoryValue = SUBCATEGORY_TO_CMS[slug] || slug;
           // Add gender filter based on category slug to avoid cross-gender matches
           genderFilter =
             categorySlug === 'men' ? 'Men' : categorySlug === 'women' ? 'Women' : categorySlug === 'kids' ? 'Kids' : null;
         }
 
-        // Try primary query with subcategory + gender
-        const params = new URLSearchParams();
-        params.set('limit', '10');
-        params.set('fields', 'name,image_url,image');
-        params.set(`filter[subcategory][_eq]`, subcategoryValue);
-        if (genderFilter) params.set(`filter[gender_category][_eq]`, genderFilter);
+        // Try fetching images using ALL subcategory variations (same as count logic)
+        const imageVariations = SLUG_TO_CMS_SUBCATEGORY[slug] || [subcategoryValue];
 
-        let response = await fetch(`/api/directus/items/products?${params.toString()}`);
-        let data = response.ok ? await response.json() : null;
+        let data: any = null;
+        for (const variation of imageVariations) {
+          const params = new URLSearchParams();
+          params.set('limit', '10');
+          params.set('fields', 'name,image_url,image');
+          params.set(`filter[subcategory][_eq]`, variation);
+          if (genderFilter) params.set(`filter[gender_category][_eq]`, genderFilter);
 
-        // If no products returned, try footwear variants for footwear category
-        if (isFootwearCategory && (!data || !data.data || data.data.length === 0)) {
-          const footwearTypes = ['Mules', 'Heels', 'Sandals', 'Boots', 'Sneakers', 'Loafers'];
-
-          for (const footwearType of footwearTypes) {
-            const altParams = new URLSearchParams();
-            altParams.set('limit', '10');
-            altParams.set('fields', 'name,image_url,image');
-            altParams.set(`filter[subcategory][_eq]`, footwearType);
-            if (genderFilter) altParams.set(`filter[gender_category][_eq]`, genderFilter);
-
-            response = await fetch(`/api/directus/items/products?${altParams.toString()}`);
-            if (response.ok) {
-              data = await response.json();
-              if (data?.data?.length > 0) break;
-            }
+          const response = await fetch(`/api/directus/items/products?${params.toString()}`);
+          if (response.ok) {
+            data = await response.json();
+            if (data?.data?.length > 0) break; // Found products, stop searching
           }
         }
 
-        // If no products returned, try a few fallback variants (hyphen/space/singular/plural)
-        if (!isFootwearCategory && (!data || !data.data || data.data.length === 0)) {
-          const variants = [
-            subcategoryValue.replace(/\s+/g, '-'),
-            subcategoryValue.replace(/-/g, ' '),
-            subcategoryValue.replace(/s$/i, ''),
-            (subcategoryValue + 's'),
-          ];
-
-          for (const variant of variants) {
-            if (!variant) continue;
-            const altParams = new URLSearchParams();
-            altParams.set('limit', '10');
-            altParams.set('fields', 'name,image_url,image');
-            altParams.set(`filter[subcategory][_eq]`, variant);
-            if (genderFilter) altParams.set(`filter[gender_category][_eq]`, genderFilter);
-
-            response = await fetch(`/api/directus/items/products?${altParams.toString()}`);
-            if (response.ok) {
-              data = await response.json();
-              if (data?.data?.length > 0) break;
-            }
-          }
-        }
-
+        // Set products if we found any
         if (data && data.data && data.data.length > 0) {
           // Prefer products that have images defined
           const withImages = data.data.filter((p: any) => p.image || p.image_url);
