@@ -60,7 +60,7 @@ const SUBCATEGORY_MAP: Record<string, string | string[]> = {
   'pants': ['Pants', 'Slim Pants', 'Cargo Pants'],
   'skirts': 'Skirt',
   'jackets': ['Jacket', 'Casual Jacket', 'Denim Jacket'],
-  'shoes': 'Footwear',
+  'shoes': ['Footwear', 'Flats', 'Sneakers', 'Formal Shoes', 'Heels', 'Mules', 'Sandals', 'Boots', 'Loafers'],
   'accessories': 'Accessories',
   'tshirts': ['T', 'T-Shirt', 'Classic T-Shirt'],
   'shirts': ['Shirt', 'Casual Shirt'],
