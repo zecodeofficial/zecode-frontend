@@ -22,13 +22,24 @@ export async function GET(request: NextRequest) {
 
     const response = await fetch(`${directusUrl}/items/products?${searchParams}`, {
       headers,
+      cache: 'no-store', // Disable caching
     });
 
+    console.log('[API] Directus response status:', response.status);
+    console.log('[API] Directus URL:', `${directusUrl}/items/products?${searchParams}`);
+
     if (!response.ok) {
-      return NextResponse.json({ error: 'Failed to fetch products' }, { status: response.status });
+      const errorText = await response.text();
+      console.error('[API] Directus error response:', errorText);
+      return NextResponse.json({
+        error: 'Failed to fetch products',
+        details: errorText,
+        status: response.status
+      }, { status: response.status });
     }
 
     const data = await response.json();
+    console.log('[API] Successfully fetched', data.data?.length || 0, 'products');
     return NextResponse.json(data);
   } catch (error) {
     console.error('API route error:', error);
