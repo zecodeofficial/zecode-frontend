@@ -41,20 +41,40 @@ function buildMatchingGallery(product: any): string[] {
 }
 
 const SUBCATEGORY_MAP: Record<string, string | string[]> = {
+  // URL-friendly slugs matching Kids page
+  'tshirt': 'T-Shirt',
+  'jeans': 'Jeans',
+  'slim-jeans': 'Slim Jeans',
+  'dress': 'Dress',
+  'midi-dress': 'Midi Dress',
+  'casual-top': 'Casual Top',
+  'hoodie': 'Hoodie',
+  'tracksuit': 'Tracksuit',
+  'sweatshirt': 'Sweatshirt',
+  'pants': 'Pants',
+  'slim-pants': 'Slim Pants',
+  'jumpsuit': 'Jumpsuit',
+  'kurta': 'Kurta',
+  'casual-jacket': 'Casual Jacket',
+  'denim-jacket': 'Denim Jacket',
+  'varsity-jacket': 'Varsity Jacket',
+  'flats': 'Flats',
+
+  // Legacy plural forms for backwards compatibility
   'tshirts': ['T', 'T-Shirt', 'Classic T-Shirt'],
   'shirts': ['Shirt', 'Casual Shirt'],
-  'pants': ['Pants', 'Slim Pants', 'Cargo Pants'],
-  'jeans': ['Jeans', 'Slim Jeans'],
   'dresses': ['Dress', 'Dresses', 'Midi Dress', 'Mini Dress'],
   'jackets': ['Jacket', 'Outerwear', 'Casual Jacket', 'Denim Jacket'],
   'shoes': ['Footwear', 'Flats', 'Flat'],
   'accessories': 'Accessories',
-  // Kids-specific slugs
+
+  // Boys/Girls specific slugs
   'boys-tshirts': ['T', 'T-Shirt', 'Classic T-Shirt'],
   'girls-tops': ['Tops', 'Top', 'Casual Top'],
   'boys-jeans': ['Bottoms', 'Jeans', 'Slim Jeans'],
   'girls-dresses': ['Dresses', 'Dress', 'Midi Dress'],
-  // Additional kids subcategories
+
+  // Additional generic subcategories
   'tops': ['Tops', 'Top', 'Casual Top'],
   'bottoms': 'Bottoms',
   'tracksuits': 'Tracksuit',
@@ -64,20 +84,40 @@ const SUBCATEGORY_MAP: Record<string, string | string[]> = {
 };
 
 const TITLE_MAP: Record<string, string> = {
+  // URL-friendly slugs matching Kids page
+  'tshirt': 'T-Shirts',
+  'jeans': 'Jeans',
+  'slim-jeans': 'Slim Jeans',
+  'dress': 'Dresses',
+  'midi-dress': 'Midi Dresses',
+  'casual-top': 'Casual Tops',
+  'hoodie': 'Hoodies',
+  'tracksuit': 'Tracksuits',
+  'sweatshirt': 'Sweatshirts',
+  'pants': 'Pants',
+  'slim-pants': 'Slim Pants',
+  'jumpsuit': 'Jumpsuits',
+  'kurta': 'Kurtas',
+  'casual-jacket': 'Casual Jackets',
+  'denim-jacket': 'Denim Jackets',
+  'varsity-jacket': 'Varsity Jackets',
+  'flats': 'Flats',
+
+  // Legacy plural forms
   'tshirts': 'T-Shirts',
   'shirts': 'Shirts',
-  'pants': 'Pants',
-  'jeans': 'Jeans',
   'dresses': 'Dresses',
   'jackets': 'Jackets',
   'shoes': 'Shoes',
   'accessories': 'Accessories',
-  // Kids-specific slugs
+
+  // Boys/Girls specific slugs
   'boys-tshirts': "Boys' T-Shirts",
   'girls-tops': "Girls' Tops",
   'boys-jeans': "Boys' Jeans",
   'girls-dresses': "Girls' Dresses",
-  // Additional kids subcategories
+
+  // Additional generic subcategories
   'tops': 'Tops',
   'bottoms': 'Bottoms',
   'tracksuits': 'Tracksuits',
