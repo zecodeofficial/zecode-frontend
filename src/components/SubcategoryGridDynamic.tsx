@@ -168,7 +168,7 @@ function SubcategoryCard({ title, slug, categorySlug }: SubcategoryCardProps) {
           const countResponse = await fetch(`/api/directus/items/products?${countParams.toString()}`);
           if (countResponse.ok) {
             const countData = await countResponse.json();
-            const count = countData?.data?.[0]?.count?.id || 0;
+            const count = Number(countData?.data?.[0]?.count?.id) || 0;
             totalCount += count;
           }
         }
