@@ -6,25 +6,12 @@ import { fetchHeroSlides } from "@/lib/directus";
 // Use ISR - revalidate every 5 minutes
 export const revalidate = 300;
 
-// Define subcategories for Kids - using URL-friendly slugs
+// Define subcategories for Kids - matching header menu
 const KIDS_SUBCATEGORIES = [
-  { title: "T-Shirts", slug: "tshirt" },
-  { title: "Jeans", slug: "jeans" },
-  { title: "Slim Jeans", slug: "slim-jeans" },
-  { title: "Dresses", slug: "dress" },
-  { title: "Midi Dresses", slug: "midi-dress" },
-  { title: "Casual Tops", slug: "casual-top" },
-  { title: "Hoodies", slug: "hoodie" },
-  { title: "Tracksuits", slug: "tracksuit" },
-  { title: "Sweatshirts", slug: "sweatshirt" },
-  { title: "Pants", slug: "pants" },
-  { title: "Slim Pants", slug: "slim-pants" },
-  { title: "Jumpsuits", slug: "jumpsuit" },
-  { title: "Kurtas", slug: "kurta" },
-  { title: "Casual Jackets", slug: "casual-jacket" },
-  { title: "Denim Jackets", slug: "denim-jacket" },
-  { title: "Varsity Jackets", slug: "varsity-jacket" },
-  { title: "Flats", slug: "flats" },
+  { title: "Boys T-Shirts", slug: "boys-tshirts" },
+  { title: "Girls Tops", slug: "girls-tops" },
+  { title: "Boys Jeans", slug: "boys-jeans" },
+  { title: "Girls Dresses", slug: "girls-dresses" },
 ];
 
 // Define specific slide for Kids' category
