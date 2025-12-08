@@ -33,25 +33,25 @@ const SUBCATEGORY_TO_CMS: Record<string, string> = {
 
 // Mapping from URL slugs to normalized CMS subcategory values for matching
 const SLUG_TO_CMS_SUBCATEGORY: Record<string, string[]> = {
-  // Men
-  'tshirts': ['t', 'tshirt', 't-shirt', 'tshirts'],
-  'shirts': ['shirt', 'shirts', 'casual shirt'],
-  'jeans': ['jean', 'jeans'],
-  'trousers': ['trouser', 'trousers', 'pants', 'pant'],
-  'jackets': ['jacket', 'jackets', 'outerwear'],
-  'shoes': ['shoe', 'shoes', 'flats', 'flat', 'formal shoes', 'sneakers'],
-  // Women
-  'tops': ['top', 'tops'],
-  'dresses': ['dress', 'dresses'],
-  'skirts': ['skirt', 'skirts'],
+  // Men - MUST match exact capitalization in Directus
+  'tshirts': ['T', 'T-Shirt', 'Classic T-Shirt'],
+  'shirts': ['Shirt', 'Casual Shirt', 'Button-Up Shirt', 'Short Sleeve Shirt'],
+  'jeans': ['Jeans', 'Slim Jeans'],
+  'trousers': ['Trousers', 'Pants', 'Slim Pants', 'Cargo Pants'],
+  'jackets': ['Jacket', 'Casual Jacket', 'Denim Jacket', 'Varsity Jacket'],
+  'shoes': ['Footwear', 'Flats', 'Sneakers', 'Formal Shoes'],
+  // Women - MUST match exact capitalization in Directus
+  'tops': ['Top', 'Tops', 'Casual Top', 'Tank Top'],
+  'dresses': ['Dress', 'Dresses', 'Midi Dress', 'Mini Dress', 'Slip Dress'],
+  'skirts': ['Skirt', 'Skirts'],
   // Kids - special mappings
-  'boys-tshirts': ['t', 'tshirt', 't-shirt'],
-  'girls-tops': ['top', 'tops'],
-  'boys-jeans': ['bottom', 'bottoms', 'jean', 'jeans'],
-  'girls-dresses': ['dress', 'dresses'],
-  // Footwear - gender-based subcategories (check footwear types for each gender)
-  'men': ['flats', 'flat', 'mules', 'mule', 'sneakers', 'sneaker', 'boots', 'boot', 'loafers', 'loafer', 'sandals', 'sandal'],
-  'women': ['flats', 'flat', 'mules', 'mule', 'heels', 'heel', 'sandals', 'sandal', 'boots', 'boot', 'sneakers', 'sneaker'],
+  'boys-tshirts': ['T', 'T-Shirt'],
+  'girls-tops': ['Top', 'Tops'],
+  'boys-jeans': ['Bottoms', 'Jeans'],
+  'girls-dresses': ['Dress', 'Dresses'],
+  // Footwear - gender-based subcategories
+  'men': ['Flats', 'Mules', 'Sneakers', 'Boots', 'Loafers', 'Sandals'],
+  'women': ['Flats', 'Mules', 'Heels', 'Sandals', 'Boots', 'Sneakers'],
 };
 
 // Normalize subcategory for matching
