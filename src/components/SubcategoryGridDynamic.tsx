@@ -21,6 +21,7 @@ const SUBCATEGORY_TO_CMS: Record<string, string> = {
   'skirts': 'Skirt',
   'outerwear': 'Jacket',
   'shorts': 'Shorts',
+  'ethnic-wear': 'Ethnic Wear',
   // Kids-specific slugs (matching header menu)
   'boys-tshirts': 'T-Shirt',
   'girls-tops': 'Top',
@@ -39,11 +40,11 @@ const SLUG_TO_CMS_SUBCATEGORY: Record<string, string[]> = {
   'jeans': ['Jeans', 'Slim Jeans'],
   'trousers': ['Trousers', 'Pants', 'Slim Pants', 'Cargo Pants'],
   'jackets': ['Jacket', 'Casual Jacket', 'Denim Jacket', 'Varsity Jacket'],
-  'shoes': ['Footwear', 'Flats', 'Sneakers', 'Formal Shoes'],
   // Women - MUST match exact capitalization in Directus
   'tops': ['Top', 'Tops', 'Casual Top', 'Tank Top'],
   'dresses': ['Dress', 'Dresses', 'Midi Dress', 'Mini Dress', 'Slip Dress'],
   'skirts': ['Skirt', 'Skirts'],
+  'shoes': ['Footwear', 'Flats', 'Sneakers', 'Formal Shoes', 'Heels', 'Mules', 'Sandals', 'Boots', 'Loafers'],
   // Kids - matching header menu (4 subcategories)
   'boys-tshirts': ['T-Shirt', 'T', 'Tshirt'],
   'girls-tops': ['Top', 'Tops', 'Casual Top'],
@@ -52,6 +53,8 @@ const SLUG_TO_CMS_SUBCATEGORY: Record<string, string[]> = {
   // Footwear - gender-based subcategories
   'men': ['Flats', 'Mules', 'Sneakers', 'Boots', 'Loafers', 'Sandals'],
   'women': ['Flats', 'Mules', 'Heels', 'Sandals', 'Boots', 'Sneakers'],
+  'shorts': ['Shorts', 'Short'],
+  'ethnic-wear': ['Kurti', 'Kurta', 'Lehenga', 'Suit Set', 'Ethnic Dress'],
 };
 
 // Normalize subcategory for matching
@@ -169,11 +172,13 @@ interface SubcategoryGridDynamicProps {
     title: string;
     slug: string;
   }>;
+  variant?: 'default' | 'section'; // Visual styling variant
+  showDivider?: boolean; // Show decorative divider above section
 }
 
 
 
-export default function SubcategoryGridDynamic({ title, categorySlug, subcategories }: SubcategoryGridDynamicProps) {
+export default function SubcategoryGridDynamic({ title, categorySlug, subcategories, variant = 'default', showDivider = false }: SubcategoryGridDynamicProps) {
   // Map of subcategory slug -> { products, count }
   const [subcategoryData, setSubcategoryData] = useState<Map<string, { products: any[]; count: number }>>(new Map());
   const [isLoading, setIsLoading] = useState(true);
@@ -276,11 +281,35 @@ export default function SubcategoryGridDynamic({ title, categorySlug, subcategor
   }, [categorySlug, subcategories, retryCount]); // Re-run on retry
 
   return (
-    <section className="py-12 px-4 md:px-8 bg-white">
+    <section className={`py-12 px-4 md:px-8 ${variant === 'section' ? 'bg-gray-50' : 'bg-white'}`}>
+      {/* Optional decorative divider */}
+      {showDivider && (
+        <div className="max-w-7xl mx-auto mb-12">
+          <div className="flex items-center gap-4">
+            <div className="flex-1 h-px bg-gradient-to-r from-transparent via-gray-300 to-gray-300"></div>
+            <div className="w-2 h-2 rounded-full bg-[#C83232]"></div>
+            <div className="flex-1 h-px bg-gradient-to-l from-transparent via-gray-300 to-gray-300"></div>
+          </div>
+        </div>
+      )}
+
       <div className="max-w-7xl mx-auto">
-        <h2 className="text-3xl font-bold text-center mb-8 text-gray-900">
-          Shop {title}&apos;s Collection
-        </h2>
+        {/* Enhanced section header */}
+        <div className="text-center mb-10">
+          {variant === 'section' && (
+            <div className="inline-flex items-center gap-2 mb-3">
+              <div className="w-8 h-px bg-[#C83232]"></div>
+              <span className="text-xs font-bold tracking-[0.2em] text-[#C83232] uppercase">Collection</span>
+              <div className="w-8 h-px bg-[#C83232]"></div>
+            </div>
+          )}
+          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">
+            {title}
+          </h2>
+          {variant === 'section' && (
+            <div className="w-20 h-1 bg-gradient-to-r from-[#C83232] to-[#e63946] mx-auto rounded-full"></div>
+          )}
+        </div>
 
         {/* Error message */}
         {error && !isLoading && (

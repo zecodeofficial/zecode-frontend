@@ -10,13 +10,23 @@ import { fetchHeroSlides } from "@/lib/directus";
 // Use ISR - revalidate every 5 minutes
 export const revalidate = 300;
 
-// Define subcategories for Women
-const WOMEN_SUBCATEGORIES = [
+// 1. Western Wear Subcategories
+const WESTERN_SUBCATEGORIES = [
   { title: "TOPS", slug: "tops" },
   { title: "DRESSES", slug: "dresses" },
   { title: "JEANS", slug: "jeans" },
   { title: "SKIRTS", slug: "skirts" },
   { title: "JACKETS", slug: "jackets" },
+  { title: "SHORTS", slug: "shorts" },
+];
+
+// 2. Ethnic Fusion Subcategories
+const ETHNIC_SUBCATEGORIES = [
+  { title: "ETHNIC FUSION", slug: "ethnic-wear" },
+];
+
+// 3. Shoes Subcategories
+const SHOES_SUBCATEGORIES = [
   { title: "SHOES", slug: "shoes" },
 ];
 
@@ -36,10 +46,31 @@ export default function WomenPage() {
   return (
     <div style={{ minHeight: "100%", backgroundColor: "#ffffff" }}>
       <HeroSlider slides={WOMEN_SLIDE} />
+
+      {/* 1. Western Wear Section */}
       <SubcategoryGridDynamic
-        title="Women"
+        title="Western Wear"
         categorySlug="women"
-        subcategories={WOMEN_SUBCATEGORIES}
+        subcategories={WESTERN_SUBCATEGORIES}
+        variant="section"
+      />
+
+      {/* 2. Ethnic Fusion Section */}
+      <SubcategoryGridDynamic
+        title="Ethnic Fusion"
+        categorySlug="women"
+        subcategories={ETHNIC_SUBCATEGORIES}
+        variant="section"
+        showDivider={true}
+      />
+
+      {/* 3. Shoes Section */}
+      <SubcategoryGridDynamic
+        title="Shoes"
+        categorySlug="women"
+        subcategories={SHOES_SUBCATEGORIES}
+        variant="section"
+        showDivider={true}
       />
     </div>
   );
