@@ -64,69 +64,15 @@ interface SubcategoryCardProps {
   title: string;
   slug: string;
   categorySlug: string;
+  products: Array<{ image_url?: string; image?: string; name: string; subcategory?: string; gender_category?: string }>;
+  productCount: number;
+  isLoading: boolean;
 }
 
-function SubcategoryCard({ title, slug, categorySlug }: SubcategoryCardProps) {
-  const [products, setProducts] = useState<Array<{ image_url?: string; image?: string; name: string }>>([]);
-  const [productCount, setProductCount] = useState<number>(0);
+function SubcategoryCard({ title, slug, categorySlug, products, productCount, isLoading }: SubcategoryCardProps) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    async function fetchProductImages() {
-      try {
-        // Special handling for Footwear category - slug is gender (men/women)
-        const isFootwearCategory = categorySlug === 'footwear';
-
-        let genderFilter: string | null = null;
-        let subcategoryValue: string;
-
-        if (isFootwearCategory) {
-          // For footwear, the slug IS the gender, and we filter by footwear subcategories
-          genderFilter = slug === 'men' ? 'Men' : slug === 'women' ? 'Women' : null;
-          // Search for common footwear types
-          subcategoryValue = 'Flats'; // Start with Flats as primary
-        } else {
-          subcategoryValue = SUBCATEGORY_TO_CMS[slug] || slug;
-          // Add gender filter based on category slug to avoid cross-gender matches
-          genderFilter =
-            categorySlug === 'men' ? 'Men' : categorySlug === 'women' ? 'Women' : categorySlug === 'kids' ? 'Kids' : null;
-        }
-
-        // OPTIMIZED: Fetch both images AND count in a single API call
-        // Use _in filter to query all subcategory variations at once
-        const variations = SLUG_TO_CMS_SUBCATEGORY[slug] || [subcategoryValue];
-
-        const params = new URLSearchParams();
-        params.set('limit', '10');
-        params.set('fields', 'name,image_url,image');
-        params.set('filter[subcategory][_in]', variations.join(','));
-        if (genderFilter) params.set('filter[gender_category][_eq]', genderFilter);
-        params.set('meta', 'total_count'); // Get total count in same response
-
-        const response = await fetch(`/api/directus/items/products?${params.toString()}`);
-        if (response.ok) {
-          const data = await response.json();
-
-          // Set products from response
-          if (data?.data?.length > 0) {
-            const withImages = data.data.filter((p: any) => p.image || p.image_url);
-            const chosen = withImages.length > 0 ? withImages : data.data;
-            setProducts(chosen);
-          }
-
-          // Set count from meta (total count of ALL matching products, not just the 10 returned)
-          setProductCount(data?.meta?.total_count || 0);
-        }
-      } catch (error) {
-        console.error('Error fetching products for subcategory:', slug, error);
-      } finally {
-        setIsLoading(false);
-      }
-    }
-
-    fetchProductImages();
-  }, [slug, categorySlug]);
+  // Removed internal fetching logic - data now passed via props
 
   // Image cycling effect
   useEffect(() => {
@@ -225,118 +171,96 @@ interface SubcategoryGridDynamicProps {
   }>;
 }
 
+
+
 export default function SubcategoryGridDynamic({ title, categorySlug, subcategories }: SubcategoryGridDynamicProps) {
-  const [filteredSubcategories, setFilteredSubcategories] = useState<Array<{ title: string; slug: string }>>([]);
+  // Map of subcategory slug -> { products, count }
+  const [subcategoryData, setSubcategoryData] = useState<Map<string, { products: any[]; count: number }>>(new Map());
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    async function filterByProductCounts() {
+    async function fetchAllSubcategories() {
       try {
-        const counts = await fetchProductCounts();
+        // 1. Collect all variations for all visible subcategories
+        const allVariations: string[] = [];
+        subcategories.forEach(subcat => {
+          // Use first value logic or mapping
+          const variations = SLUG_TO_CMS_SUBCATEGORY[subcat.slug] || [subcat.slug];
+          allVariations.push(...variations);
+        });
 
-        if (!counts || counts.length === 0) {
-          // If no counts, show all subcategories
-          setFilteredSubcategories(subcategories);
-          setIsLoading(false);
-          return;
+        // 2. Prepare batch API call
+        const params = new URLSearchParams();
+        // Fetch enough products to cover images for all subcategories (e.g. 10 per subcat * 20 subcats = 200)
+        // We use a safe limit of 500 to be sure
+        params.set('limit', '500');
+        params.set('fields', 'name,image_url,image,subcategory,gender_category');
+        params.set('filter[subcategory][_in]', allVariations.join(','));
+        // Sort by date to get newest items
+        params.set('sort', '-date_created');
+
+        // Note: We can't strictly filter by gender here if it's mixed (e.g. footwear page might show men & women)
+        // But if categorySlug matches a gender, we can pre-filter
+        if (['men', 'women', 'kids'].includes(categorySlug.toLowerCase())) {
+          // Basic gender mapping, might need more robust logic if API values differ
+          const genderMap: Record<string, string> = { 'men': 'Men', 'women': 'Women', 'kids': 'Kids' };
+          const genderVal = genderMap[categorySlug.toLowerCase()];
+          if (genderVal) params.set('filter[gender_category][_eq]', genderVal);
         }
 
-        // Build a map of gender||normalizedSub -> count
-        const countsByGenderSub = new Map<string, number>();
-        counts.forEach((c) => {
-          const count = c.count || 0;
-          if (count <= 0) return;
+        const response = await fetch(`/api/directus/items/products?${params.toString()}`);
+        let products: any[] = [];
+        if (response.ok) {
+          const data = await response.json();
+          products = data.data || [];
+        }
 
-          // Gender normalization: check if starts with the category slug (e.g. "men's" starts with "men")
-          // or if the category slug is contained in the gender string
-          const rawGender = (c.gender_category || "").toString().toLowerCase();
-          const sub = normalizeSub(c.subcategory || "");
+        // 3. Group products by subcategory slug
+        const grouped = new Map();
+        subcategories.forEach(subcat => {
+          const variations = SLUG_TO_CMS_SUBCATEGORY[subcat.slug] || [subcat.slug];
 
-          // Store with raw gender for now, we'll fuzzy match in hasProducts
-          const key = `${rawGender}||${sub}`;
-          countsByGenderSub.set(key, (countsByGenderSub.get(key) || 0) + count);
-        });
+          // Filter products matching this subcategory's variations
+          // AND matching the gender logic
+          const matchingProducts = products.filter(p => {
+            // Check subcategory match
+            if (!variations.includes(p.subcategory)) return false;
 
-        // Helper to check if a subcategory has products
-        const hasProducts = (categorySlug: string, slug: string) => {
-          // Special case for footwear: slug is the gender (men/women)
-          if (categorySlug === 'footwear') {
-            const gender = slug.toLowerCase(); // 'men' or 'women'
-            const footwearMappings = SLUG_TO_CMS_SUBCATEGORY[slug] || ['flats', 'mules', 'heels', 'sandals', 'boots', 'sneakers'];
-            return footwearMappings.some(cmsVal => {
-              const key = `${gender}||${cmsVal}`;
-              return (countsByGenderSub.get(key) || 0) > 0;
-            });
-          }
-
-          // Normal case: categorySlug is the gender
-          const targetGender = categorySlug.toLowerCase();
-          const cmsMappings = SLUG_TO_CMS_SUBCATEGORY[slug] || [normalizeSub(slug)];
-
-          return cmsMappings.some(cmsVal => {
-            // Check all keys in the map to find matching gender and subcategory
-            for (const [key, count] of countsByGenderSub.entries()) {
-              const [keyGender, keySub] = key.split('||');
-
-              // Gender match: target "men" matches "men's", "men", "mens", etc.
-              const genderMatch = keyGender.includes(targetGender) || targetGender.includes(keyGender);
-
-              // Subcategory match
-              const subMatch = keySub === normalizeSub(cmsVal);
-
-              if (genderMatch && subMatch && count > 0) return true;
+            // Check gender match (refining the query filter above)
+            const pGender = p.gender_category;
+            if (categorySlug === 'footwear') {
+              // Footwear page has subcategories like 'men', 'women'
+              if (subcat.slug === 'men' && pGender !== 'Men') return false;
+              if (subcat.slug === 'women' && pGender !== 'Women') return false;
+            } else {
+              // Parent pages: ensure strictly matching gender
+              if (categorySlug === 'men' && pGender !== 'Men') return false;
+              if (categorySlug === 'women' && pGender !== 'Women') return false;
+              if (categorySlug === 'kids' && pGender !== 'Kids') return false;
             }
-            return false;
+            return true;
           });
-        };
 
-        // Filter subcategories to only those with products > 0 for this category
-        const filtered = subcategories.filter((subcat) => {
-          return hasProducts(categorySlug, subcat.slug);
+          // For display, prefer items with images
+          const withImages = matchingProducts.filter((p: any) => p.image || p.image_url);
+          const displayProducts = withImages.length > 0 ? withImages : matchingProducts;
+
+          grouped.set(subcat.slug, {
+            products: displayProducts.slice(0, 10), // Keep first 10 for carousel
+            count: matchingProducts.length // Total count in this batch
+          });
         });
 
-        setFilteredSubcategories(filtered);
+        setSubcategoryData(grouped);
       } catch (error) {
-        console.error('Error fetching product counts:', error);
-        // On error, show all subcategories
-        setFilteredSubcategories(subcategories);
+        console.error('Error fetching batch products:', error);
       } finally {
         setIsLoading(false);
       }
     }
 
-    filterByProductCounts();
+    fetchAllSubcategories();
   }, [categorySlug, subcategories]);
-
-  if (isLoading) {
-    return (
-      <section className="py-12 px-4 md:px-8 bg-white">
-        <div className="max-w-7xl mx-auto">
-          <h2 className="text-3xl font-bold text-center mb-8 text-gray-900">
-            Shop {title}&apos;s Collection
-          </h2>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
-            {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="aspect-[3/4] bg-gray-200 rounded-lg animate-pulse" />
-            ))}
-          </div>
-        </div>
-      </section>
-    );
-  }
-
-  if (filteredSubcategories.length === 0) {
-    return (
-      <section className="py-12 px-4 md:px-8 bg-white">
-        <div className="max-w-7xl mx-auto">
-          <h2 className="text-3xl font-bold text-center mb-8 text-gray-900">
-            Shop {title}&apos;s Collection
-          </h2>
-          <p className="text-center text-gray-500">No products available in this category.</p>
-        </div>
-      </section>
-    );
-  }
 
   return (
     <section className="py-12 px-4 md:px-8 bg-white">
@@ -346,14 +270,24 @@ export default function SubcategoryGridDynamic({ title, categorySlug, subcategor
         </h2>
 
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
-          {filteredSubcategories.map((subcategory) => (
-            <SubcategoryCard
-              key={subcategory.slug}
-              title={subcategory.title}
-              slug={subcategory.slug}
-              categorySlug={categorySlug}
-            />
-          ))}
+          {subcategories.map((subcategory) => {
+            const data = subcategoryData.get(subcategory.slug) || { products: [], count: 0 };
+
+            // Optional: Hide if 0 products found (after loading)
+            if (!isLoading && data.count === 0) return null;
+
+            return (
+              <SubcategoryCard
+                key={subcategory.slug}
+                title={subcategory.title}
+                slug={subcategory.slug}
+                categorySlug={categorySlug}
+                products={data.products}
+                productCount={data.count}
+                isLoading={isLoading}
+              />
+            );
+          })}
         </div>
       </div>
     </section>
