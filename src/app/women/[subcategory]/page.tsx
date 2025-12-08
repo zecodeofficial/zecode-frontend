@@ -3,6 +3,9 @@ import ProductCard from "@/components/ProductCard";
 import ProductDetailContent from "@/components/ProductDetailContent";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { Metadata } from "next";
+import { SUBCATEGORY_DESCRIPTIONS } from "@/data/subcategory-descriptions";
+import DescriptionText from "@/components/DescriptionText";
 
 // Force dynamic rendering to prevent build-time API calls
 export const dynamic = 'force-dynamic';
@@ -136,6 +139,21 @@ interface PageProps {
   params: Promise<{ subcategory: string }>;
 }
 
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { subcategory } = await params;
+  const displayTitle = TITLE_MAP[subcategory] || subcategory;
+  const description = SUBCATEGORY_DESCRIPTIONS.women[subcategory] || '';
+
+  return {
+    title: `Women's ${displayTitle} | Zecode`,
+    description: description.substring(0, 160),
+    openGraph: {
+      title: `Women's ${displayTitle} | Zecode`,
+      description: description.substring(0, 160),
+    }
+  };
+}
+
 export default async function WomenSubcategoryPage({ params }: PageProps) {
   const { subcategory } = await params;
 
@@ -176,6 +194,9 @@ export default async function WomenSubcategoryPage({ params }: PageProps) {
             <p className="text-pink-200">{products.length} products found</p>
           </div>
         </div>
+
+        {/* Description Section */}
+        <DescriptionText text={SUBCATEGORY_DESCRIPTIONS.women[subcategory]} />
 
         <div className="max-w-7xl mx-auto px-4 py-12">
           {products.length > 0 ? (

@@ -3,6 +3,9 @@ import ProductCard from "@/components/ProductCard";
 import ProductDetailContent from "@/components/ProductDetailContent";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { Metadata } from "next";
+import { SUBCATEGORY_DESCRIPTIONS } from "@/data/subcategory-descriptions";
+import DescriptionText from "@/components/DescriptionText";
 
 // Force dynamic rendering to prevent build-time API calls
 export const dynamic = 'force-dynamic';
@@ -150,6 +153,21 @@ interface PageProps {
   params: Promise<{ subcategory: string }>;
 }
 
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { subcategory } = await params;
+  const displayTitle = TITLE_MAP[subcategory] || subcategory;
+  const description = SUBCATEGORY_DESCRIPTIONS.kids[subcategory] || '';
+
+  return {
+    title: `Kids' ${displayTitle} | Zecode`,
+    description: description.substring(0, 160),
+    openGraph: {
+      title: `Kids' ${displayTitle} | Zecode`,
+      description: description.substring(0, 160),
+    }
+  };
+}
+
 export default async function KidsSubcategoryPage({ params }: PageProps) {
   const { subcategory } = await params;
 
@@ -186,10 +204,13 @@ export default async function KidsSubcategoryPage({ params }: PageProps) {
 
         <div className="py-8 bg-gradient-to-r from-blue-600 to-purple-600">
           <div className="max-w-7xl mx-auto px-4 text-center">
-            <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">Kids' {displayTitle}</h1>
+            <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">Kids&apos; {displayTitle}</h1>
             <p className="text-blue-200">{products.length} products found</p>
           </div>
         </div>
+
+        {/* Description Section */}
+        <DescriptionText text={SUBCATEGORY_DESCRIPTIONS.kids[subcategory]} />
 
         <div className="max-w-7xl mx-auto px-4 py-12">
           {products.length > 0 ? (
