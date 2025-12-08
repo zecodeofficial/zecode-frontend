@@ -35,12 +35,13 @@ export async function GET(
     const directusToken = process.env.DIRECTUS_API_TOKEN;
 
     const headers: HeadersInit = {};
-    if (directusToken) {
-      headers['Authorization'] = `Bearer ${directusToken}`;
-      console.log('[Proxy] Using Directus token for:', pathString);
-    } else {
-      console.error('[Proxy] DIRECTUS_API_TOKEN not found for:', pathString);
-    }
+    // TEMPORARILY DISABLED: Testing if public access works without token
+    // if (directusToken) {
+    //   headers['Authorization'] = `Bearer ${directusToken}`;
+    //   console.log('[Proxy] Using Directus token for:', pathString);
+    // } else {
+    //   console.error('[Proxy] DIRECTUS_API_TOKEN not found for:', pathString);
+    // }
 
     const response = await fetch(url, {
       next: { revalidate: cacheDuration },

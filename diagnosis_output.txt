@@ -1,0 +1,96 @@
+Fetching all Men's products from Directus...
+
+Total Men's products found: 97
+
+Products grouped by subcategory:
+
+
+Backpack: 2 products
+  Sample products:
+    - Men's Grey Casual Graphic Print Backpack (gender: Men)
+    - Men's Beige Casual Backpack (gender: Men)
+
+Hoodie: 3 products
+  Sample products:
+    - Men's Black Streetwear Color-block Print Hoodie (gender: Men)
+    - Men's Beige Casual Hoodie (gender: Men)
+    - Men's White Casual Graphic Print Hoodie (gender: Men)
+
+Jacket: 9 products
+  Sample products:
+    - Men's Black Casual Jacket (gender: Men)
+    - Men's Black Casual Jacket (gender: Men)
+    - Men's Dark Casual Jacket (gender: Men)
+
+Jeans: 19 products
+  Sample products:
+    - Men's Blue Casual Jeans (gender: Men)
+    - Men's Dark Casual Jeans (gender: Men)
+    - Men's Dark Casual Jeans (gender: Men)
+
+Pants: 19 products
+  Sample products:
+    - Men's Black Casual Pants (gender: Men)
+    - Men's Black Casual Pants (gender: Men)
+    - Men's Dark Casual Pants (gender: Men)
+
+Shirt: 11 products
+  Sample products:
+    - Men's Medium Streetwear Shirt (gender: Men)
+    - Men's Light Casual Shirt (gender: Men)
+    - Men's Maroon Casual Shirt (gender: Men)
+
+Short: 7 products
+  Sample products:
+    - Men's White Casual Graphic Print Short (gender: Men)
+    - Men's Black Casual Graphic Print Short (gender: Men)
+    - Men's Khaki Casual Graphic Print Short (gender: Men)
+
+Shorts: 2 products
+  Sample products:
+    - Men's Dark Casual Shorts (gender: Men)
+    - Men's Beige Casual Shorts (gender: Men)
+
+Sweatshirt: 1 products
+  Sample products:
+    - Men's Black Casual Graphic Print Sweatshirt (gender: Men)
+
+T: 21 products
+  Sample products:
+    - Men's Black Casual Graphic Print T-Shirt (gender: Men)
+    - Men's Black Casual Graphic Print T-Shirt (gender: Men)
+    - Men's Beige Casual T-Shirt (gender: Men)
+
+T-Shirt: 3 products
+  Sample products:
+    - Men's Black Streetwear Graphic Print T-Shirt (gender: Men)
+    - Men's Dusty Streetwear Graphic Print T-Shirt (gender: Men)
+    - Men's Washed Streetwear Graphic Print T-Shirt (gender: Men)
+
+
+=== T-SHIRTS ANALYSIS ===
+Products matching T-shirt mappings: 24
+  - Men's Black Casual Graphic Print T-Shirt (subcategory: "T", gender: Men)
+  - Men's Black Streetwear Graphic Print T-Shirt (subcategory: "T-Shirt", gender: Men)
+  - Men's Black Casual Graphic Print T-Shirt (subcategory: "T", gender: Men)
+  - Men's Beige Casual T-Shirt (subcategory: "T", gender: Men)
+  - Men's Green Casual T-Shirt (subcategory: "T", gender: Men)
+  - Men's Orange Casual Graphic Print T-Shirt (subcategory: "T", gender: Men)
+  - Men's Brown Casual Graphic Print T-Shirt (subcategory: "T", gender: Men)
+  - Men's Teal Casual T-Shirt (subcategory: "T", gender: Men)
+  - Men's White Casual Graphic Print T-Shirt (subcategory: "T", gender: Men)
+  - Men's Black Casual T-Shirt (subcategory: "T", gender: Men)
+  - Men's White Casual Graphic Print T-Shirt (subcategory: "T", gender: Men)
+  - Men's Grey Casual Graphic Print T-Shirt (subcategory: "T", gender: Men)
+  - Men's White Casual Graphic Print T-Shirt (subcategory: "T", gender: Men)
+  - Men's Orange Casual Graphic Print T-Shirt (subcategory: "T", gender: Men)
+  - Men's Dark Casual Graphic Print T-Shirt (subcategory: "T", gender: Men)
+  - Men's Orange Casual Graphic Print T-Shirt (subcategory: "T", gender: Men)
+  - Men's White Casual Striped Print T-Shirt (subcategory: "T", gender: Men)
+  - Men's Light Casual Graphic Print T-Shirt (subcategory: "T", gender: Men)
+  - Men's Blue Casual T-Shirt (subcategory: "T", gender: Men)
+  - Men's Dusty Streetwear Graphic Print T-Shirt (subcategory: "T-Shirt", gender: Men)
+  - Men's Washed Streetwear Graphic Print T-Shirt (subcategory: "T-Shirt", gender: Men)
+  - Men's Off white Casual Graphic Print T-Shirt (subcategory: "T", gender: Men)
+  - Men's Dark Casual Graphic Print T-Shirt (subcategory: "T", gender: Men)
+  - Men's Dark Casual Graphic Print T-Shirt (subcategory: "T", gender: Men)
