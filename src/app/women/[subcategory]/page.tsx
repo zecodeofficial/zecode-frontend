@@ -22,7 +22,8 @@ function getSessionId(imagePath: string | null | undefined): string | null {
 }
 
 /**
- * Build gallery with model images - prioritize matching session ID
+ * Build gallery with model images - STRICT matching to ensure all images match product
+ * Only includes model images that have the same photo session ID as the main product image
  */
 function buildMatchingGallery(product: any): string[] {
   const mainImage = product.image || product.image_url;
@@ -31,37 +32,27 @@ function buildMatchingGallery(product: any): string[] {
   // Start with the main product image
   const gallery: string[] = [mainImage].filter(Boolean);
 
-  // Add model images - prioritize session ID matches
-  const modelImages = [
-    product.model_image_1,
-    product.model_image_2,
-    product.model_image_3,
-  ].filter(Boolean);
+  // Only add model images if they match the same photo session
+  // This ensures ALL images on the product page show the same outfit/product
+  if (mainSessionId) {
+    const modelImages = [
+      product.model_image_1,
+      product.model_image_2,
+      product.model_image_3,
+    ].filter(Boolean);
 
-  // First, collect images that match the session ID
-  const matchingSessionImages: string[] = [];
-  const cloudinaryImages: string[] = [];
+    for (const modelImg of modelImages) {
+      const modelSessionId = getSessionId(modelImg);
 
-  for (const modelImg of modelImages) {
-    const modelSessionId = getSessionId(modelImg);
-    const isCloudinaryImage = modelImg.includes('cloudinary.com');
-    const isMatchingSession = mainSessionId && modelSessionId && mainSessionId === modelSessionId;
-
-    if (isMatchingSession) {
-      matchingSessionImages.push(modelImg);
-    } else if (isCloudinaryImage) {
-      cloudinaryImages.push(modelImg);
+      // STRICT: Only include if session IDs match exactly
+      if (modelSessionId && mainSessionId === modelSessionId) {
+        gallery.push(modelImg);
+      }
     }
   }
 
-  // If we have session-matched images, use only those
-  // Otherwise, use Cloudinary images (AI-generated)
-  if (matchingSessionImages.length > 0) {
-    gallery.push(...matchingSessionImages);
-  } else if (cloudinaryImages.length > 0) {
-    gallery.push(...cloudinaryImages);
-  }
-
+  // If no session ID or no matching images, just show the main product image
+  // This prevents showing mismatched AI-generated or unrelated images
   return gallery;
 }
 
