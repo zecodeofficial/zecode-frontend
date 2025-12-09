@@ -45,10 +45,10 @@ export async function GET(request: NextRequest) {
       data.data.forEach((product: any) => {
         // 1. Dark Blue Top -> Kurta
         if (product.id === 45) {
-          product.name = "Women's Indigo Printed Cotton Kurta";
-          product.slug = "womens-indigo-printed-cotton-kurta";
+          product.name = "Women's Dark Blue Graphic Print Kurta";
+          product.slug = "womens-dark-blue-graphic-print-kurta";
           product.subcategory = "Kurta";
-          product.description = "Experience the perfect blend of tradition and comfort with this Indigo Printed Cotton Kurta. Crafted from breathable fabric, multiple prints add a contemporary touch to the classic silhouette. Ideal for casual outings or workwear.";
+          product.description = "Elegant Dark Blue Kurta featuring contemporary graphic prints. Crafted from soft, breathable fabric, this piece perfectly blends traditional silhouette with modern design. Ideal for casual wear or light festive occasions.";
         }
         // 2. Purple Jacket -> Active Hoodie
         if (product.id === 54) {
