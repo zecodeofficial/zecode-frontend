@@ -20,12 +20,17 @@ const WESTERN_SUBCATEGORIES = [
   { title: "SHORTS", slug: "shorts" },
 ];
 
-// 2. Ethnic Fusion Subcategories
+// 2. Activewear Subcategories
+const ACTIVEWEAR_SUBCATEGORIES = [
+  { title: "ACTIVEWEAR", slug: "activewear" },
+];
+
+// 3. Ethnic Fusion Subcategories
 const ETHNIC_SUBCATEGORIES = [
   { title: "ETHNIC FUSION", slug: "ethnic-wear" },
 ];
 
-// 3. Shoes Subcategories
+// 4. Shoes Subcategories
 const SHOES_SUBCATEGORIES = [
   { title: "SHOES", slug: "shoes" },
 ];
@@ -55,7 +60,16 @@ export default function WomenPage() {
         variant="section"
       />
 
-      {/* 2. Ethnic Fusion Section */}
+      {/* 2. Activewear Section */}
+      <SubcategoryGridDynamic
+        title="Activewear"
+        categorySlug="women"
+        subcategories={ACTIVEWEAR_SUBCATEGORIES}
+        variant="section"
+        showDivider={true}
+      />
+
+      {/* 3. Ethnic Fusion Section */}
       <SubcategoryGridDynamic
         title="Ethnic Fusion"
         categorySlug="women"
@@ -64,7 +78,7 @@ export default function WomenPage() {
         showDivider={true}
       />
 
-      {/* 3. Shoes Section */}
+      {/* 4. Shoes Section */}
       <SubcategoryGridDynamic
         title="Shoes"
         categorySlug="women"

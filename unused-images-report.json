@@ -1,0 +1,207 @@
+{
+  "timestamp": "2025-12-09T05:55:51.673Z",
+  "summary": {
+    "total_cloudinary": 500,
+    "used": 470,
+    "unused": 30,
+    "savings_mb": "8.47"
+  },
+  "unused_images": [
+    {
+      "public_id": "zecode/brand/logo",
+      "url": "https://res.cloudinary.com/ds8llatku/image/upload/v1764598981/zecode/brand/logo.jpg",
+      "size_kb": "24.56"
+    },
+    {
+      "public_id": "zecode/brand/logo-full",
+      "url": "https://res.cloudinary.com/ds8llatku/image/upload/v1764598981/zecode/brand/logo-full.png",
+      "size_kb": "5.68"
+    },
+    {
+      "public_id": "zecode/brand/logo-mark",
+      "url": "https://res.cloudinary.com/ds8llatku/image/upload/v1764598981/zecode/brand/logo-mark.png",
+      "size_kb": "3.52"
+    },
+    {
+      "public_id": "zecode/brand/logo-tagline",
+      "url": "https://res.cloudinary.com/ds8llatku/image/upload/v1764598981/zecode/brand/logo-tagline.jpg",
+      "size_kb": "39.41"
+    },
+    {
+      "public_id": "zecode/categories/footwear",
+      "url": "https://res.cloudinary.com/ds8llatku/image/upload/v1764661021/zecode/categories/footwear.png",
+      "size_kb": "753.85"
+    },
+    {
+      "public_id": "zecode/categories/footwear_collage",
+      "url": "https://res.cloudinary.com/ds8llatku/image/upload/v1764661320/zecode/categories/footwear_collage.jpg",
+      "size_kb": "124.26"
+    },
+    {
+      "public_id": "zecode/categories/kids",
+      "url": "https://res.cloudinary.com/ds8llatku/image/upload/v1764655931/zecode/categories/kids.jpg",
+      "size_kb": "145.21"
+    },
+    {
+      "public_id": "zecode/categories/women",
+      "url": "https://res.cloudinary.com/ds8llatku/image/upload/v1764655931/zecode/categories/women.jpg",
+      "size_kb": "180.21"
+    },
+    {
+      "public_id": "zecode/hero/hero1",
+      "url": "https://res.cloudinary.com/ds8llatku/image/upload/v1764655935/zecode/hero/hero1.jpg",
+      "size_kb": "169.26"
+    },
+    {
+      "public_id": "zecode/model-poses/Kidss_Black_Casual_Graphic_Print_Dress_casual_lifestyle",
+      "url": "https://res.cloudinary.com/ds8llatku/image/upload/v1764851105/zecode/model-poses/Kidss_Black_Casual_Graphic_Print_Dress_casual_lifestyle.jpg",
+      "size_kb": "443.60"
+    },
+    {
+      "public_id": "zecode/model-poses/Kidss_Black_Casual_Graphic_Print_Dress_front_standing",
+      "url": "https://res.cloudinary.com/ds8llatku/image/upload/v1764851104/zecode/model-poses/Kidss_Black_Casual_Graphic_Print_Dress_front_standing.jpg",
+      "size_kb": "518.13"
+    },
+    {
+      "public_id": "zecode/model-poses/Kidss_Black_Casual_Graphic_Print_Dress_three_quarter",
+      "url": "https://res.cloudinary.com/ds8llatku/image/upload/v1764851105/zecode/model-poses/Kidss_Black_Casual_Graphic_Print_Dress_three_quarter.jpg",
+      "size_kb": "468.66"
+    },
+    {
+      "public_id": "zecode/model-poses/Kidss_Green_Casual_Graphic_Print_Dress_casual_lifestyle",
+      "url": "https://res.cloudinary.com/ds8llatku/image/upload/v1764851147/zecode/model-poses/Kidss_Green_Casual_Graphic_Print_Dress_casual_lifestyle.jpg",
+      "size_kb": "467.07"
+    },
+    {
+      "public_id": "zecode/model-poses/Kidss_Green_Casual_Graphic_Print_Dress_front_standing",
+      "url": "https://res.cloudinary.com/ds8llatku/image/upload/v1764851145/zecode/model-poses/Kidss_Green_Casual_Graphic_Print_Dress_front_standing.jpg",
+      "size_kb": "439.44"
+    },
+    {
+      "public_id": "zecode/model-poses/Kidss_Green_Casual_Graphic_Print_Dress_three_quarter",
+      "url": "https://res.cloudinary.com/ds8llatku/image/upload/v1764851146/zecode/model-poses/Kidss_Green_Casual_Graphic_Print_Dress_three_quarter.jpg",
+      "size_kb": "670.84"
+    },
+    {
+      "public_id": "zecode/model-poses/Kidss_Light_Casual_Bottoms_casual_lifestyle",
+      "url": "https://res.cloudinary.com/ds8llatku/image/upload/v1764849978/zecode/model-poses/Kidss_Light_Casual_Bottoms_casual_lifestyle.jpg",
+      "size_kb": "400.82"
+    },
+    {
+      "public_id": "zecode/model-poses/Kidss_Light_Casual_Bottoms_front_standing",
+      "url": "https://res.cloudinary.com/ds8llatku/image/upload/v1764849975/zecode/model-poses/Kidss_Light_Casual_Bottoms_front_standing.jpg",
+      "size_kb": "319.53"
+    },
+    {
+      "public_id": "zecode/model-poses/Kidss_Light_Casual_Bottoms_three_quarter",
+      "url": "https://res.cloudinary.com/ds8llatku/image/upload/v1764849977/zecode/model-poses/Kidss_Light_Casual_Bottoms_three_quarter.jpg",
+      "size_kb": "333.23"
+    },
+    {
+      "public_id": "zecode/model-poses/Kidss_Navy_Casual_Graphic_Print_Jumpsuits_casual_lifestyle",
+      "url": "https://res.cloudinary.com/ds8llatku/image/upload/v1764849879/zecode/model-poses/Kidss_Navy_Casual_Graphic_Print_Jumpsuits_casual_lifestyle.jpg",
+      "size_kb": "511.43"
+    },
+    {
+      "public_id": "zecode/model-poses/Kidss_Navy_Casual_Graphic_Print_Jumpsuits_front_standing",
+      "url": "https://res.cloudinary.com/ds8llatku/image/upload/v1764849864/zecode/model-poses/Kidss_Navy_Casual_Graphic_Print_Jumpsuits_front_standing.jpg",
+      "size_kb": "531.09"
+    },
+    {
+      "public_id": "zecode/model-poses/Kidss_Navy_Casual_Graphic_Print_Jumpsuits_three_quarter",
+      "url": "https://res.cloudinary.com/ds8llatku/image/upload/v1764849878/zecode/model-poses/Kidss_Navy_Casual_Graphic_Print_Jumpsuits_three_quarter.jpg",
+      "size_kb": "466.94"
+    },
+    {
+      "public_id": "zecode/model-poses/Kidss_Pink_Casual_Tops_casual_lifestyle",
+      "url": "https://res.cloudinary.com/ds8llatku/image/upload/v1764849938/zecode/model-poses/Kidss_Pink_Casual_Tops_casual_lifestyle.jpg",
+      "size_kb": "448.46"
+    },
+    {
+      "public_id": "zecode/model-poses/Kidss_Pink_Casual_Tops_front_standing",
+      "url": "https://res.cloudinary.com/ds8llatku/image/upload/v1764849935/zecode/model-poses/Kidss_Pink_Casual_Tops_front_standing.jpg",
+      "size_kb": "430.13"
+    },
+    {
+      "public_id": "zecode/model-poses/Kidss_Pink_Casual_Tops_three_quarter",
+      "url": "https://res.cloudinary.com/ds8llatku/image/upload/v1764849937/zecode/model-poses/Kidss_Pink_Casual_Tops_three_quarter.jpg",
+      "size_kb": "436.99"
+    },
+    {
+      "public_id": "zecode/placeholders/hero-default",
+      "url": "https://res.cloudinary.com/ds8llatku/image/upload/v1764598986/zecode/placeholders/hero-default.jpg",
+      "size_kb": "108.57"
+    },
+    {
+      "public_id": "zecode/placeholders/store-default",
+      "url": "https://res.cloudinary.com/ds8llatku/image/upload/v1764598986/zecode/placeholders/store-default.jpg",
+      "size_kb": "108.57"
+    },
+    {
+      "public_id": "zecode/placeholders/thumb-default",
+      "url": "https://res.cloudinary.com/ds8llatku/image/upload/v1764598986/zecode/placeholders/thumb-default.jpg",
+      "size_kb": "20.26"
+    },
+    {
+      "public_id": "zecode/products/extracted-products/female_black_mini_dress_graphic_print_casual__DSC6503",
+      "url": "https://res.cloudinary.com/ds8llatku/image/upload/v1764655745/zecode/products/extracted-products/female_black_mini_dress_graphic_print_casual__DSC6503.jpg",
+      "size_kb": "29.89"
+    },
+    {
+      "public_id": "zecode/products/extracted-products/model3_male_black_t_shirt__DSC3713_Large_6",
+      "url": "https://res.cloudinary.com/ds8llatku/image/upload/v1764655807/zecode/products/extracted-products/model3_male_black_t_shirt__DSC3713_Large_6.jpg",
+      "size_kb": "42.67"
+    },
+    {
+      "public_id": "zecode/products/extracted/female_black_mini_dress_graphic_print_casual__DSC6503",
+      "url": "https://res.cloudinary.com/ds8llatku/image/upload/v1764655586/zecode/products/extracted/female_black_mini_dress_graphic_print_casual__DSC6503.jpg",
+      "size_kb": "29.89"
+    }
+  ],
+  "unused_by_folder": {
+    "zecode/brand": [
+      "zecode/brand/logo",
+      "zecode/brand/logo-full",
+      "zecode/brand/logo-mark",
+      "zecode/brand/logo-tagline"
+    ],
+    "zecode/categories": [
+      "zecode/categories/footwear",
+      "zecode/categories/footwear_collage",
+      "zecode/categories/kids",
+      "zecode/categories/women"
+    ],
+    "zecode/hero": [
+      "zecode/hero/hero1"
+    ],
+    "zecode/model-poses": [
+      "zecode/model-poses/Kidss_Black_Casual_Graphic_Print_Dress_casual_lifestyle",
+      "zecode/model-poses/Kidss_Black_Casual_Graphic_Print_Dress_front_standing",
+      "zecode/model-poses/Kidss_Black_Casual_Graphic_Print_Dress_three_quarter",
+      "zecode/model-poses/Kidss_Green_Casual_Graphic_Print_Dress_casual_lifestyle",
+      "zecode/model-poses/Kidss_Green_Casual_Graphic_Print_Dress_front_standing",
+      "zecode/model-poses/Kidss_Green_Casual_Graphic_Print_Dress_three_quarter",
+      "zecode/model-poses/Kidss_Light_Casual_Bottoms_casual_lifestyle",
+      "zecode/model-poses/Kidss_Light_Casual_Bottoms_front_standing",
+      "zecode/model-poses/Kidss_Light_Casual_Bottoms_three_quarter",
+      "zecode/model-poses/Kidss_Navy_Casual_Graphic_Print_Jumpsuits_casual_lifestyle",
+      "zecode/model-poses/Kidss_Navy_Casual_Graphic_Print_Jumpsuits_front_standing",
+      "zecode/model-poses/Kidss_Navy_Casual_Graphic_Print_Jumpsuits_three_quarter",
+      "zecode/model-poses/Kidss_Pink_Casual_Tops_casual_lifestyle",
+      "zecode/model-poses/Kidss_Pink_Casual_Tops_front_standing",
+      "zecode/model-poses/Kidss_Pink_Casual_Tops_three_quarter"
+    ],
+    "zecode/placeholders": [
+      "zecode/placeholders/hero-default",
+      "zecode/placeholders/store-default",
+      "zecode/placeholders/thumb-default"
+    ],
+    "zecode/products/extracted-products": [
+      "zecode/products/extracted-products/female_black_mini_dress_graphic_print_casual__DSC6503",
+      "zecode/products/extracted-products/model3_male_black_t_shirt__DSC3713_Large_6"
+    ],
+    "zecode/products/extracted": [
+      "zecode/products/extracted/female_black_mini_dress_graphic_print_casual__DSC6503"
+    ]
+  }
+}

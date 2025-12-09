@@ -1,158 +1,404 @@
 #!/usr/bin/env node
 /**
- * scripts/cloudinary-cleanup.js
- *
- * Safe Cloudinary cleanup utility.
- * - Dry-run mode (default) lists candidate placeholder/unused images and writes a report
- * - Delete mode (--delete) will remove candidates after an explicit --force flag
- *
- * Usage (PowerShell):
- *  $env:CLOUDINARY_CLOUD_NAME='ds8llatku'; $env:CLOUDINARY_API_KEY='KEY'; $env:CLOUDINARY_API_SECRET='SECRET'; node .\scripts\cloudinary-cleanup.js --dry-run
- *  node .\scripts\cloudinary-cleanup.js --dry-run --protect-file=used-ids.json
- *  node .\scripts\cloudinary-cleanup.js --delete --force --protect-file=used-ids.json
- *
- * Notes:
- * - This script DOES NOT automatically decide what is "in use". Provide a protect-file (JSON array of public_ids)
- *   exported from your Directus data (or run the `list-used-product-images.js` script and save results).
- * - Always run with --dry-run first and review `cloudinary-cleanup-report.json`.
+ * Cloudinary Cleanup Script
+ * 
+ * This script identifies and removes unused images from your Cloudinary account
+ * by comparing Cloudinary assets with images referenced in your Directus database.
+ * 
+ * Features:
+ * - List all images in Cloudinary
+ * - Compare with Directus database references
+ * - Identify unused images
+ * - Dry-run mode to preview deletions
+ * - Batch delete unused images
+ * 
+ * Usage:
+ *   node scripts/cloudinary-cleanup.js --help
  */
 
-const cloudinary = require('cloudinary').v2;
-const fs = require('fs');
-const path = require('path');
-const yargs = require('yargs');
+const axios = require('axios');
+const crypto = require('crypto');
 
-const argv = yargs
-  .option('dry-run', { type: 'boolean', default: true, describe: 'List candidates but do not delete' })
-  .option('delete', { type: 'boolean', default: false, describe: 'Actually delete candidates (use with --force)' })
-  .option('force', { type: 'boolean', default: false, describe: 'Force deletion without confirmation prompt' })
-  .option('protect-file', { type: 'string', describe: 'Path to JSON file containing array of protected public_ids' })
-  .option('prefix', { type: 'string', default: 'zecode', describe: 'Cloudinary prefix/folder to search' })
-  .option('max-results', { type: 'number', default: 500, describe: 'Max resources per API page (Cloudinary limit 500)' })
-  .help()
-  .argv;
+// Cloudinary Configuration
+const CLOUDINARY_CLOUD_NAME = process.env.CLOUDINARY_CLOUD_NAME || 'ds8llatku';
+const CLOUDINARY_API_KEY = process.env.CLOUDINARY_API_KEY;
+const CLOUDINARY_API_SECRET = process.env.CLOUDINARY_API_SECRET;
 
-if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
-  console.error('❌ Missing Cloudinary credentials. Set CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET');
+// Directus Configuration
+const DIRECTUS_URL = process.env.DIRECTUS_URL || 'http://127.0.0.1:8055';
+const DIRECTUS_TOKEN = process.env.DIRECTUS_TOKEN;
+const DIRECTUS_EMAIL = process.env.DIRECTUS_EMAIL;
+const DIRECTUS_PASSWORD = process.env.DIRECTUS_PASSWORD;
+
+// Parse command line arguments
+const args = process.argv.slice(2);
+const options = {
+  dryRun: args.includes('--dry-run'),
+  help: args.includes('--help'),
+  folder: args.find(arg => arg.startsWith('--folder='))?.split('=')[1] || 'zecode',
+  listOnly: args.includes('--list-only'),
+  deleteUnused: args.includes('--delete-unused'),
+  exportReport: args.includes('--export-report'),
+};
+
+// Help text
+if (options.help) {
+  console.log(`
+Cloudinary Cleanup Script
+
+Usage:
+  node scripts/cloudinary-cleanup.js [OPTIONS]
+
+Options:
+  --help                Show this help message
+  --dry-run             Preview changes without deleting anything
+  --list-only           Only list Cloudinary images, don't compare with Directus
+  --delete-unused       Delete unused images (use with caution!)
+  --export-report       Export detailed report to JSON file
+  --folder=<name>       Cloudinary folder to analyze (default: zecode)
+
+Environment Variables:
+  CLOUDINARY_CLOUD_NAME Cloud name (default: ds8llatku)
+  CLOUDINARY_API_KEY    Cloudinary API key (required)
+  CLOUDINARY_API_SECRET Cloudinary API secret (required)
+  DIRECTUS_URL          Directus API URL
+  DIRECTUS_TOKEN        Directus admin token (or use EMAIL/PASSWORD)
+  DIRECTUS_EMAIL        Directus admin email
+  DIRECTUS_PASSWORD     Directus admin password
+
+Examples:
+  # List all images in Cloudinary
+  node scripts/cloudinary-cleanup.js --list-only
+  
+  # Find unused images (dry-run)
+  node scripts/cloudinary-cleanup.js --dry-run
+  
+  # Delete unused images
+  node scripts/cloudinary-cleanup.js --delete-unused
+  
+  # Export detailed report
+  node scripts/cloudinary-cleanup.js --export-report
+
+IMPORTANT: Always run with --dry-run first to preview changes!
+`);
+  process.exit(0);
+}
+
+// Validate Cloudinary credentials
+if (!CLOUDINARY_API_KEY || !CLOUDINARY_API_SECRET) {
+  console.error('❌ Error: Cloudinary credentials required.');
+  console.error('Set CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET environment variables.');
   process.exit(1);
 }
 
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-});
+// Directus authentication
+let directusToken = null;
 
-async function listAllResources(prefix) {
-  const results = [];
-  let next_cursor = undefined;
-  do {
-    const res = await cloudinary.api.resources({
-      type: 'upload',
-      prefix,
-      max_results: argv['max-results'],
-      next_cursor,
-    });
-    if (res.resources && res.resources.length) results.push(...res.resources);
-    next_cursor = res.next_cursor;
-  } while (next_cursor);
-  return results;
-}
+async function authenticateDirectus() {
+  if (DIRECTUS_TOKEN) {
+    directusToken = DIRECTUS_TOKEN;
+    console.log('✓ Using Directus API token');
+    return;
+  }
 
-function looksLikePlaceholder(resource) {
-  // Heuristics for placeholder/unused images
-  const id = (resource.public_id || '').toLowerCase();
-  const filename = path.basename(id);
-  const tags = (resource.tags || []).map(t => t.toLowerCase());
-
-  // common placeholder tokens
-  const placeholderTokens = ['placeholder', 'no-image', 'noimage', 'not-available', 'sample', 'temp', 'dummy', 'test', 'placeholder_image', 'extracted-products/placeholder'];
-  for (const t of placeholderTokens) if (id.includes(t) || tags.includes(t)) return true;
-
-  // very small files (likely placeholders) - bytes field available
-  if (resource.bytes && resource.bytes > 0 && resource.bytes < 4 * 1024) return true; // <4KB
-
-  // extremely small dimensions
-  if (resource.width && resource.height && (resource.width < 50 || resource.height < 50)) return true;
-
-  // public_id patterns for temporary/generated images
-  if (id.includes('_tmp_') || id.includes('_temp_') || id.includes('generated')) return true;
-
-  return false;
-}
-
-(async function main(){
-  try {
-    console.log(`Cloudinary: ${process.env.CLOUDINARY_CLOUD_NAME} — scanning prefix: ${argv.prefix}`);
-
-    const protectSet = new Set();
-    if (argv['protect-file']) {
-      const pf = path.resolve(argv['protect-file']);
-      if (!fs.existsSync(pf)) {
-        console.error('❌ protect-file not found:', pf);
-        process.exit(1);
-      }
-      const arr = JSON.parse(fs.readFileSync(pf, 'utf8'));
-      if (!Array.isArray(arr)) {
-        console.error('❌ protect-file must be a JSON array of public_ids');
-        process.exit(1);
-      }
-      arr.forEach(id => protectSet.add(String(id)));
-      console.log(`🔒 Loaded ${protectSet.size} protected public_ids`);
-    }
-
-    const all = await listAllResources(argv.prefix);
-    console.log(`Found ${all.length} resources under prefix ${argv.prefix}`);
-
-    const candidates = all.filter(r => looksLikePlaceholder(r) && !protectSet.has(r.public_id));
-
-    const report = {
-      scanned_at: new Date().toISOString(),
-      prefix: argv.prefix,
-      total_resources: all.length,
-      candidate_count: candidates.length,
-      candidates: candidates.map(r => ({ public_id: r.public_id, format: r.format, bytes: r.bytes, width: r.width, height: r.height, tags: r.tags || [] })),
-    };
-
-    const outPath = path.join(__dirname, 'cloudinary-cleanup-report.json');
-    fs.writeFileSync(outPath, JSON.stringify(report, null, 2));
-    console.log(`
-✅ Dry-run complete — report written to ${outPath}`);
-    console.log(`Candidates: ${report.candidate_count} (first 10):`);
-    console.log(report.candidates.slice(0,10).map(c => c.public_id).join('\n'));
-
-    if (argv.delete) {
-      if (argv['dry-run'] && !argv.force) {
-        console.error('\n❗ Running with --delete also requires --force to actually delete (or omit --dry-run).');
-        process.exit(1);
-      }
-
-      if (!argv.force) {
-        // interactive confirmation
-        const readline = require('readline');
-        const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
-        const answer = await new Promise(res => rl.question(`Proceed to DELETE ${candidates.length} resources? Type DELETE to confirm: `, ans => { rl.close(); res(ans); }));
-        if (answer !== 'DELETE') {
-          console.log('Aborted by user. No deletions performed.');
-          process.exit(0);
-        }
-      }
-
-      // perform deletions in batches
-      console.log(`Deleting ${candidates.length} resources...`);
-      for (const c of candidates) {
-        try {
-          const r = await cloudinary.uploader.destroy(c.public_id, { resource_type: 'image' });
-          console.log(`Deleted: ${c.public_id} -> ${r.result}`);
-        } catch (err) {
-          console.error(`Failed to delete ${c.public_id}:`, err.message || err);
-        }
-      }
-      console.log('Done deletions. Update report to reflect deletions.');
-    }
-
-  } catch (err) {
-    console.error('Fatal error:', err.message || err);
+  if (!DIRECTUS_EMAIL || !DIRECTUS_PASSWORD) {
+    console.error('❌ Error: Directus authentication required.');
+    console.error('Set DIRECTUS_TOKEN or DIRECTUS_EMAIL/DIRECTUS_PASSWORD.');
     process.exit(1);
   }
-})();
+
+  try {
+    const response = await axios.post(`${DIRECTUS_URL}/auth/login`, {
+      email: DIRECTUS_EMAIL,
+      password: DIRECTUS_PASSWORD,
+    });
+    directusToken = response.data.data.access_token;
+    console.log('✓ Authenticated with Directus');
+  } catch (error) {
+    console.error('❌ Directus authentication failed:', error.message);
+    process.exit(1);
+  }
+}
+
+// Generate Cloudinary API signature
+function generateSignature(params, apiSecret) {
+  const sortedParams = Object.keys(params)
+    .sort()
+    .map(key => `${key}=${params[key]}`)
+    .join('&');
+  return crypto.createHash('sha1').update(sortedParams + apiSecret).digest('hex');
+}
+
+// Fetch all images from Cloudinary
+async function fetchCloudinaryImages() {
+  console.log(`\n📦 Fetching images from Cloudinary folder: ${options.folder}...`);
+
+  const allImages = [];
+  let nextCursor = null;
+
+  try {
+    do {
+      const params = {
+        type: 'upload',
+        prefix: options.folder,
+        max_results: 500,
+      };
+
+      if (nextCursor) {
+        params.next_cursor = nextCursor;
+      }
+
+      const auth = Buffer.from(`${CLOUDINARY_API_KEY}:${CLOUDINARY_API_SECRET}`).toString('base64');
+
+      const response = await axios.get(
+        `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/resources/image`,
+        {
+          params,
+          headers: { Authorization: `Basic ${auth}` },
+        }
+      );
+
+      const resources = response.data.resources || [];
+      allImages.push(...resources);
+      nextCursor = response.data.next_cursor;
+
+      process.stdout.write(`\r✓ Fetched ${allImages.length} images...`);
+    } while (nextCursor);
+
+    console.log(`\n✓ Total images in Cloudinary: ${allImages.length}\n`);
+    return allImages;
+  } catch (error) {
+    console.error('\n❌ Failed to fetch Cloudinary images:', error.response?.data || error.message);
+    process.exit(1);
+  }
+}
+
+// Fetch all image references from Directus
+async function fetchDirectusImageReferences() {
+  console.log('📋 Fetching image references from Directus...\n');
+
+  const imageReferences = new Set();
+
+  try {
+    // Fetch products
+    const productsResponse = await axios.get(`${DIRECTUS_URL}/items/products`, {
+      params: { limit: -1, fields: 'image,image_url,model_image_1,model_image_2,model_image_3' },
+      headers: { Authorization: `Bearer ${directusToken}` },
+    });
+
+    const products = productsResponse.data.data || [];
+    console.log(`✓ Checked ${products.length} products`);
+
+    products.forEach(product => {
+      [product.image, product.image_url, product.model_image_1, product.model_image_2, product.model_image_3]
+        .filter(Boolean)
+        .forEach(img => {
+          // Extract Cloudinary public_id from URL or path
+          if (typeof img === 'string') {
+            // Handle Cloudinary URLs
+            if (img.includes('cloudinary.com')) {
+              const match = img.match(/\/zecode\/(.+?)(?:\.|$)/);
+              if (match) imageReferences.add(`zecode/${match[1]}`);
+            }
+            // Handle local paths
+            else if (img.startsWith('/')) {
+              const cleanPath = img.replace(/^\//, '').replace(/\.[^.]+$/, '');
+              imageReferences.add(cleanPath);
+            }
+          }
+        });
+    });
+
+    // Fetch hero slides
+    const heroResponse = await axios.get(`${DIRECTUS_URL}/items/hero_slides`, {
+      params: { limit: -1, fields: 'image' },
+      headers: { Authorization: `Bearer ${directusToken}` },
+    });
+
+    const heroSlides = heroResponse.data.data || [];
+    console.log(`✓ Checked ${heroSlides.length} hero slides`);
+
+    heroSlides.forEach(slide => {
+      if (slide.image && typeof slide.image === 'string') {
+        if (slide.image.includes('cloudinary.com')) {
+          const match = slide.image.match(/\/zecode\/(.+?)(?:\.|$)/);
+          if (match) imageReferences.add(`zecode/${match[1]}`);
+        } else if (slide.image.startsWith('/')) {
+          const cleanPath = slide.image.replace(/^\//, '').replace(/\.[^.]+$/, '');
+          imageReferences.add(cleanPath);
+        }
+      }
+    });
+
+    console.log(`\n✓ Total unique image references: ${imageReferences.size}\n`);
+    return imageReferences;
+  } catch (error) {
+    console.error('❌ Failed to fetch Directus references:', error.message);
+    process.exit(1);
+  }
+}
+
+// Compare and identify unused images
+function identifyUnusedImages(cloudinaryImages, directusReferences) {
+  console.log('🔍 Comparing Cloudinary images with Directus references...\n');
+
+  const unused = [];
+  const used = [];
+
+  cloudinaryImages.forEach(image => {
+    const publicId = image.public_id;
+    const isReferenced = directusReferences.has(publicId);
+
+    if (isReferenced) {
+      used.push(image);
+    } else {
+      unused.push(image);
+    }
+  });
+
+  return { unused, used };
+}
+
+// Delete images from Cloudinary
+async function deleteCloudinaryImages(publicIds) {
+  console.log(`\n🗑️  Deleting ${publicIds.length} images from Cloudinary...\n`);
+
+  const batchSize = 100; // Cloudinary allows max 100 per batch
+  let deletedCount = 0;
+  let failedCount = 0;
+
+  for (let i = 0; i < publicIds.length; i += batchSize) {
+    const batch = publicIds.slice(i, i + batchSize);
+
+    try {
+      const timestamp = Math.round(Date.now() / 1000);
+      const params = {
+        public_ids: batch,
+        timestamp,
+        api_key: CLOUDINARY_API_KEY,
+      };
+
+      const signature = generateSignature(params, CLOUDINARY_API_SECRET);
+
+      const response = await axios.post(
+        `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/resources/image/upload`,
+        {
+          ...params,
+          signature,
+        }
+      );
+
+      deletedCount += batch.length;
+      process.stdout.write(`\r✓ Deleted ${deletedCount}/${publicIds.length} images`);
+    } catch (error) {
+      failedCount += batch.length;
+      console.error(`\n❌ Failed to delete batch:`, error.response?.data || error.message);
+    }
+  }
+
+  console.log(`\n\n✅ Deletion complete: ${deletedCount} deleted, ${failedCount} failed\n`);
+}
+
+// Export report to JSON
+function exportReport(unused, used) {
+  const report = {
+    timestamp: new Date().toISOString(),
+    summary: {
+      total_cloudinary_images: unused.length + used.length,
+      used_images: used.length,
+      unused_images: unused.length,
+      storage_savings_mb: (unused.reduce((sum, img) => sum + (img.bytes || 0), 0) / 1024 / 1024).toFixed(2),
+    },
+    unused_images: unused.map(img => ({
+      public_id: img.public_id,
+      url: img.secure_url,
+      size_kb: ((img.bytes || 0) / 1024).toFixed(2),
+      created_at: img.created_at,
+    })),
+  };
+
+  const fs = require('fs');
+  const filename = `cloudinary-cleanup-report-${Date.now()}.json`;
+  fs.writeFileSync(filename, JSON.stringify(report, null, 2));
+  console.log(`\n📄 Report exported to: ${filename}\n`);
+}
+
+// Main execution
+async function main() {
+  console.log('\n🧹 Cloudinary Cleanup Tool\n');
+  console.log(`Cloud: ${CLOUDINARY_CLOUD_NAME}`);
+  console.log(`Folder: ${options.folder}\n`);
+
+  if (options.dryRun) {
+    console.log('🔍 DRY RUN MODE - No deletions will be performed\n');
+  }
+
+  // Fetch Cloudinary images
+  const cloudinaryImages = await fetchCloudinaryImages();
+
+  if (options.listOnly) {
+    console.log('📋 Cloudinary Images:\n');
+    cloudinaryImages.slice(0, 20).forEach(img => {
+      console.log(`  ${img.public_id} (${(img.bytes / 1024).toFixed(2)} KB)`);
+    });
+    if (cloudinaryImages.length > 20) {
+      console.log(`  ... and ${cloudinaryImages.length - 20} more`);
+    }
+    process.exit(0);
+  }
+
+  // Authenticate with Directus
+  await authenticateDirectus();
+
+  // Fetch Directus references
+  const directusReferences = await fetchDirectusImageReferences();
+
+  // Compare and identify unused
+  const { unused, used } = identifyUnusedImages(cloudinaryImages, directusReferences);
+
+  // Display results
+  console.log('📊 Analysis Results:\n');
+  console.log(`  Total images in Cloudinary: ${cloudinaryImages.length}`);
+  console.log(`  Used images (referenced): ${used.length}`);
+  console.log(`  Unused images: ${unused.length}`);
+
+  const unusedSizeMB = (unused.reduce((sum, img) => sum + (img.bytes || 0), 0) / 1024 / 1024).toFixed(2);
+  console.log(`  Storage savings: ${unusedSizeMB} MB\n`);
+
+  if (unused.length > 0) {
+    console.log('🗑️  Unused Images (sample):');
+    unused.slice(0, 10).forEach(img => {
+      console.log(`  - ${img.public_id} (${(img.bytes / 1024).toFixed(2)} KB)`);
+    });
+    if (unused.length > 10) {
+      console.log(`  ... and ${unused.length - 10} more\n`);
+    }
+  }
+
+  // Export report if requested
+  if (options.exportReport) {
+    exportReport(unused, used);
+  }
+
+  // Delete if requested
+  if (options.deleteUnused && unused.length > 0) {
+    if (options.dryRun) {
+      console.log('✓ Dry run complete. Would delete ' + unused.length + ' images.');
+      console.log('Remove --dry-run to actually delete these images.');
+    } else {
+      const publicIds = unused.map(img => img.public_id);
+      await deleteCloudinaryImages(publicIds);
+    }
+  } else if (!options.deleteUnused && unused.length > 0) {
+    console.log('💡 To delete these unused images, run with --delete-unused flag');
+    console.log('   (Always use --dry-run first!)');
+  }
+
+  console.log('\n✅ Cleanup analysis complete!\n');
+}
+
+// Run the script
+main().catch(error => {
+  console.error('\n❌ Unexpected error:', error.message);
+  process.exit(1);
+});

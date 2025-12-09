@@ -22,6 +22,7 @@ const SUBCATEGORY_TO_CMS: Record<string, string> = {
   'outerwear': 'Jacket',
   'shorts': 'Shorts',
   'ethnic-wear': 'Ethnic Wear',
+  'activewear': 'Activewear',
   // Kids-specific slugs (matching header menu)
   'boys-tshirts': 'T-Shirt',
   'girls-tops': 'Top',
@@ -45,6 +46,7 @@ const SLUG_TO_CMS_SUBCATEGORY: Record<string, string[]> = {
   'dresses': ['Dress', 'Dresses', 'Midi Dress', 'Mini Dress', 'Slip Dress'],
   'skirts': ['Skirt', 'Skirts'],
   'shoes': ['Footwear', 'Flats', 'Sneakers', 'Formal Shoes', 'Heels', 'Mules', 'Sandals', 'Boots', 'Loafers'],
+  'activewear': ['Activewear', 'Hoodie', 'Joggers', 'Sweatpants', 'Tracksuit'],
   // Kids - matching header menu (4 subcategories)
   'boys-tshirts': ['T-Shirt', 'T', 'Tshirt'],
   'girls-tops': ['Top', 'Tops', 'Casual Top'],
