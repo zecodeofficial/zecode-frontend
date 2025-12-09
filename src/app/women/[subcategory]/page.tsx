@@ -22,37 +22,19 @@ function getSessionId(imagePath: string | null | undefined): string | null {
 }
 
 /**
- * Build gallery with model images - STRICT matching to ensure all images match product
- * Only includes model images that have the same photo session ID as the main product image
+ * Build gallery with model images
+ * Simply includes all available images for the product
  */
 function buildMatchingGallery(product: any): string[] {
   const mainImage = product.image || product.image_url;
-  const mainSessionId = getSessionId(mainImage);
 
-  // Start with the main product image
-  const gallery: string[] = [mainImage].filter(Boolean);
+  const gallery: string[] = [
+    mainImage,
+    product.model_image_1,
+    product.model_image_2,
+    product.model_image_3,
+  ].filter(Boolean);
 
-  // Only add model images if they match the same photo session
-  // This ensures ALL images on the product page show the same outfit/product
-  if (mainSessionId) {
-    const modelImages = [
-      product.model_image_1,
-      product.model_image_2,
-      product.model_image_3,
-    ].filter(Boolean);
-
-    for (const modelImg of modelImages) {
-      const modelSessionId = getSessionId(modelImg);
-
-      // STRICT: Only include if session IDs match exactly
-      if (modelSessionId && mainSessionId === modelSessionId) {
-        gallery.push(modelImg);
-      }
-    }
-  }
-
-  // If no session ID or no matching images, just show the main product image
-  // This prevents showing mismatched AI-generated or unrelated images
   return gallery;
 }
 
