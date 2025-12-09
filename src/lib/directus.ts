@@ -444,44 +444,11 @@ export async function fetchProductsByGenderAndSubcategory(gender: string | null,
 
     let products = res?.data?.data ?? [];
 
-    // --- PATCH: Inject target products if they were filtered out due to DB mismatch ---
-
-    // Check if we are looking for 'Kurta' or 'Ethnic Wear'
-    const subStr = Array.isArray(subcategory) ? subcategory.join(',') : subcategory;
-    const targetsKurta = /kurta/i.test(subStr);
-    const targetsActive = /activewear/i.test(subStr);
-
-    if (targetsKurta || targetsActive) {
-      try {
-        const idsToFetch = [];
-        if (targetsKurta) idsToFetch.push(45);
-        if (targetsActive) idsToFetch.push(54);
-
-        // Fetch these specific items
-        const extraRes = await axios.get(url, {
-          params: { "filter[id][_in]": idsToFetch.join(',') },
-          timeout: 5000
-        });
-
-        const extras = extraRes?.data?.data || [];
-
-        p.gender_category = "Women";
-        p.description = "Elevate your workout in this Performance Active Hoodie. Designed with moisture-wicking fabric and four-way stretch, it keeps you cool and moving freely. Features a sleek zip header and thumbholes for a secure fit.";
-        products.push(p);
-      }
-          }
-  });
-} catch (e) {
-  console.error("Patch injection failed:", e);
-}
-    }
-// --------------------------------------------------------------------------------
-
-return products;
+    return products;
   } catch (err: any) {
-  console.error("Directus fetchProductsByGenderAndSubcategory error:", err.message);
-  return null; // Return null so caller can try fallback if needed
-}
+    console.error("Directus fetchProductsByGenderAndSubcategory error:", err.message);
+    return null; // Return null so caller can try fallback if needed
+  }
 }
 
 /**
@@ -489,31 +456,19 @@ return products;
  */
 export async function fetchProductBySlug(slug: string): Promise<Product | null> {
   try {
-
-    if (patchId) {
-      // Fetch specific ID to support the 'virtual' slug
-      res = await axios.get(url, {
-        params: { "filter[id][_eq]": patchId, limit: 1 },
-        timeout: TIMEOUT_DEFAULT
-      });
-    } else {
-      // Normal behavior
-      res = await axios.get(url, {
-        params: {
-          "filter[slug][_eq]": slug,
-          limit: 1
-        },
-        timeout: TIMEOUT_DEFAULT,
-      });
-      product.description = "Elevate your workout in this Performance Active Hoodie. Designed with moisture-wicking fabric and four-way stretch, it keeps you cool and moving freely. Features a sleek zip header and thumbholes for a secure fit.";
-    }
+    const url = getApiUrl("/items/products");
+    const res = await axios.get(url, {
+      params: {
+        "filter[slug][_eq]": slug,
+        limit: 1
+      },
+      timeout: TIMEOUT_DEFAULT,
+    });
+    return res?.data?.data?.[0] ?? null;
+  } catch (err: any) {
+    console.error("Directus fetchProductBySlug error:", err.message);
+    return null;
   }
-
-    return product;
-} catch (err: any) {
-  console.error("Directus fetchProductBySlug error:", err.message);
-  return null;
-}
 }
 
 /**
