@@ -85,6 +85,7 @@ const SUBCATEGORY_MAP: Record<string, string | string[]> = {
   'kurta': 'Kurta',
   'lehenga': 'Lehenga',
   'ethnic-wear': ['Kurti', 'Kurta', 'Lehenga'],
+  'activewear': 'Activewear',
 };
 
 const TITLE_MAP: Record<string, string> = {

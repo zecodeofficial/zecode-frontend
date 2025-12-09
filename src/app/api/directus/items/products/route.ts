@@ -43,29 +43,8 @@ export async function GET(request: NextRequest) {
     // TEMPORARY PATCH: Override specific status for requested content updates
     if (data.data && Array.isArray(data.data)) {
       data.data.forEach((product: any) => {
-        // 1. Dark Blue Top -> Kurta
-        if (product.id === 45) {
-          product.name = "Women's Indigo Printed Cotton Kurta";
-          product.slug = "womens-indigo-printed-cotton-kurta";
-          product.subcategory = "Kurta";
-          product.description = "Experience the perfect blend of tradition and comfort with this Indigo Printed Cotton Kurta. Crafted from breathable fabric, multiple prints add a contemporary touch to the classic silhouette. Ideal for casual outings or workwear.";
-        }
-        // 2. Purple Jacket -> Active Hoodie
-        if (product.id === 54) {
-          product.name = "Women's Performance Active Hoodie - Purple";
-          product.slug = "womens-performance-active-hoodie-purple";
-          product.subcategory = "Hoodie";
-          product.gender_category = "Women"; // Ensure it matches
-          product.description = "Elevate your workout in this Performance Active Hoodie. Designed with moisture-wicking fabric and four-way stretch, it keeps you cool and moving freely. Features a sleek zip header and thumbholes for a secure fit.";
-        }
-      });
-      console.log('[API] Applied data patches for products 45 and 54');
+      } catch (error) {
+        console.error('API route error:', error);
+        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+      }
     }
-
-    console.log('[API] Successfully fetched', data.data?.length || 0, 'products');
-    return NextResponse.json(data);
-  } catch (error) {
-    console.error('API route error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
-  }
-}
