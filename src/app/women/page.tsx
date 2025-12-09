@@ -5,6 +5,8 @@ const SubcategoryGridDynamic = dynamic(() => import("@/components/SubcategoryGri
   loading: () => <div className="min-h-[500px] bg-white animate-pulse" />,
 });
 import { fetchHeroSlides } from "@/lib/directus";
+import { CATEGORY_DESCRIPTIONS } from "@/data/category-descriptions";
+import DescriptionText from "@/components/DescriptionText";
 
 // Force dynamic rendering to prevent build-time API calls
 // Use ISR - revalidate every 5 minutes
@@ -51,6 +53,9 @@ export default function WomenPage() {
   return (
     <div style={{ minHeight: "100%", backgroundColor: "#ffffff" }}>
       <HeroSlider slides={WOMEN_SLIDE} />
+
+      {/* Category Description */}
+      <DescriptionText text={CATEGORY_DESCRIPTIONS.women} />
 
       {/* 1. Western Wear Section */}
       <SubcategoryGridDynamic

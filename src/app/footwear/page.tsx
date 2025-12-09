@@ -1,6 +1,8 @@
 import HeroSlider from "@/components/HeroSlider";
 import SubcategoryGridDynamic from "@/components/SubcategoryGridDynamic";
 import { fetchHeroSlides } from "@/lib/directus";
+import { CATEGORY_DESCRIPTIONS } from "@/data/category-descriptions";
+import DescriptionText from "@/components/DescriptionText";
 
 // Force dynamic rendering to prevent build-time API calls
 // Use ISR - revalidate every 5 minutes
@@ -28,6 +30,10 @@ export default function FootwearPage() {
   return (
     <div style={{ minHeight: "100%", backgroundColor: "#ffffff" }}>
       <HeroSlider slides={FOOTWEAR_SLIDE} />
+
+      {/* Category Description */}
+      <DescriptionText text={CATEGORY_DESCRIPTIONS.footwear} />
+
       <SubcategoryGridDynamic
         title="Footwear"
         categorySlug="footwear"
