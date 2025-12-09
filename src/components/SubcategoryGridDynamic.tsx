@@ -46,7 +46,7 @@ const SLUG_TO_CMS_SUBCATEGORY: Record<string, string[]> = {
   'dresses': ['Dress', 'Dresses', 'Midi Dress', 'Mini Dress', 'Slip Dress'],
   'skirts': ['Skirt', 'Skirts'],
   'shoes': ['Footwear', 'Flats', 'Sneakers', 'Formal Shoes', 'Heels', 'Mules', 'Sandals', 'Boots', 'Loafers'],
-  'activewear': ['Activewear'],
+  'activewear': ['activewear'],  // lowercase to match DB
   // Kids - matching header menu (4 subcategories)
   'boys-tshirts': ['T-Shirt', 'T', 'Tshirt'],
   'girls-tops': ['Top', 'Tops', 'Casual Top'],
@@ -56,7 +56,7 @@ const SLUG_TO_CMS_SUBCATEGORY: Record<string, string[]> = {
   'men': ['Flats', 'Mules', 'Sneakers', 'Boots', 'Loafers', 'Sandals'],
   'women': ['Flats', 'Mules', 'Heels', 'Sandals', 'Boots', 'Sneakers'],
   'shorts': ['Shorts', 'Short'],
-  'ethnic-wear': ['Kurti', 'Kurta', 'Lehenga', 'Suit Set', 'Ethnic Dress'],
+  'ethnic-wear': ['Kurti', 'Kurta', 'Lehenga', 'Suit Set', 'Ethnic Dress', 'ethnic-wear'],  // Added lowercase variant
 };
 
 // Normalize subcategory for matching
