@@ -3,8 +3,13 @@ const axios = require('axios');
 const fs = require('fs');
 
 const DIRECTUS = process.env.DIRECTUS_URL || 'https://zecode-directus.onrender.com';
-const EMAIL = process.env.DIRECTUS_EMAIL || 'zecode@siyaram.com';
-const PASSWORD = process.env.DIRECTUS_PASSWORD || "S!Y@rAM's";
+const EMAIL = process.env.DIRECTUS_ADMIN_EMAIL;
+const PASSWORD = process.env.DIRECTUS_ADMIN_PASSWORD;
+
+if (!EMAIL || !PASSWORD) {
+  console.error('Error: DIRECTUS_ADMIN_EMAIL and DIRECTUS_ADMIN_PASSWORD environment variables are required');
+  process.exit(1);
+}
 
 function collapseRepeatedWords(s) {
   if (!s) return s;
@@ -72,7 +77,7 @@ async function main() {
 
     const existingSlugs = new Map(); // slug -> id
     for (const p of products) {
-      if (p.slug) existingSlugs.set((p.slug||'').toLowerCase(), p.id);
+      if (p.slug) existingSlugs.set((p.slug || '').toLowerCase(), p.id);
     }
 
     const redirects = [];
@@ -118,7 +123,7 @@ async function main() {
         if (slugChanged) {
           redirects.push({ from: `/${origSlug}`, to: `/${candidateSlug}` });
           // Update existingSlugs map
-          existingSlugs.delete((origSlug||'').toLowerCase());
+          existingSlugs.delete((origSlug || '').toLowerCase());
           existingSlugs.set(candidateSlug.toLowerCase(), p.id);
         }
 
