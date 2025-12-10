@@ -93,7 +93,7 @@ export async function fetchPage(slug: string) {
  * fetchGlobalSettings - fetch global site settings (header, footer, etc.)
  * Assumes a singleton collection named 'globals'
  */
-export async function fetchGlobalSettings(): Promise<GlobalSettings | null> {
+export async function _fetchGlobalSettings(): Promise<GlobalSettings | null> {
   try {
     const url = getApiUrl("/items/globals");
     const res = await axios.get(url, {
@@ -106,6 +106,11 @@ export async function fetchGlobalSettings(): Promise<GlobalSettings | null> {
     return null;
   }
 }
+
+// Cached version of fetchGlobalSettings
+export const fetchGlobalSettings = typeof window === 'undefined'
+  ? unstable_cache(_fetchGlobalSettings, ['global-settings'], { revalidate: 3600, tags: ['globals'] })
+  : _fetchGlobalSettings;
 
 // Cloudinary configuration
 const CLOUDINARY_CLOUD_NAME = 'ds8llatku';
@@ -146,7 +151,10 @@ export function fileUrl(file: any) {
   }
 
   // Otherwise treat as Directus asset ID
-  return `/api/directus/assets/${id}`;
+  // Use Cloudinary Fetch to proxy and optimize Directus images
+  // Format: https://res.cloudinary.com/<cloud_name>/image/fetch/<options>/<remote_url>
+  const directusUrl = `${DIRECTUS}/assets/${id}`;
+  return `${CLOUDINARY_BASE_URL.replace('/upload', '/fetch')}/f_auto,q_auto/${directusUrl}`;
 }
 
 /**
@@ -475,7 +483,8 @@ export async function fetchProductBySlug(slug: string): Promise<Product | null> 
  * fetchProductCounts - aggregate product counts grouped by subcategory and gender
  * Returns an array of { subcategory, gender_category, count }
  */
-export async function fetchProductCounts(): Promise<ProductCount[] | null> {
+// Cached version of fetchProductCounts to prevent heavy aggregation on every page load
+export async function _fetchProductCounts(): Promise<ProductCount[] | null> {
   try {
     const url = getApiUrl("/items/products");
     // Directus aggregation: aggregate[count]=id&groupBy[]=subcategory&groupBy[]=gender_category
@@ -497,7 +506,7 @@ export async function fetchProductCounts(): Promise<ProductCount[] | null> {
       // find numeric value inside object - Directus returns { count: { id: "12" } }
       let count = 0;
       if (typeof r.count === 'number') count = r.count;
-      else if (r.count && typeof r.count === 'object' && r.count.id) count = parseInt(r.count.id, 10) || 0;
+      else if (r.count && typeof r.count === 'object' && 'id' in r.count) count = parseInt(r.count.id, 10) || 0;
       else if (typeof r["count(id)"] === 'number') count = r["count(id)"];
       else if (typeof r["count__id"] === 'number') count = r["count__id"];
 
@@ -510,28 +519,14 @@ export async function fetchProductCounts(): Promise<ProductCount[] | null> {
 
     return parsed;
   } catch (err: any) {
-    // If aggregation isn't supported or fails, fall back to a lightweight client-side count
-    try {
-      const products = await fetchProducts();
-      if (!products) return null;
-      const map = new Map<string, number>();
-      products.forEach((p: Product) => {
-        if (p.status !== 'published') return;
-        const key = `${(p.gender_category || '').toLowerCase()}||${(p.subcategory || '').toLowerCase()}`;
-        map.set(key, (map.get(key) || 0) + 1);
-      });
-      const out: ProductCount[] = [];
-      for (const [k, v] of map.entries()) {
-        const [gender, sub] = k.split('||');
-        out.push({ gender_category: gender || null, subcategory: sub || null, count: v });
-      }
-      return out;
-    } catch (e: unknown) {
-      console.error('fetchProductCounts fallback failed:', e instanceof Error ? e.message : e);
-      return null;
-    }
+    console.error('fetchProductCounts failed, utilizing fallback logic if possible', err.message);
+    return null;
   }
 }
+
+export const fetchProductCounts = typeof window === 'undefined'
+  ? unstable_cache(_fetchProductCounts, ['product-counts'], { revalidate: 3600, tags: ['products'] })
+  : _fetchProductCounts;
 
 // =============================================
 // NAVIGATION & SETTINGS
@@ -643,10 +638,15 @@ export async function fetchFooterSettings(): Promise<FooterSettings | null> {
   }
 }
 
+// Cached version of fetchSocialLinks
+export const fetchSocialLinks = typeof window === 'undefined'
+  ? unstable_cache(_fetchSocialLinks, ['social-links'], { revalidate: 3600, tags: ['social'] })
+  : _fetchSocialLinks;
+
 /**
  * fetchSocialLinks - fetch social media links
  */
-export async function fetchSocialLinks(): Promise<SocialLink[] | null> {
+export async function _fetchSocialLinks(): Promise<SocialLink[] | null> {
   try {
     const url = getApiUrl("/items/social_links");
     const res = await axios.get(url, {
@@ -686,10 +686,15 @@ export type DirectusSocialLink = {
   status?: string;
 };
 
+// Cached version of fetchFooterLinkGroups
+export const fetchFooterLinkGroups = typeof window === 'undefined'
+  ? unstable_cache(_fetchFooterLinkGroups, ['footer-groups'], { revalidate: 3600, tags: ['footer'] })
+  : _fetchFooterLinkGroups;
+
 /**
  * fetchFooterLinkGroups - fetch footer link groups
  */
-export async function fetchFooterLinkGroups(): Promise<FooterLinkGroup[] | null> {
+export async function _fetchFooterLinkGroups(): Promise<FooterLinkGroup[] | null> {
   try {
     const url = getApiUrl("/items/footer_link_groups");
     const res = await axios.get(url, {
@@ -706,10 +711,15 @@ export async function fetchFooterLinkGroups(): Promise<FooterLinkGroup[] | null>
   }
 }
 
+// Cached version of fetchFooterLinks
+export const fetchFooterLinks = typeof window === 'undefined'
+  ? unstable_cache(_fetchFooterLinks, ['footer-links'], { revalidate: 3600, tags: ['footer'] })
+  : _fetchFooterLinks;
+
 /**
  * fetchFooterLinks - fetch all footer links
  */
-export async function fetchFooterLinks(): Promise<FooterLink[] | null> {
+export async function _fetchFooterLinks(): Promise<FooterLink[] | null> {
   try {
     const url = getApiUrl("/items/footer_links");
     const res = await axios.get(url, {
@@ -757,10 +767,15 @@ export type DirectusNavigationItem = {
   status?: string;
 };
 
+// Cached version of fetchDirectusNavigation
+export const fetchDirectusNavigation = typeof window === 'undefined'
+  ? unstable_cache(_fetchDirectusNavigation, ['nav-menu'], { revalidate: 3600, tags: ['navigation'] })
+  : _fetchDirectusNavigation;
+
 /**
  * fetchDirectusNavigation - fetch full navigation menu with parent/child structure
  */
-export async function fetchDirectusNavigation(): Promise<DirectusNavigationItem[] | null> {
+export async function _fetchDirectusNavigation(): Promise<DirectusNavigationItem[] | null> {
   try {
     const url = getApiUrl("/items/navigation_menu");
     const res = await axios.get(url, {

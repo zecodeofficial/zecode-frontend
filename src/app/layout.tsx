@@ -67,7 +67,19 @@ export const viewport: Viewport = {
   ],
 };
 
-import localFont from "next/font/local";
+import { Inter, League_Gothic } from "next/font/google";
+
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-inter",
+  display: "swap",
+});
+
+const leagueGothic = League_Gothic({
+  subsets: ["latin"],
+  variable: "--font-league-gothic",
+  display: "swap",
+});
 
 const dinCondensed = localFont({
   src: "../../public/fonts/DINCondensed.woff2",
@@ -89,7 +101,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <head>
         <meta charSet="utf-8" />
       </head>
-      <body className={`antialiased ${dinCondensed.variable}`} style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', margin: 0, padding: 0 }} suppressHydrationWarning>
+      <body className={`antialiased ${dinCondensed.variable} ${inter.variable} ${leagueGothic.variable}`} style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', margin: 0, padding: 0 }} suppressHydrationWarning>
         <ThemeProvider>
           <a className="sr-only focus:not-sr-only p-2 absolute z-[9999]" href="#main">
             Skip to content

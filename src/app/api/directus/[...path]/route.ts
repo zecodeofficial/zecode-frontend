@@ -31,17 +31,16 @@ export async function GET(
     const searchParams = request.nextUrl.searchParams.toString();
     const url = `${DIRECTUS_URL}/${pathString}${searchParams ? `?${searchParams}` : ''}`;
 
-    const cacheDuration = getCacheDuration(pathString);
-    const directusToken = process.env.DIRECTUS_API_TOKEN;
-
+    let cacheDuration = getCacheDuration(pathString);
     const headers: HeadersInit = {};
-    // TEMPORARILY DISABLED: Testing if public access works without token
-    // if (directusToken) {
-    //   headers['Authorization'] = `Bearer ${directusToken}`;
-    //   console.log('[Proxy] Using Directus token for:', pathString);
-    // } else {
-    //   console.error('[Proxy] DIRECTUS_API_TOKEN not found for:', pathString);
-    // }
+
+    const authHeader = request.headers.get('authorization');
+    if (authHeader) {
+      headers['Authorization'] = authHeader;
+      // CRITICAL: Disable caching for authenticated requests to prevent leaking user data
+      // and ensure fresh validation of the token
+      cacheDuration = 0;
+    }
 
     const response = await fetch(url, {
       next: { revalidate: cacheDuration },

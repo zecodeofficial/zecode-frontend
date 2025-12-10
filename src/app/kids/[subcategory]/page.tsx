@@ -214,10 +214,12 @@ export default async function KidsSubcategoryPage({ params }: PageProps) {
 
         <div className="max-w-7xl mx-auto px-4 py-12">
           {products.length > 0 ? (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-              {products.map((product) => (
-                <ProductCard key={product.id} product={product} />
-              ))}
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-4 gap-y-10">
+              {products
+                .filter(product => product && product.id)
+                .map((product, index) => (
+                  <ProductCard key={product.id} product={product} priority={index < 4} />
+                ))}
             </div>
           ) : (
             <div className="text-center py-16">

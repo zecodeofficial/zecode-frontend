@@ -72,9 +72,10 @@ interface SubcategoryCardProps {
   products: Array<{ image_url?: string; image?: string; name: string; subcategory?: string; gender_category?: string }>;
   productCount: number;
   isLoading: boolean;
+  priority?: boolean;
 }
 
-function SubcategoryCard({ title, slug, categorySlug, products, productCount, isLoading }: SubcategoryCardProps) {
+function SubcategoryCard({ title, slug, categorySlug, products, productCount, isLoading, priority = false }: SubcategoryCardProps) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   // Removed internal fetching logic - data now passed via props
@@ -122,6 +123,8 @@ function SubcategoryCard({ title, slug, categorySlug, products, productCount, is
             fill
             className="object-cover object-center transition-opacity duration-500"
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+            priority={priority}
+            loading={priority ? 'eager' : 'lazy'}
           />
         </div>
       )}
@@ -205,6 +208,7 @@ export default function SubcategoryGridDynamic({ title, categorySlug, subcategor
         params.set('limit', '500');
         params.set('fields', 'name,image_url,image,subcategory,gender_category');
         params.set('filter[subcategory][_in]', allVariations.join(','));
+        params.set('filter[status][_eq]', 'published');
 
         // Note: We can't strictly filter by gender here if it's mixed (e.g. footwear page might show men & women)
         // But if categorySlug matches a gender, we can pre-filter
@@ -328,7 +332,7 @@ export default function SubcategoryGridDynamic({ title, categorySlug, subcategor
         )}
 
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
-          {subcategories.map((subcategory) => {
+          {subcategories.map((subcategory, index) => {
             const data = subcategoryData.get(subcategory.slug) || { products: [], count: 0 };
 
             // Show loading skeletons or hide if no products (but only if no error)
@@ -343,6 +347,7 @@ export default function SubcategoryGridDynamic({ title, categorySlug, subcategor
                 products={data.products}
                 productCount={data.count}
                 isLoading={isLoading}
+                priority={index < 6}
               />
             );
           })}
