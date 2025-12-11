@@ -142,18 +142,22 @@ export default function HeroSlider({ slides }: HeroSliderProps) {
         <button
           aria-label="Previous slide"
           onClick={() => goTo((current - 1 + SLIDES.length) % SLIDES.length)}
-          className="bg-black/50 hover:bg-black/60 text-white p-2 rounded-full"
+          className="bg-black/50 hover:bg-black/60 text-white p-2 rounded-full transition-colors"
         >
-          ‹
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+          </svg>
         </button>
       </div>
       <div className="absolute inset-y-0 right-3 flex items-center z-30">
         <button
           aria-label="Next slide"
           onClick={() => goTo((current + 1) % SLIDES.length)}
-          className="bg-black/50 hover:bg-black/60 text-white p-2 rounded-full"
+          className="bg-black/50 hover:bg-black/60 text-white p-2 rounded-full transition-colors"
         >
-          ›
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+          </svg>
         </button>
       </div>
 

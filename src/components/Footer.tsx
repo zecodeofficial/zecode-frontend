@@ -5,9 +5,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { useTheme } from "@/contexts/ThemeContext";
-import { 
-  fetchFooterLinkGroups, 
-  fetchFooterLinks, 
+import {
+  fetchFooterLinkGroups,
+  fetchFooterLinks,
   fetchDirectusSocialLinks,
   fetchDirectusFooterSettings,
   fetchProductCounts,
@@ -116,7 +116,7 @@ export default function Footer() {
             counts.forEach(c => {
               const count = c.count || 0;
               if (count <= 0) return; // Skip subcategories with 0 products
-              
+
               const gender = (c.gender_category || "").toString().toLowerCase();
               const sub = normalizeCmsSub(c.subcategory || "");
               const key = `${gender}||${sub}`;
@@ -166,7 +166,7 @@ export default function Footer() {
             // Ensure Footwear link is always included if it has products
             const hasFootwearLink = filtered.some(link => link.href === '/footwear');
             let finalLinks = filtered;
-            
+
             if (!hasFootwearLink && hasFootwearProducts()) {
               const defaultFootwearLink = DEFAULT_LINKS.find(link => link.href === '/footwear');
               if (defaultFootwearLink) {
@@ -231,7 +231,7 @@ export default function Footer() {
                   <li key={link.id}>
                     <Link
                       href={link.href}
-                      className="text-gray-400 hover:text-white transition-colors text-sm"
+                      className="text-gray-300 hover:text-white transition-colors text-sm"
                       {...(link.open_in_new_tab ? { target: "_blank", rel: "noopener noreferrer" } : {})}
                     >
                       {link.label}
@@ -272,12 +272,13 @@ export default function Footer() {
               <h3 className="text-xs font-bold uppercase tracking-[0.15em] text-white mb-2">
                 {footerSettings.newsletter_title || "Newsletter"}
               </h3>
-              <p className="text-gray-500 text-xs mb-2">{footerSettings.newsletter_subtitle || "Get exclusive offers & updates"}</p>
+              <p className="text-gray-400 text-xs mb-2">{footerSettings.newsletter_subtitle || "Get exclusive offers & updates"}</p>
               <div className="flex">
                 <input
                   type="email"
                   placeholder="Your email"
-                  className="flex-1 bg-white/5 border border-white/10 rounded-l-lg px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-[#C83232] transition-colors"
+                  aria-label="Email address for newsletter"
+                  className="flex-1 bg-white/5 border border-white/10 rounded-l-lg px-3 py-2 text-sm text-white placeholder-gray-400 focus:outline-none focus:border-[#C83232] transition-colors"
                 />
                 <button className="bg-[#C83232] hover:bg-[#a82828] px-4 py-2 rounded-r-lg transition-colors text-xs font-bold uppercase tracking-wider whitespace-nowrap">
                   Subscribe
@@ -297,7 +298,7 @@ export default function Footer() {
                   <li key={link.id}>
                     <Link
                       href={link.href}
-                      className="text-gray-400 hover:text-white transition-colors text-sm"
+                      className="text-gray-300 hover:text-white transition-colors text-sm"
                       {...(link.open_in_new_tab ? { target: "_blank", rel: "noopener noreferrer" } : {})}
                     >
                       {link.label}
@@ -314,10 +315,10 @@ export default function Footer() {
       <div className="relative z-10 border-t border-white/10">
         <div className="max-w-[1400px] mx-auto px-8 py-3">
           <div className="flex flex-col md:flex-row justify-between items-center gap-2">
-            <p className="text-gray-500 text-xs">
+            <p className="text-gray-400 text-xs">
               © {new Date().getFullYear()} {footerSettings.copyright_text || "ZECODE. All rights reserved."}
             </p>
-            <div className="flex items-center gap-4 text-xs text-gray-500">
+            <div className="flex items-center gap-4 text-xs text-gray-400">
               <Link href="/privacy" className="hover:text-white transition-colors">Privacy</Link>
               <Link href="/terms" className="hover:text-white transition-colors">Terms</Link>
               <Link href="/contact" className="hover:text-white transition-colors">Contact</Link>
