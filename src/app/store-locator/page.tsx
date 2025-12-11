@@ -24,14 +24,14 @@ export default function StoreLocatorPage() {
             <PageHeader pageKey="store-locator" defaultTitle="ZECODE NEAR YOU" subtitle="Find a store near you" />
 
             {/* Search Bar Section */}
-            <div style={{ 
-                backgroundColor: '#f8f9fa', 
+            <div style={{
+                backgroundColor: '#f8f9fa',
                 padding: '24px 32px',
                 borderBottom: '1px solid #e5e7eb'
             }}>
                 <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
-                    <div style={{ 
-                        maxWidth: '600px', 
+                    <div style={{
+                        maxWidth: '600px',
                         margin: '0 auto',
                         position: 'relative'
                     }}>
@@ -107,8 +107,8 @@ export default function StoreLocatorPage() {
                                 </h2>
 
                                 {/* Address */}
-                                <div style={{ 
-                                    display: 'flex', 
+                                <div style={{
+                                    display: 'flex',
                                     alignItems: 'flex-start',
                                     marginBottom: '12px',
                                     gap: '8px'
@@ -149,7 +149,7 @@ export default function StoreLocatorPage() {
                                 </div>
 
                                 {/* Contact Info */}
-                                <div style={{ 
+                                <div style={{
                                     borderTop: '1px solid #e5e7eb',
                                     paddingTop: '16px',
                                     display: 'flex',
@@ -158,7 +158,7 @@ export default function StoreLocatorPage() {
                                 }}>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                         <span style={{ fontSize: '14px' }}>📞</span>
-                                        <a 
+                                        <a
                                             href={`tel:${store.phone}`}
                                             style={{
                                                 fontSize: '14px',
@@ -172,7 +172,7 @@ export default function StoreLocatorPage() {
                                     </div>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                         <span style={{ fontSize: '14px' }}>✉️</span>
-                                        <a 
+                                        <a
                                             href={`mailto:${store.email}`}
                                             style={{
                                                 fontSize: '14px',
@@ -187,8 +187,9 @@ export default function StoreLocatorPage() {
                                 </div>
 
                                 {/* View Details Link */}
-                                <Link 
+                                <Link
                                     href={`/store/${store.slug}`}
+                                    className="store-details-link"
                                     style={{
                                         display: 'block',
                                         marginTop: '16px',
@@ -200,11 +201,9 @@ export default function StoreLocatorPage() {
                                         borderRadius: '5px',
                                         fontSize: '14px',
                                         fontWeight: 'bold',
-                                        transition: 'background-color 0.3s',
+                                        transition: 'transform 0.3s, opacity 0.3s',
                                         cursor: 'pointer'
                                     }}
-                                    onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#a82828'}
-                                    onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#C83232'}
                                 >
                                     VIEW STORE DETAILS →
                                 </Link>

@@ -47,7 +47,7 @@ export default function StoreDetailPage() {
     // Google Maps embed URL with the store location
     // Using place_id for accurate display of store name and address
     const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '';
-    const mapEmbedUrl = store.placeId 
+    const mapEmbedUrl = store.placeId
         ? `https://www.google.com/maps/embed/v1/place?key=${apiKey}&q=place_id:${store.placeId}&zoom=15`
         : `https://www.google.com/maps/embed/v1/place?key=${apiKey}&q=${encodeURIComponent(store.address)}&zoom=15`;
 
@@ -63,7 +63,7 @@ export default function StoreDetailPage() {
                 margin: '0 auto',
                 padding: '20px 20px 0 20px'
             }}>
-                <Breadcrumb 
+                <Breadcrumb
                     items={[
                         { label: 'Home', href: '/' },
                         { label: 'Store Locator', href: '/store-locator' },
@@ -258,6 +258,7 @@ export default function StoreDetailPage() {
                             }}>
                                 <a
                                     href={`tel:${store.phone}`}
+                                    className="call-btn"
                                     style={{
                                         flex: 1,
                                         padding: '12px 20px',
@@ -268,7 +269,7 @@ export default function StoreDetailPage() {
                                         textAlign: 'center',
                                         fontSize: '16px',
                                         fontWeight: 'bold',
-                                        transition: 'background-color 0.3s'
+                                        transition: 'transform 0.3s, opacity 0.3s'
                                     }}
                                 >
                                     📞 CALL NOW
@@ -277,6 +278,7 @@ export default function StoreDetailPage() {
                                     href={`https://www.google.com/maps/dir/?api=1&destination=${store.lat},${store.lng}`}
                                     target="_blank"
                                     rel="noopener noreferrer"
+                                    className="directions-btn"
                                     style={{
                                         flex: 1,
                                         padding: '12px 20px',
@@ -287,7 +289,7 @@ export default function StoreDetailPage() {
                                         textAlign: 'center',
                                         fontSize: '16px',
                                         fontWeight: 'bold',
-                                        transition: 'background-color 0.3s'
+                                        transition: 'transform 0.3s, opacity 0.3s'
                                     }}
                                 >
                                     🗺️ GET DIRECTIONS
@@ -322,8 +324,8 @@ export default function StoreDetailPage() {
 
                 {/* Featured Products Section */}
                 {store.featuredProducts && store.featuredProducts.length > 0 && (
-                    <FeaturedProducts 
-                        products={getProductsByIds(store.featuredProducts)} 
+                    <FeaturedProducts
+                        products={getProductsByIds(store.featuredProducts)}
                         storeName={store.name}
                     />
                 )}

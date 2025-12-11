@@ -18,20 +18,20 @@ interface SubcategoryGridProps {
 export default function SubcategoryGrid({ title, subcategories, pageKey }: SubcategoryGridProps) {
     // Generate pageKey from title if not provided
     const key = pageKey || title.toLowerCase().replace(/\s+/g, '-');
-    
+
     return (
         <section style={{ margin: 0, width: '100%', backgroundColor: '#ffffff' }}>
             {/* Section Header - Using PageHeader for uniformity */}
-            <PageHeader 
-                pageKey={key} 
-                defaultTitle={title} 
-                subtitle="Explore our collection and find your style" 
+            <PageHeader
+                pageKey={key}
+                defaultTitle={title}
+                subtitle="Explore our collection and find your style"
             />
 
             {/* Subcategory Grid */}
             <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '56px 32px' }}>
-                <div style={{ 
-                    display: 'grid', 
+                <div style={{
+                    display: 'grid',
                     gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
                     gap: '32px'
                 }}>
@@ -40,7 +40,7 @@ export default function SubcategoryGrid({ title, subcategories, pageKey }: Subca
                             key={subcat.id}
                             href={subcat.link}
                             className="group"
-                            style={{ 
+                            style={{
                                 position: 'relative',
                                 display: 'block',
                                 height: '500px',
@@ -74,9 +74,11 @@ export default function SubcategoryGrid({ title, subcategories, pageKey }: Subca
                                 right: 0,
                                 bottom: 0,
                                 background: 'linear-gradient(to top, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.3) 50%, rgba(0,0,0,0.1) 100%)',
-                                transition: 'background 0.3s ease'
-                            }} 
-                            className="group-hover:bg-opacity-80"
+                                opacity: 1,
+                                transition: 'opacity 0.3s ease',
+                                willChange: 'opacity'
+                            }}
+                                className="group-hover:opacity-90"
                             />
 
                             {/* Content */}

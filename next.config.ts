@@ -81,6 +81,8 @@ const nextConfig: NextConfig = {
     // Device sizes for responsive images
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
+    // Increase cache TTL for better performance
+    minimumCacheTTL: 60 * 60 * 24 * 365, // 1 year
     remotePatterns: [
       {
         protocol: "http",
@@ -112,9 +114,17 @@ const nextConfig: NextConfig = {
   // Optimize production builds
   productionBrowserSourceMaps: false,
 
+  // Compiler optimizations
+  compiler: {
+    // Remove console logs in production
+    removeConsole: process.env.NODE_ENV === "production",
+  },
+
   // Experimental features for performance
   experimental: {
     optimizeCss: true,
+    // Tree-shake react-icons to reduce bundle size
+    optimizePackageImports: ["react-icons"],
   },
 };
 

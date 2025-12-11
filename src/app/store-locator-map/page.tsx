@@ -200,22 +200,12 @@ export default function StoreLocatorMapPage() {
                             <div
                                 key={store.id}
                                 onClick={() => setSelectedStore(store)}
+                                className="store-list-item"
                                 style={{
                                     padding: '20px',
                                     borderBottom: '1px solid #e5e7eb',
                                     cursor: 'pointer',
-                                    backgroundColor: selectedStore?.id === store.id ? '#f3f4f6' : '#ffffff',
-                                    transition: 'background-color 0.2s'
-                                }}
-                                onMouseEnter={(e) => {
-                                    if (selectedStore?.id !== store.id) {
-                                        e.currentTarget.style.backgroundColor = '#f9fafb';
-                                    }
-                                }}
-                                onMouseLeave={(e) => {
-                                    if (selectedStore?.id !== store.id) {
-                                        e.currentTarget.style.backgroundColor = '#ffffff';
-                                    }
+                                    backgroundColor: selectedStore?.id === store.id ? '#f3f4f6' : '#ffffff'
                                 }}
                             >
                                 <h3 style={{
@@ -268,6 +258,7 @@ export default function StoreLocatorMapPage() {
                                 </div>
                                 <Link
                                     href={`/store/${store.slug}`}
+                                    className="store-details-btn"
                                     style={{
                                         display: 'inline-block',
                                         marginTop: '12px',
@@ -279,13 +270,7 @@ export default function StoreLocatorMapPage() {
                                         fontSize: '14px',
                                         fontWeight: 'bold',
                                         textAlign: 'center',
-                                        transition: 'background-color 0.2s'
-                                    }}
-                                    onMouseEnter={(e) => {
-                                        e.currentTarget.style.backgroundColor = '#a02828';
-                                    }}
-                                    onMouseLeave={(e) => {
-                                        e.currentTarget.style.backgroundColor = '#C83232';
+                                        transition: 'transform 0.2s, opacity 0.2s'
                                     }}
                                     onClick={(e) => e.stopPropagation()}
                                 >

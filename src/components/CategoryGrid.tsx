@@ -4,7 +4,7 @@ import type { Category } from "@/lib/directus";
 import { fetchCategories, fileUrl } from '@/lib/directus';
 
 interface CategoryGridProps {
-  categories?: Category[];
+    categories?: Category[];
 }
 
 export default async function CategoryGrid({ categories }: CategoryGridProps) {
@@ -22,11 +22,11 @@ export default async function CategoryGrid({ categories }: CategoryGridProps) {
         <section style={{ padding: '80px 0', margin: 0, width: '100%', backgroundColor: '#ffffff' }}>
             {/* Section Header */}
             <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '0 32px 56px' }}>
-                <h2 style={{ 
-                    fontSize: '48px', 
-                    fontWeight: '700', 
-                    textAlign: 'center', 
-                    marginBottom: '16px', 
+                <h2 style={{
+                    fontSize: '48px',
+                    fontWeight: '700',
+                    textAlign: 'center',
+                    marginBottom: '16px',
                     color: '#000000',
                     fontFamily: '"DIN Condensed", "League Gothic", system-ui, sans-serif',
                     letterSpacing: '2px',
@@ -41,8 +41,8 @@ export default async function CategoryGrid({ categories }: CategoryGridProps) {
 
             {/* Category Grid */}
             <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '0 32px' }}>
-                <div style={{ 
-                    display: 'grid', 
+                <div style={{
+                    display: 'grid',
                     gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
                     gap: '32px'
                 }}>
@@ -51,7 +51,7 @@ export default async function CategoryGrid({ categories }: CategoryGridProps) {
                             key={cat.id}
                             href={cat.link}
                             className="group"
-                            style={{ 
+                            style={{
                                 position: 'relative',
                                 display: 'block',
                                 height: '500px',
@@ -78,7 +78,7 @@ export default async function CategoryGrid({ categories }: CategoryGridProps) {
                             />
 
                             {/* Overlay */}
-                            <div 
+                            <div
                                 style={{
                                     position: 'absolute',
                                     top: 0,
@@ -86,9 +86,11 @@ export default async function CategoryGrid({ categories }: CategoryGridProps) {
                                     width: '100%',
                                     height: '100%',
                                     backgroundColor: 'rgba(0, 0, 0, 0.4)',
-                                    transition: 'background-color 0.3s ease'
+                                    opacity: 1,
+                                    transition: 'opacity 0.3s ease',
+                                    willChange: 'opacity'
                                 }}
-                                className="group-hover:bg-black/60"
+                                className="group-hover:opacity-75"
                             ></div>
 
                             {/* Content */}
@@ -105,7 +107,7 @@ export default async function CategoryGrid({ categories }: CategoryGridProps) {
                                 padding: '32px',
                                 zIndex: 10
                             }}>
-                                <h3 
+                                <h3
                                     className="font-din group-hover:tracking-widest"
                                     style={{
                                         fontSize: '72px',
@@ -120,10 +122,10 @@ export default async function CategoryGrid({ categories }: CategoryGridProps) {
                                 >
                                     {cat.title}
                                 </h3>
-                                <p style={{ 
-                                    color: '#ffffff', 
-                                    fontSize: '16px', 
-                                    textAlign: 'center', 
+                                <p style={{
+                                    color: '#ffffff',
+                                    fontSize: '16px',
+                                    textAlign: 'center',
                                     opacity: 0.9,
                                     fontWeight: '500'
                                 }}>
