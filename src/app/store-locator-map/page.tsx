@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
+import Script from 'next/script';
 import { STORES } from '@/data/stores';
 import { Store } from '@/types/store';
 import PageHeader from '@/components/PageHeader';
@@ -112,11 +113,10 @@ export default function StoreLocatorMapPage() {
             backgroundColor: '#f5f5f5',
             fontFamily: 'var(--font-din-condensed), sans-serif'
         }}>
-            {/* Load Google Maps API */}
-            <script
+            {/* Load Google Maps API non-blocking */}
+            <Script
                 src={`https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&libraries=places`}
-                async
-                defer
+                strategy="lazyOnload"
             />
 
             {/* Header Section */}

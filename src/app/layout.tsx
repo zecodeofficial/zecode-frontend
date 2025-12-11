@@ -101,6 +101,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     <html lang="en" className="h-full" suppressHydrationWarning>
       <head>
         <meta charSet="utf-8" />
+        <link rel="preconnect" href="https://res.cloudinary.com" />
       </head>
       <body className={`antialiased ${dinCondensed.variable} ${inter.variable} ${leagueGothic.variable}`} style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', margin: 0, padding: 0 }} suppressHydrationWarning>
         <ThemeProvider>
