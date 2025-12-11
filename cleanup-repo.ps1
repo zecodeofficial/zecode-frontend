@@ -27,7 +27,8 @@ function Remove-Files {
             Remove-Item -Path $file.FullName -Force
             $deleted += $file.Name
             Write-Host "  ✓ Deleted: $($file.Name)" -ForegroundColor Green
-        } catch {
+        }
+        catch {
             $errors += "Failed to delete $($file.Name): $_"
             Write-Host "  ✗ Failed: $($file.Name)" -ForegroundColor Red
         }
@@ -117,7 +118,8 @@ foreach ($script in $devScripts) {
             Remove-Item -Path $path -Force
             $deleted += $script
             Write-Host "  ✓ Deleted: $script" -ForegroundColor Green
-        } catch {
+        }
+        catch {
             $errors += "Failed to delete $script: $_"
             Write-Host "  ✗ Failed: $script" -ForegroundColor Red
         }
@@ -140,7 +142,8 @@ foreach ($file in $jsonFiles) {
         Remove-Item -Path $file.FullName -Force
         $deleted += $file.Name
         Write-Host "  ✓ Deleted: $($file.Name)" -ForegroundColor Green
-    } catch {
+    }
+    catch {
         $errors += "Failed to delete $($file.Name): $_"
         Write-Host "  ✗ Failed: $($file.Name)" -ForegroundColor Red
     }
@@ -170,7 +173,8 @@ foreach ($dir in $dirsToDelete) {
             Remove-Item -Path $dir -Recurse -Force
             $deleted += (Split-Path $dir -Leaf)
             Write-Host "  ✓ Deleted directory: $(Split-Path $dir -Leaf)" -ForegroundColor Green
-        } catch {
+        }
+        catch {
             $errors += "Failed to delete directory $(Split-Path $dir -Leaf): $_"
             Write-Host "  ✗ Failed: $(Split-Path $dir -Leaf)" -ForegroundColor Red
         }
@@ -181,8 +185,6 @@ Write-Host ""
 Write-Host "Step 5: Deleting internal documentation..." -ForegroundColor Cyan
 
 $docsToDelete = @(
-    "$scriptsDir/README-CLOUDINARY-CLEANUP.md",
-    "$scriptsDir/README-IMAGE-MANAGEMENT.md",
     "$scriptsDir/README-PRICE-UPDATE.md",
     "$scriptsDir/README-TOKEN-REFRESH.md",
     "$scriptsDir/home_slider_banner_workflow.md",
@@ -200,7 +202,8 @@ foreach ($doc in $docsToDelete) {
             Remove-Item -Path $doc -Force
             $deleted += (Split-Path $doc -Leaf)
             Write-Host "  ✓ Deleted: $(Split-Path $doc -Leaf)" -ForegroundColor Green
-        } catch {
+        }
+        catch {
             $errors += "Failed to delete $(Split-Path $doc -Leaf): $_"
             Write-Host "  ✗ Failed: $(Split-Path $doc -Leaf)" -ForegroundColor Red
         }
@@ -235,7 +238,8 @@ foreach ($artifact in $rootArtifacts) {
             Remove-Item -Path $artifact -Force
             $deleted += (Split-Path $artifact -Leaf)
             Write-Host "  ✓ Deleted: $(Split-Path $artifact -Leaf)" -ForegroundColor Green
-        } catch {
+        }
+        catch {
             $errors += "Failed to delete $(Split-Path $artifact -Leaf): $_"
             Write-Host "  ✗ Failed: $(Split-Path $artifact -Leaf)" -ForegroundColor Red
         }
@@ -248,7 +252,8 @@ if (Test-Path "$scriptsDir/.env") {
         Remove-Item -Path "$scriptsDir/.env" -Force
         $deleted += "scripts/.env"
         Write-Host "  ✓ Deleted: scripts/.env" -ForegroundColor Green
-    } catch {
+    }
+    catch {
         $errors += "Failed to delete scripts/.env: $_"
         Write-Host "  ✗ Failed: scripts/.env" -ForegroundColor Red
     }
