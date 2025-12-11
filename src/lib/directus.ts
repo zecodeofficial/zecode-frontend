@@ -424,8 +424,9 @@ export const fetchProductsByGender = typeof window === 'undefined'
 
 /**
  * fetchProductsByGenderAndSubcategory - optimized fetch with server-side filtering
+ * Internal implementation (uncached)
  */
-export async function fetchProductsByGenderAndSubcategory(gender: string | null, subcategory: string | string[]): Promise<Product[] | null> {
+async function _fetchProductsByGenderAndSubcategory(gender: string | null, subcategory: string | string[]): Promise<Product[] | null> {
   try {
     const url = getApiUrl("/items/products");
     const params: any = {
@@ -458,6 +459,21 @@ export async function fetchProductsByGenderAndSubcategory(gender: string | null,
     return null; // Return null so caller can try fallback if needed
   }
 }
+
+/**
+ * fetchProductsByGenderAndSubcategory - cached version for fast page loads
+ * Cache key includes gender and subcategory for precise cache hits
+ */
+export const fetchProductsByGenderAndSubcategory = typeof window === 'undefined'
+  ? (gender: string | null, subcategory: string | string[]) => {
+    const cacheKey = `products-${gender || 'all'}-${Array.isArray(subcategory) ? subcategory.join('-') : subcategory}`;
+    return unstable_cache(
+      () => _fetchProductsByGenderAndSubcategory(gender, subcategory),
+      [cacheKey],
+      { revalidate: CACHE_PRODUCTS, tags: ['products'] }
+    )();
+  }
+  : _fetchProductsByGenderAndSubcategory;
 
 /**
  * fetchProductBySlug - fetch a single product by slug
