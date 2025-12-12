@@ -195,7 +195,9 @@ export default function ProductDetailContent({ product }: { product: ProductDeta
                                         type="button"
                                         onClick={() => setSelectedImageIndex(index)}
                                         onMouseEnter={() => setSelectedImageIndex(index)}
-                                        className={`relative overflow-hidden border transition-all flex-shrink-0 ${isActive
+                                        aria-label={`View product image ${index + 1} of ${gallery.length}`}
+                                        aria-pressed={isActive}
+                                        className={`relative overflow-hidden border transition-all flex-shrink-0 min-w-[48px] min-h-[48px] ${isActive
                                             ? 'border-gray-800 border-2'
                                             : 'border-gray-200 hover:border-gray-400'
                                             }`}
@@ -211,11 +213,12 @@ export default function ProductDetailContent({ product }: { product: ProductDeta
                                     </button>
                                 );
                             })}
-                            
+
                             {/* Virtual Try-On Button */}
                             <button
                                 onClick={() => setShowVirtualTryOn(true)}
-                                className="flex flex-col items-center justify-center gap-1 px-3 py-2 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-medium rounded-lg transition-all shadow-md hover:shadow-lg flex-shrink-0"
+                                aria-label="Virtual Try-On - Try this product before you buy"
+                                className="flex flex-col items-center justify-center gap-1 px-4 py-3 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-medium rounded-lg transition-all shadow-md hover:shadow-lg flex-shrink-0 min-w-[48px] min-h-[48px]"
                                 style={{ height: '75px' }}
                                 title="Virtual Try-On - Try before you buy!"
                             >
@@ -228,7 +231,7 @@ export default function ProductDetailContent({ product }: { product: ProductDeta
                     {/* Right Column - Product Summary */}
                     <div className="space-y-5">
                         {/* Product Title */}
-                        <h1 className="text-3xl md:text-4xl font-bold text-gray-100 uppercase tracking-wide">
+                        <h1 className="text-3xl md:text-4xl font-bold text-gray-900 uppercase tracking-wide">
                             {product.name}
                         </h1>
 
@@ -242,7 +245,7 @@ export default function ProductDetailContent({ product }: { product: ProductDeta
                             <span>Category: </span>
                             <Link
                                 href={`/${product.category}`}
-                                className="text-blue-600 hover:underline"
+                                className="text-blue-700 underline hover:text-blue-900 font-medium"
                             >
                                 {product.categoryLabel ?? product.category}
                             </Link>
@@ -261,7 +264,7 @@ export default function ProductDetailContent({ product }: { product: ProductDeta
                                     href={shareUrl ? buildShareLink('whatsapp', shareUrl, product.name) : '#'}
                                     target="_blank"
                                     rel="noreferrer"
-                                    className="border border-gray-200 rounded p-2 text-gray-600 hover:bg-gray-50 transition-colors"
+                                    className="border border-gray-300 rounded p-3 text-gray-700 hover:bg-gray-100 transition-colors min-w-[48px] min-h-[48px] flex items-center justify-center"
                                     aria-label="Share on WhatsApp"
                                 >
                                     <WhatsAppIcon />
@@ -270,7 +273,7 @@ export default function ProductDetailContent({ product }: { product: ProductDeta
                                     href="https://instagram.com"
                                     target="_blank"
                                     rel="noreferrer"
-                                    className="border border-gray-200 rounded p-2 text-gray-600 hover:bg-gray-50 transition-colors"
+                                    className="border border-gray-300 rounded p-3 text-gray-700 hover:bg-gray-100 transition-colors min-w-[48px] min-h-[48px] flex items-center justify-center"
                                     aria-label="Share on Instagram"
                                 >
                                     <InstagramIcon />
@@ -279,21 +282,21 @@ export default function ProductDetailContent({ product }: { product: ProductDeta
                                     href={shareUrl ? buildShareLink('facebook', shareUrl, product.name) : '#'}
                                     target="_blank"
                                     rel="noreferrer"
-                                    className="border border-gray-200 rounded p-2 text-gray-600 hover:bg-gray-50 transition-colors"
+                                    className="border border-gray-300 rounded p-3 text-gray-700 hover:bg-gray-100 transition-colors min-w-[48px] min-h-[48px] flex items-center justify-center"
                                     aria-label="Share on Facebook"
                                 >
                                     <FacebookIcon />
                                 </a>
                                 <a
                                     href={shareUrl ? buildShareLink('email', shareUrl, product.name) : '#'}
-                                    className="border border-gray-200 rounded p-2 text-gray-600 hover:bg-gray-50 transition-colors"
+                                    className="border border-gray-300 rounded p-3 text-gray-700 hover:bg-gray-100 transition-colors min-w-[48px] min-h-[48px] flex items-center justify-center"
                                     aria-label="Share via Email"
                                 >
                                     <EmailIcon />
                                 </a>
                                 <Link
                                     href="/store-locator-map"
-                                    className="border border-gray-200 rounded px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 transition-colors ml-2"
+                                    className="border border-gray-300 rounded px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 transition-colors ml-2 underline font-medium min-h-[48px] flex items-center"
                                 >
                                     Find in store
                                 </Link>
