@@ -117,6 +117,7 @@ export default function HeroSlider({ slides }: HeroSliderProps) {
                 sizes="100vw"
                 priority={isFirstSlide}
                 loading={isFirstSlide ? "eager" : "lazy"}
+                fetchPriority={isFirstSlide ? "high" : "auto"}
               />
               {/* Overlay / hero content */}
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent flex items-center justify-center">

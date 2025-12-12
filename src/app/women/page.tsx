@@ -1,5 +1,6 @@
 import dynamic from "next/dynamic";
 import HeroSlider from "@/components/HeroSlider";
+import type { Metadata } from "next";
 // Lazy load SubcategoryGrid to reduce initial bundle size
 const SubcategoryGridDynamic = dynamic(() => import("@/components/SubcategoryGridDynamic"), {
   loading: () => <div className="min-h-[500px] bg-white animate-pulse" />,
@@ -8,7 +9,16 @@ import { fetchHeroSlides } from "@/lib/directus";
 import { CATEGORY_DESCRIPTIONS } from "@/data/category-descriptions";
 import DescriptionText from "@/components/DescriptionText";
 
-// Force dynamic rendering to prevent build-time API calls
+// Metadata with hero image preload
+export const metadata: Metadata = {
+  title: "Women's Fashion Collection | Zecode",
+  description: "Shop the latest women's fashion at Zecode. Trendy tops, elegant dresses, jeans, skirts, activewear, and ethnic fusion styles for the modern woman.",
+  other: {
+    // Preload hero image for faster LCP
+    "link": "rel=preload href=/categories/women.jpg as=image fetchpriority=high",
+  },
+};
+
 // Use ISR - revalidate every 5 minutes
 export const revalidate = 300;
 
