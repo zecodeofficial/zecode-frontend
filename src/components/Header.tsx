@@ -72,6 +72,7 @@ const DEFAULT_CATEGORIES: Category[] = [
         type: 'section',
         items: [
           { label: "TOPS", href: "/women/tops" },
+          { label: "T-SHIRTS", href: "/women/tshirts" },
           { label: "DRESSES", href: "/women/dresses" },
           { label: "JEANS", href: "/women/jeans" },
           { label: "SKIRTS", href: "/women/skirts" },

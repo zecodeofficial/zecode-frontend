@@ -40,6 +40,7 @@ export const revalidate = 300;
 // 1. Western Wear Subcategories
 const WESTERN_SUBCATEGORIES = [
   { title: "TOPS", slug: "tops" },
+  { title: "T-SHIRTS", slug: "tshirts" },
   { title: "DRESSES", slug: "dresses" },
   { title: "JEANS", slug: "jeans" },
   { title: "SKIRTS", slug: "skirts" },
