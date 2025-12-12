@@ -429,25 +429,34 @@ export const fetchProductsByGender = typeof window === 'undefined'
 async function _fetchProductsByGenderAndSubcategory(gender: string | null, subcategory: string | string[]): Promise<Product[] | null> {
   try {
     const url = getApiUrl("/items/products");
-    const params: any = {
-      sort: "sort,name",
-      "filter[status][_eq]": "published",
+
+    // Build filter object for Directus
+    // Match products where subcategory OR category matches the given value
+    const subcatValues = Array.isArray(subcategory) ? subcategory : [subcategory];
+
+    // Create OR filter: match subcategory OR category field
+    const filter: any = {
+      _and: [
+        { status: { _eq: "published" } },
+        {
+          _or: [
+            { subcategory: { _in: subcatValues } },
+            { category: { _in: subcatValues } }
+          ]
+        }
+      ]
     };
 
     // Apply gender filter only if provided
     if (gender) {
-      params["filter[gender_category][_istarts_with]"] = gender;
-    }
-
-    // Handle array of subcategories (OR condition) or single subcategory
-    if (Array.isArray(subcategory)) {
-      params["filter[subcategory][_in]"] = subcategory.join(',');
-    } else {
-      params["filter[subcategory][_eq]"] = subcategory;
+      filter._and.push({ gender_category: { _istarts_with: gender } });
     }
 
     const res = await axios.get(url, {
-      params,
+      params: {
+        sort: "sort,name",
+        filter: JSON.stringify(filter),
+      },
       timeout: TIMEOUT_DEFAULT,
     });
 

@@ -61,5 +61,33 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
         };
     })();
 
-    return <ProductDetailContent product={normalized} />;
+    return (
+        <>
+            <script
+                type="application/ld+json"
+                dangerouslySetInnerHTML={{
+                    __html: JSON.stringify({
+                        "@context": "https://schema.org",
+                        "@type": "Product",
+                        "name": normalized.name,
+                        "image": normalized.image ? [`https://zecode-frontend.vercel.app${normalized.image}`] : [],
+                        "description": normalized.description,
+                        "brand": {
+                            "@type": "Brand",
+                            "name": "ZECODE"
+                        },
+                        "offers": {
+                            "@type": "Offer",
+                            "url": `https://zecode-frontend.vercel.app/product/${slug}`,
+                            "priceCurrency": "INR", // Assumption as per verifying with user
+                            "price": normalized.price,
+                            "availability": "https://schema.org/InStock", // Defaulting to InStock as we don't have explicit inventory count in types
+                            "itemCondition": "https://schema.org/NewCondition"
+                        }
+                    })
+                }}
+            />
+            <ProductDetailContent product={normalized} />
+        </>
+    );
 }
