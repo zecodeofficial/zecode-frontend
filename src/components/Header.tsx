@@ -206,8 +206,10 @@ export default function Header() {
             <div className="flex items-center justify-between py-0">
               {/* Mobile Menu Button */}
               <button
-                className="md:hidden text-white p-2 hover:bg-white/10 rounded-lg transition-colors"
+                className="md:hidden text-white p-3 hover:bg-white/10 rounded-lg transition-colors min-w-[48px] min-h-[48px] flex items-center justify-center"
                 onClick={() => setMobileMenuOpen(true)}
+                aria-label="Open navigation menu"
+                aria-expanded={mobileMenuOpen}
               >
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-7 h-7">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
@@ -371,7 +373,8 @@ export default function Header() {
           />
           <button
             onClick={() => setMobileMenuOpen(false)}
-            className="text-white p-2 hover:bg-white/10 hover:rotate-90 rounded-lg transition-all duration-300"
+            aria-label="Close navigation menu"
+            className="text-white p-3 hover:bg-white/10 hover:rotate-90 rounded-lg transition-all duration-300 min-w-[48px] min-h-[48px] flex items-center justify-center"
           >
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6">
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -391,7 +394,9 @@ export default function Header() {
                 {/* Category Header - Accordion Toggle */}
                 <button
                   onClick={() => setActiveDropdown(activeDropdown === category.label ? null : category.label)}
-                  className="flex items-center justify-between w-full py-3 px-4 text-white text-lg font-bold tracking-wider uppercase hover:bg-white/5 rounded-lg transition-all duration-300 group"
+                  aria-label={`${activeDropdown === category.label ? 'Collapse' : 'Expand'} ${category.label} menu`}
+                  aria-expanded={activeDropdown === category.label}
+                  className="flex items-center justify-between w-full py-3 px-4 text-white text-lg font-bold tracking-wider uppercase hover:bg-white/5 rounded-lg transition-all duration-300 group min-h-[48px]"
                 >
                   <span className="group-hover:translate-x-1 transition-transform duration-300">{category.label}</span>
                   <div className={`w-6 h-6 rounded-full border border-white/20 flex items-center justify-center transition-all duration-300 ${activeDropdown === category.label ? 'bg-[#C83232] border-[#C83232] rotate-180' : ''}`}>

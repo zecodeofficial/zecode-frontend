@@ -280,7 +280,10 @@ export default function Footer() {
                   aria-label="Email address for newsletter"
                   className="flex-1 bg-white/5 border border-white/10 rounded-l-lg px-3 py-2 text-sm text-white placeholder-gray-400 focus:outline-none focus:border-[#C83232] transition-colors"
                 />
-                <button className="bg-[#C83232] hover:bg-[#a82828] px-4 py-2 rounded-r-lg transition-colors text-xs font-bold uppercase tracking-wider whitespace-nowrap">
+                <button
+                  className="bg-[#C83232] hover:bg-[#a82828] px-4 py-3 rounded-r-lg transition-colors text-xs font-bold uppercase tracking-wider whitespace-nowrap min-h-[48px]"
+                  aria-label="Subscribe to newsletter"
+                >
                   Subscribe
                 </button>
               </div>
