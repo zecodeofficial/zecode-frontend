@@ -1,23 +1,38 @@
 import dynamic from "next/dynamic";
 import HeroSlider from "@/components/HeroSlider";
 import type { Metadata } from "next";
+import { fetchCategoryBySlug } from "@/lib/directus";
 // Lazy load SubcategoryGrid to reduce initial bundle size
 const SubcategoryGridDynamic = dynamic(() => import("@/components/SubcategoryGridDynamic"), {
   loading: () => <div className="min-h-[500px] bg-white animate-pulse" />,
 });
-import { fetchHeroSlides } from "@/lib/directus";
+
 import { CATEGORY_DESCRIPTIONS } from "@/data/category-descriptions";
 import DescriptionText from "@/components/DescriptionText";
 
 // Metadata with hero image preload
-export const metadata: Metadata = {
-  title: "Women's Fashion Collection | Zecode",
-  description: "Shop the latest women's fashion at Zecode. Trendy tops, elegant dresses, jeans, skirts, activewear, and ethnic fusion styles for the modern woman.",
-  other: {
-    // Preload hero image for faster LCP
-    "link": "rel=preload href=/categories/women.jpg as=image fetchpriority=high",
-  },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const category = await fetchCategoryBySlug("women");
+  const title = category?.seo_title || "Women's Fashion Collection | Zecode";
+  const description = category?.seo_description || "Shop the latest women's fashion at Zecode. Trendy tops, elegant dresses, jeans, skirts, activewear, and ethnic fusion styles for the modern woman.";
+
+  return {
+    title,
+    description,
+    other: {
+      "link": "rel=preload href=/categories/women.jpg as=image fetchpriority=high",
+    },
+    alternates: {
+      canonical: category?.canonical_url || "/women",
+    },
+    openGraph: {
+      title,
+      description,
+      url: "/women",
+      type: "website",
+    },
+  };
+}
 
 // Use ISR - revalidate every 5 minutes
 export const revalidate = 300;
@@ -59,13 +74,35 @@ const WOMEN_SLIDE = [
   }
 ];
 
-export default function WomenPage() {
+export default async function WomenPage() {
+  const category = await fetchCategoryBySlug("women");
+  const description = category?.description || CATEGORY_DESCRIPTIONS.women;
+
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    "name": category?.title || "Women's Collection",
+    "description": description?.slice(0, 160),
+    "url": "https://zecode-frontend.vercel.app/women",
+    "breadcrumb": {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://zecode-frontend.vercel.app" },
+        { "@type": "ListItem", "position": 2, "name": "Women", "item": "https://zecode-frontend.vercel.app/women" }
+      ]
+    }
+  };
+
   return (
     <div style={{ minHeight: "100%", backgroundColor: "#ffffff" }}>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <HeroSlider slides={WOMEN_SLIDE} />
 
       {/* Category Description */}
-      <DescriptionText text={CATEGORY_DESCRIPTIONS.women} />
+      <DescriptionText text={description} />
 
       {/* 1. Western Wear Section */}
       <SubcategoryGridDynamic

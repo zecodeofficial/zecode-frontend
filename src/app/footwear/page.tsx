@@ -1,8 +1,9 @@
 import HeroSlider from "@/components/HeroSlider";
 import SubcategoryGridDynamic from "@/components/SubcategoryGridDynamic";
-import { fetchHeroSlides } from "@/lib/directus";
+import { fetchCategoryBySlug } from "@/lib/directus";
 import { CATEGORY_DESCRIPTIONS } from "@/data/category-descriptions";
 import DescriptionText from "@/components/DescriptionText";
+import type { Metadata } from "next";
 
 // Force dynamic rendering to prevent build-time API calls
 // Use ISR - revalidate every 5 minutes
@@ -26,13 +27,55 @@ const FOOTWEAR_SLIDE = [
   }
 ];
 
-export default function FootwearPage() {
+export async function generateMetadata(): Promise<Metadata> {
+  const category = await fetchCategoryBySlug("footwear");
+  const title = category?.seo_title || "Premium Footwear Collection | Zecode";
+  const description = category?.seo_description || CATEGORY_DESCRIPTIONS.footwear.slice(0, 160);
+
+  return {
+    title,
+    description,
+    alternates: {
+      canonical: category?.canonical_url || "/footwear",
+    },
+    openGraph: {
+      title,
+      description,
+      url: "/footwear",
+      type: "website",
+    },
+  };
+}
+
+export default async function FootwearPage() {
+  const category = await fetchCategoryBySlug("footwear");
+  const description = category?.description || CATEGORY_DESCRIPTIONS.footwear;
+
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    "name": category?.title || "Footwear Collection",
+    "description": description?.slice(0, 160),
+    "url": "https://zecode-frontend.vercel.app/footwear",
+    "breadcrumb": {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://zecode-frontend.vercel.app" },
+        { "@type": "ListItem", "position": 2, "name": "Footwear", "item": "https://zecode-frontend.vercel.app/footwear" }
+      ]
+    }
+  };
+
   return (
     <div style={{ minHeight: "100%", backgroundColor: "#ffffff" }}>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <HeroSlider slides={FOOTWEAR_SLIDE} />
 
       {/* Category Description */}
-      <DescriptionText text={CATEGORY_DESCRIPTIONS.footwear} />
+      <DescriptionText text={description} />
 
       <SubcategoryGridDynamic
         title="Footwear"

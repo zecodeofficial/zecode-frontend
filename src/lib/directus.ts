@@ -39,6 +39,9 @@ export type GlobalSettings = {
   footer_nav?: { label: string; href: string }[];
   social_links?: { label: string; href: string; icon?: string }[];
   footer_text?: string;
+  seo_title?: string;
+  seo_description?: string;
+  canonical_url?: string;
 };
 
 export type HeroSlide = {
@@ -59,6 +62,10 @@ export type Category = {
   link: string;
   sort?: number;
   subcategories?: Subcategory[];
+  description?: string;
+  seo_title?: string;
+  seo_description?: string;
+  canonical_url?: string;
 };
 
 export type Subcategory = {
@@ -69,6 +76,10 @@ export type Subcategory = {
   link: string;
   category_id?: number;
   sort?: number;
+  description?: string;
+  seo_title?: string;
+  seo_description?: string;
+  canonical_url?: string;
 };
 
 /**
@@ -184,7 +195,7 @@ export const fetchHeroSlides = typeof window === 'undefined'
  */
 export async function fetchCategories(): Promise<Category[] | null> {
   try {
-    const url = getApiUrl("/items/categories");
+    const url = getApiUrl("/items/cms_categories");
     const res = await axios.get(url, {
       params: {
         sort: "sort",
@@ -192,7 +203,11 @@ export async function fetchCategories(): Promise<Category[] | null> {
       },
       timeout: TIMEOUT_DEFAULT,
     });
-    return res?.data?.data ?? null;
+    const data = res?.data?.data ?? null;
+    if (Array.isArray(data)) {
+      return data.map((item: any) => ({ ...item, title: item.name, subcategories: item.subcategories?.map((s: any) => ({ ...s, title: s.name })) }));
+    }
+    return data;
   } catch (err: any) {
     console.error("Directus fetchCategories error:", err.message);
     return null;
@@ -204,7 +219,7 @@ export async function fetchCategories(): Promise<Category[] | null> {
  */
 export async function fetchCategoryBySlug(slug: string): Promise<Category | null> {
   try {
-    const url = getApiUrl("/items/categories");
+    const url = getApiUrl("/items/cms_categories");
     const res = await axios.get(url, {
       params: {
         "filter[slug][_eq]": slug,
@@ -213,7 +228,14 @@ export async function fetchCategoryBySlug(slug: string): Promise<Category | null
       },
       timeout: TIMEOUT_DEFAULT,
     });
-    return res?.data?.data?.[0] ?? null;
+    const item = res?.data?.data?.[0] ?? null;
+    if (item) {
+      item.title = item.name;
+      if (Array.isArray(item.subcategories)) {
+        item.subcategories = item.subcategories.map((s: any) => ({ ...s, title: s.name }));
+      }
+    }
+    return item;
   } catch (err: any) {
     console.error("Directus fetchCategoryBySlug error:", err.message);
     return null;
@@ -306,6 +328,9 @@ export type Product = {
   status?: string;
   featured?: boolean;
   sort?: number;
+  seo_title?: string;
+  seo_description?: string;
+  canonical_url?: string;
 };
 
 export type ProductCount = {

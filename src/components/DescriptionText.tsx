@@ -12,22 +12,32 @@ export default function DescriptionText({ text }: DescriptionTextProps) {
 
     if (!text) return null;
 
+    const isHtml = /<[a-z][\s\S]*>/i.test(text);
     const shouldTruncate = text.length > maxLength;
-    const displayText = isExpanded ? text : text.slice(0, maxLength);
 
     return (
         <div className="bg-gray-50 py-8 border-b border-gray-200">
             <div className="max-w-4xl mx-auto px-4">
-                <div className="prose prose-gray max-w-none text-center">
-                    <p className="text-gray-700 leading-relaxed text-base md:text-lg">
-                        {displayText}
-                        {shouldTruncate && !isExpanded && "..."}
-                    </p>
+                <div className="prose prose-gray max-w-none text-center relative">
+                    <div
+                        className={`text-gray-700 leading-relaxed text-base md:text-lg overflow-hidden transition-all duration-500 ease-in-out ${shouldTruncate && !isExpanded ? "max-h-32" : "max-h-full"
+                            }`}
+                    >
+                        {isHtml ? (
+                            <div dangerouslySetInnerHTML={{ __html: text }} />
+                        ) : (
+                            <p>{text}</p>
+                        )}
+                    </div>
+
+                    {shouldTruncate && !isExpanded && (
+                        <div className="absolute bottom-12 left-0 w-full h-16 bg-gradient-to-t from-gray-50 to-transparent pointer-events-none" />
+                    )}
 
                     {shouldTruncate && (
                         <button
                             onClick={() => setIsExpanded(!isExpanded)}
-                            className="mt-4 inline-flex items-center text-sm font-semibold text-blue-600 hover:text-blue-800 transition-colors"
+                            className="mt-4 inline-flex items-center text-sm font-semibold text-blue-600 hover:text-blue-800 transition-colors z-10 relative"
                         >
                             {isExpanded ? "Read Less" : "Read More"}
                         </button>

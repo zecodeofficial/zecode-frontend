@@ -52,8 +52,9 @@ export const metadata: Metadata = {
   verification: {
     google: "googleadc32a1f183a082d",
   },
+  metadataBase: new URL("https://zecode-frontend.vercel.app"),
   alternates: {
-    canonical: "https://zecode-frontend.vercel.app",
+    canonical: "./",
   },
 };
 

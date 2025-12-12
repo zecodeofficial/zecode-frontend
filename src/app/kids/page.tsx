@@ -1,8 +1,9 @@
 import HeroSlider from "@/components/HeroSlider";
 import SubcategoryGridDynamic from "@/components/SubcategoryGridDynamic";
-import { fetchHeroSlides } from "@/lib/directus";
+import { fetchCategoryBySlug } from "@/lib/directus";
 import { CATEGORY_DESCRIPTIONS } from "@/data/category-descriptions";
 import DescriptionText from "@/components/DescriptionText";
+import type { Metadata } from "next";
 
 // Force dynamic rendering to prevent build-time API calls
 // Use ISR - revalidate every 5 minutes
@@ -28,13 +29,55 @@ const KIDS_SLIDE = [
   }
 ];
 
-export default function KidsPage() {
+export async function generateMetadata(): Promise<Metadata> {
+  const category = await fetchCategoryBySlug("kids");
+  const title = category?.seo_title || "Kids' Fashion Collection | Zecode";
+  const description = category?.seo_description || CATEGORY_DESCRIPTIONS.kids.slice(0, 160);
+
+  return {
+    title,
+    description,
+    alternates: {
+      canonical: category?.canonical_url || "/kids",
+    },
+    openGraph: {
+      title,
+      description,
+      url: "/kids",
+      type: "website",
+    },
+  };
+}
+
+export default async function KidsPage() {
+  const category = await fetchCategoryBySlug("kids");
+  const description = category?.description || CATEGORY_DESCRIPTIONS.kids;
+
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    "name": category?.title || "Kids' Collection",
+    "description": description?.slice(0, 160),
+    "url": "https://zecode-frontend.vercel.app/kids",
+    "breadcrumb": {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://zecode-frontend.vercel.app" },
+        { "@type": "ListItem", "position": 2, "name": "Kids", "item": "https://zecode-frontend.vercel.app/kids" }
+      ]
+    }
+  };
+
   return (
     <div style={{ minHeight: "100%", backgroundColor: "#ffffff" }}>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <HeroSlider slides={KIDS_SLIDE} />
 
       {/* Category Description */}
-      <DescriptionText text={CATEGORY_DESCRIPTIONS.kids} />
+      <DescriptionText text={description} />
 
       <SubcategoryGridDynamic
         title="Kids"
