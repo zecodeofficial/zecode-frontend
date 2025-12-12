@@ -146,12 +146,7 @@ const CLOUDINARY_BASE_URL = `https://res.cloudinary.com/${CLOUDINARY_CLOUD_NAME}
  * Transform local path to Cloudinary URL
  * /products/image.jpg → https://res.cloudinary.com/ds8llatku/image/upload/f_auto,q_auto/zecode/products/image
  */
-function getCloudinaryUrl(localPath: string): string {
-  // Remove leading slash and file extension
-  const cleanPath = localPath.replace(/^\//, '').replace(/\.[^.]+$/, '');
-  // Add auto format and quality optimization
-  return `${CLOUDINARY_BASE_URL}/f_auto,q_auto/zecode/${cleanPath}`;
-}
+
 
 /** fileUrl helper */
 export function fileUrl(file: any) {
@@ -164,15 +159,8 @@ export function fileUrl(file: any) {
     return id;
   }
 
-  // If it's a local path (starts with /), transform to Cloudinary URL
+  // If it's a local path (starts with /), return as is to use Next.js internal optimization
   if (typeof id === 'string' && id.startsWith('/')) {
-    // Check if it's one of our image folders
-    if (id.startsWith('/products/') || id.startsWith('/categories/') ||
-      id.startsWith('/hero/') || id.startsWith('/brand/') ||
-      id.startsWith('/placeholders/')) {
-      return getCloudinaryUrl(id);
-    }
-    // Other local paths (like fonts) stay as-is
     return id;
   }
 

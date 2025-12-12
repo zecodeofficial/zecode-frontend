@@ -90,13 +90,7 @@ const dinCondensed = localFont({
 });
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  // Fetch global settings from Directus (backend) with error handling
-  let settings = null;
-  try {
-    settings = await fetchGlobalSettings();
-  } catch (error) {
-    console.error("Failed to fetch global settings:", error);
-  }
+
 
   return (
     <html lang="en" className="h-full" suppressHydrationWarning>
