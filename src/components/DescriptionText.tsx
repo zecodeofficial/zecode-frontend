@@ -30,9 +30,7 @@ export default function DescriptionText({ text }: DescriptionTextProps) {
                         )}
                     </div>
 
-                    {shouldTruncate && !isExpanded && (
-                        <div className="absolute bottom-12 left-0 w-full h-16 bg-gradient-to-t from-gray-50 to-transparent pointer-events-none" />
-                    )}
+
 
                     {shouldTruncate && (
                         <button

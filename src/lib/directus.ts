@@ -508,8 +508,9 @@ async function _fetchProductsByGenderAndSubcategory(gender: string | null, subca
     // Match products where subcategory OR category matches the given value (case-insensitive)
     const subcatValues = Array.isArray(subcategory) ? subcategory : [subcategory];
 
-    // Include both lowercase and capitalized versions for case-insensitive matching
+    // Include original value, lowercase, sentence case, and uppercase
     const allCaseValues = subcatValues.flatMap(v => [
+      v,
       v.toLowerCase(),
       v.charAt(0).toUpperCase() + v.slice(1).toLowerCase(),
       v.toUpperCase()
