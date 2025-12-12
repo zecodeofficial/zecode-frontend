@@ -81,6 +81,11 @@ const DEFAULT_CATEGORIES: Category[] = [
         ]
       },
       {
+        label: "ACTIVEWEAR",
+        href: "/women/activewear",
+        type: 'section',
+      },
+      {
         label: "ETHNIC FUSION",
         href: "/women/ethnic-wear",
         type: 'section',
