@@ -211,31 +211,14 @@ export default function SubcategoryGridDynamic({ title, categorySlug, subcategor
           allVariations.push(...variations);
         });
 
-        // 2. Prepare batch API call with OR filter for subcategory/category
+        // 2. Prepare batch API call - simpler filter, client-side category matching
         const params = new URLSearchParams();
-        // Fetch enough products to cover images for all subcategories (e.g. 10 per subcat * 20 subcats = 200)
-        // We use a safe limit of 500 to be sure
         params.set('limit', '500');
         params.set('fields', 'name,image_url,image,subcategory,category,gender_category');
+        params.set('filter[status][_eq]', 'published');
 
-        // Use deep filter with _or to match subcategory OR category
-        const filter = {
-          _and: [
-            { status: { _eq: 'published' } },
-            {
-              _or: [
-                { subcategory: { _in: allVariations } },
-                { category: { _in: allVariations } }
-              ]
-            }
-          ]
-        };
-        params.set('filter', JSON.stringify(filter));
-
-        // Note: We can't strictly filter by gender here if it's mixed (e.g. footwear page might show men & women)
-        // But if categorySlug matches a gender, we can pre-filter
+        // Pre-filter by gender for faster response
         if (['men', 'women', 'kids'].includes(categorySlug.toLowerCase())) {
-          // Basic gender mapping, might need more robust logic if API values differ
           const genderMap: Record<string, string> = { 'men': 'Men', 'women': 'Women', 'kids': 'Kids' };
           const genderVal = genderMap[categorySlug.toLowerCase()];
           if (genderVal) params.set('filter[gender_category][_eq]', genderVal);
