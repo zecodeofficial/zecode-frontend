@@ -1,6 +1,6 @@
 // src/app/layout.tsx
 import "./globals.css";
-import Header from "@/components/Header";
+import HeaderWrapper from "@/components/HeaderWrapper"; // Dynamic Server Component
 import Footer from "@/components/Footer";
 import { fetchGlobalSettings } from "@/lib/directus";
 import { ThemeProvider } from "@/contexts/ThemeContext";
@@ -103,8 +103,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <a className="sr-only focus:not-sr-only p-2 absolute z-[9999]" href="#main">
             Skip to content
           </a>
-          <Header />
+          <HeaderWrapper />
           <main id="main" style={{ flex: '1 0 auto', backgroundColor: '#f5f5f5', width: '100%' }}>{children}</main>
+
           <Footer />
         </ThemeProvider>
       </body>

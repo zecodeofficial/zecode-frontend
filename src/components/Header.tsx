@@ -29,20 +29,21 @@ const SLUG_TO_CMS_SUBCATEGORY: Record<string, string[]> = {
 };
 
 // Type for processed navigation
-type Subcategory = {
+// Type for processed navigation
+export type Subcategory = {
   label: string;
   href: string;
   type?: 'section' | 'link'; // Explicit type to control styling
   items?: { label: string; href: string }[]; // For nested sub-sections like Western Wear, Ethnic Fusion
 };
 
-type Category = {
+export type Category = {
   href: string;
   label: string;
   subcategories: Subcategory[];
 };
 
-type QuickLink = {
+export type QuickLink = {
   href: string;
   label: string;
   icon?: string;
@@ -121,7 +122,7 @@ const DEFAULT_QUICK_LINKS: QuickLink[] = [
 ];
 
 // Helper to process CMS navigation data into categories and quick links
-function processNavigation(items: DirectusNavigationItem[]): { categories: Category[]; quickLinks: QuickLink[] } {
+export function processNavigation(items: DirectusNavigationItem[]): { categories: Category[]; quickLinks: QuickLink[] } {
   const categories: Category[] = [];
   const quickLinks: QuickLink[] = [];
 
@@ -168,13 +169,18 @@ function processNavigation(items: DirectusNavigationItem[]): { categories: Categ
   return { categories, quickLinks };
 }
 
-export default function Header() {
+interface HeaderProps {
+  initialCategories?: Category[];
+  initialQuickLinks?: QuickLink[];
+}
+
+export default function Header({ initialCategories, initialQuickLinks }: HeaderProps = {}) {
   const { colors } = useTheme();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
-  // Use static defaults for faster page loads - navigation is managed manually
-  const [categories] = useState<Category[]>(DEFAULT_CATEGORIES);
-  const [quickLinks] = useState<QuickLink[]>(DEFAULT_QUICK_LINKS);
+  // Use props if provided, otherwise default
+  const [categories] = useState<Category[]>(initialCategories && initialCategories.length > 0 ? initialCategories : DEFAULT_CATEGORIES);
+  const [quickLinks] = useState<QuickLink[]>(initialQuickLinks && initialQuickLinks.length > 0 ? initialQuickLinks : DEFAULT_QUICK_LINKS);
 
   // Helper to get default icon for quick links
   function getDefaultIcon(label: string): string {
