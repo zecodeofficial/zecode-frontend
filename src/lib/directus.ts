@@ -431,17 +431,25 @@ async function _fetchProductsByGenderAndSubcategory(gender: string | null, subca
     const url = getApiUrl("/items/products");
 
     // Build filter object for Directus
-    // Match products where subcategory OR category matches the given value
+    // Match products where subcategory OR category matches the given value (case-insensitive)
     const subcatValues = Array.isArray(subcategory) ? subcategory : [subcategory];
 
-    // Create OR filter: match subcategory OR category field
+    // Include both lowercase and capitalized versions for case-insensitive matching
+    const allCaseValues = subcatValues.flatMap(v => [
+      v.toLowerCase(),
+      v.charAt(0).toUpperCase() + v.slice(1).toLowerCase(),
+      v.toUpperCase()
+    ]);
+    const uniqueValues = [...new Set(allCaseValues)];
+
+    // Create OR filter: match subcategory OR category field (case-insensitive)
     const filter: any = {
       _and: [
         { status: { _eq: "published" } },
         {
           _or: [
-            { subcategory: { _in: subcatValues } },
-            { category: { _in: subcatValues } }
+            { subcategory: { _in: uniqueValues } },
+            { category: { _in: uniqueValues } }
           ]
         }
       ]
