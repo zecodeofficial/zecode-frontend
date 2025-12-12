@@ -97,8 +97,6 @@ export default function HeroSlider({ slides }: HeroSliderProps) {
       {SLIDES.map((s, idx) => {
         const active = idx === current;
         const isFirstSlide = idx === 0;
-        // Only preload first 2 slides, lazy load the rest
-        const shouldLoad = idx <= 1 || active;
 
         return (
           <div
@@ -111,17 +109,15 @@ export default function HeroSlider({ slides }: HeroSliderProps) {
           >
             {/* Ensure container provides positioning for next/image fill */}
             <div className="relative w-full h-full bg-black/5">
-              {shouldLoad && (
-                <Image
-                  src={fileUrl(s.image) || '/hero/hero1.png'}
-                  alt={s.title}
-                  fill
-                  style={{ objectFit: "cover", objectPosition: "center" }}
-                  sizes="100vw"
-                  priority={isFirstSlide}
-                  loading={isFirstSlide ? "eager" : "lazy"}
-                />
-              )}
+              <Image
+                src={fileUrl(s.image) || '/hero/hero1.png'}
+                alt={s.title}
+                fill
+                style={{ objectFit: "cover", objectPosition: "center" }}
+                sizes="100vw"
+                priority={isFirstSlide}
+                loading={isFirstSlide ? "eager" : "lazy"}
+              />
               {/* Overlay / hero content */}
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent flex items-center justify-center">
                 <div className="max-w-6xl w-full px-6 md:px-12 text-center">
