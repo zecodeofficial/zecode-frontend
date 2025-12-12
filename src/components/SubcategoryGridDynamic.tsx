@@ -179,18 +179,28 @@ interface SubcategoryGridDynamicProps {
   }>;
   variant?: 'default' | 'section'; // Visual styling variant
   showDivider?: boolean; // Show decorative divider above section
+  /** Pre-fetched product data from server - skips client-side fetch if provided */
+  initialData?: Map<string, { products: any[]; count: number }>;
 }
 
 
 
-export default function SubcategoryGridDynamic({ title, categorySlug, subcategories, variant = 'default', showDivider = false }: SubcategoryGridDynamicProps) {
+export default function SubcategoryGridDynamic({ title, categorySlug, subcategories, variant = 'default', showDivider = false, initialData }: SubcategoryGridDynamicProps) {
   // Map of subcategory slug -> { products, count }
-  const [subcategoryData, setSubcategoryData] = useState<Map<string, { products: any[]; count: number }>>(new Map());
-  const [isLoading, setIsLoading] = useState(true);
+  // Use initialData if provided, otherwise start with empty Map
+  const [subcategoryData, setSubcategoryData] = useState<Map<string, { products: any[]; count: number }>>(
+    initialData || new Map()
+  );
+  const [isLoading, setIsLoading] = useState(!initialData); // Skip loading if data provided
   const [error, setError] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
 
   useEffect(() => {
+    // Skip client-side fetch if data was prefetched server-side
+    if (initialData && initialData.size > 0) {
+      return;
+    }
+
     async function fetchAllSubcategories() {
       try {
         // 1. Collect all variations for all visible subcategories
@@ -284,7 +294,7 @@ export default function SubcategoryGridDynamic({ title, categorySlug, subcategor
     }
 
     fetchAllSubcategories();
-  }, [categorySlug, subcategories, retryCount]); // Re-run on retry
+  }, [categorySlug, subcategories, retryCount, initialData]); // Re-run on retry
 
   return (
     <section className={`py-12 px-4 md:px-8 ${variant === 'section' ? 'bg-gray-50' : 'bg-white'}`}>
