@@ -46,7 +46,7 @@ const SLUG_TO_CMS_SUBCATEGORY: Record<string, string[]> = {
   'dresses': ['Dress', 'Dresses', 'Midi Dress', 'Mini Dress', 'Slip Dress'],
   'skirts': ['Skirt', 'Skirts'],
   'shoes': ['Footwear', 'Flats', 'Sneakers', 'Formal Shoes', 'Heels', 'Mules', 'Sandals', 'Boots', 'Loafers'],
-  'activewear': ['activewear'],  // lowercase to match DB
+  'activewear': ['activewear', 'Activewear', 'ACTIVEWEAR'],  // Match both subcategory and category field
   // Kids - matching header menu (4 subcategories)
   'boys-tshirts': ['T-Shirt', 'T', 'Tshirt'],
   'girls-tops': ['Top', 'Tops', 'Casual Top'],
@@ -211,14 +211,26 @@ export default function SubcategoryGridDynamic({ title, categorySlug, subcategor
           allVariations.push(...variations);
         });
 
-        // 2. Prepare batch API call
+        // 2. Prepare batch API call with OR filter for subcategory/category
         const params = new URLSearchParams();
         // Fetch enough products to cover images for all subcategories (e.g. 10 per subcat * 20 subcats = 200)
         // We use a safe limit of 500 to be sure
         params.set('limit', '500');
-        params.set('fields', 'name,image_url,image,subcategory,gender_category');
-        params.set('filter[subcategory][_in]', allVariations.join(','));
-        params.set('filter[status][_eq]', 'published');
+        params.set('fields', 'name,image_url,image,subcategory,category,gender_category');
+
+        // Use deep filter with _or to match subcategory OR category
+        const filter = {
+          _and: [
+            { status: { _eq: 'published' } },
+            {
+              _or: [
+                { subcategory: { _in: allVariations } },
+                { category: { _in: allVariations } }
+              ]
+            }
+          ]
+        };
+        params.set('filter', JSON.stringify(filter));
 
         // Note: We can't strictly filter by gender here if it's mixed (e.g. footwear page might show men & women)
         // But if categorySlug matches a gender, we can pre-filter
@@ -253,11 +265,13 @@ export default function SubcategoryGridDynamic({ title, categorySlug, subcategor
         subcategories.forEach(subcat => {
           const variations = SLUG_TO_CMS_SUBCATEGORY[subcat.slug] || [subcat.slug];
 
-          // Filter products matching this subcategory's variations
+          // Filter products matching this subcategory's variations (by subcategory OR category)
           // AND matching the gender logic
           const matchingProducts = products.filter(p => {
-            // Check subcategory match
-            if (!variations.includes(p.subcategory)) return false;
+            // Check subcategory OR category match
+            const matchesSub = variations.includes(p.subcategory);
+            const matchesCat = variations.includes(p.category);
+            if (!matchesSub && !matchesCat) return false;
 
             // Check gender match (refining the query filter above)
             const pGender = p.gender_category;
