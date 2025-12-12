@@ -1,6 +1,6 @@
-// src/lib/directus.ts
 import axios from "axios";
 import { unstable_cache } from "next/cache";
+import { cache } from "react";
 
 const DIRECTUS = process.env.NEXT_PUBLIC_DIRECTUS_URL || "http://127.0.0.1:8055";
 
@@ -86,7 +86,11 @@ export type Subcategory = {
  * fetchPage - safe fetch of page by slug
  * returns page object or null (never throws)
  */
-export async function fetchPage(slug: string) {
+/**
+ * fetchPage - safe fetch of page by slug
+ * returns page object or null (never throws)
+ */
+async function _fetchPage(slug: string) {
   try {
     const url = getApiUrl("/items/pages");
     const res = await axios.get(url, {
@@ -99,6 +103,17 @@ export async function fetchPage(slug: string) {
     return null;
   }
 }
+
+// Cached version of fetchPage
+export const fetchPage = typeof window === 'undefined'
+  ? (slug: string) => cache(
+    unstable_cache(
+      () => _fetchPage(slug),
+      [`page-${slug}`],
+      { revalidate: 300, tags: ['pages'] }
+    )
+  )()
+  : _fetchPage;
 
 /**
  * fetchGlobalSettings - fetch global site settings (header, footer, etc.)
@@ -193,7 +208,10 @@ export const fetchHeroSlides = typeof window === 'undefined'
 /**
  * fetchCategories - fetch all main categories with their subcategories
  */
-export async function fetchCategories(): Promise<Category[] | null> {
+/**
+ * fetchCategories - fetch all main categories with their subcategories
+ */
+async function _fetchCategories(): Promise<Category[] | null> {
   try {
     const url = getApiUrl("/items/cms_categories");
     const res = await axios.get(url, {
@@ -214,10 +232,24 @@ export async function fetchCategories(): Promise<Category[] | null> {
   }
 }
 
+// Cached version of fetchCategories
+export const fetchCategories = typeof window === 'undefined'
+  ? cache(
+    unstable_cache(
+      _fetchCategories,
+      ['categories-list'],
+      { revalidate: CACHE_CATEGORIES, tags: ['categories'] }
+    )
+  )
+  : _fetchCategories;
+
 /**
  * fetchCategoryBySlug - fetch a specific category with subcategories
  */
-export async function fetchCategoryBySlug(slug: string): Promise<Category | null> {
+/**
+ * fetchCategoryBySlug - fetch a specific category with subcategories
+ */
+async function _fetchCategoryBySlug(slug: string): Promise<Category | null> {
   try {
     const url = getApiUrl("/items/cms_categories");
     const res = await axios.get(url, {
@@ -241,6 +273,17 @@ export async function fetchCategoryBySlug(slug: string): Promise<Category | null
     return null;
   }
 }
+
+// Cached version of fetchCategoryBySlug
+export const fetchCategoryBySlug = typeof window === 'undefined'
+  ? (slug: string) => cache(
+    unstable_cache(
+      () => _fetchCategoryBySlug(slug),
+      [`category-${slug}`],
+      { revalidate: CACHE_CATEGORIES, tags: ['categories'] }
+    )
+  )()
+  : _fetchCategoryBySlug;
 
 // =============================================
 // STORES
