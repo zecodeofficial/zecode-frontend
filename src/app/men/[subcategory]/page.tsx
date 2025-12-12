@@ -44,19 +44,19 @@ function buildMatchingGallery(product: any): string[] {
 }
 
 const SUBCATEGORY_MAP: Record<string, string | string[]> = {
-  'tshirts': ['T', 'T-Shirt', 'Classic T-Shirt'],
-  'shirts': ['Shirt', 'Casual Shirt', 'Button-Up Shirt', 'Short Sleeve Shirt'],
-  'jeans': ['Jeans', 'Slim Jeans'],
-  'pants': ['Pants', 'Slim Pants', 'Cargo Pants'],
-  'trousers': 'Trousers',
-  'jackets': ['Jacket', 'Casual Jacket', 'Denim Jacket', 'Varsity Jacket'],
-  'shoes': 'Footwear',
-  'accessories': 'Accessories',
+  'tshirts': ['T', 'T-Shirt', 'T-Shirts', 'Classic T-Shirt', 'Classic T-Shirts'],
+  'shirts': ['Shirt', 'Shirts', 'Casual Shirt', 'Casual Shirts', 'Button-Up Shirt', 'Button-Up Shirts', 'Short Sleeve Shirt', 'Short Sleeve Shirts'],
+  'jeans': ['Jeans', 'Slim Jeans', 'Jean', 'Slim Jean'], // Add singular just in case
+  'pants': ['Pants', 'Slim Pants', 'Cargo Pants', 'Pant', 'Slim Pant', 'Cargo Pant'],
+  'trousers': ['Trousers', 'Trouser'],
+  'jackets': ['Jacket', 'Jackets', 'Casual Jacket', 'Casual Jackets', 'Denim Jacket', 'Denim Jackets', 'Varsity Jacket', 'Varsity Jackets'],
+  'shoes': ['Footwear', 'Shoe', 'Shoes'],
+  'accessories': ['Accessories', 'Accessory'],
   'shorts': ['Short', 'Shorts'],
-  'hoodies': 'Hoodie',
-  'sweatshirts': 'Sweatshirt',
-  'backpacks': 'Backpack',
-  'polos': 'Polo Shirt',
+  'hoodies': ['Hoodie', 'Hoodies'],
+  'sweatshirts': ['Sweatshirt', 'Sweatshirts'],
+  'backpacks': ['Backpack', 'Backpacks'],
+  'polos': ['Polo Shirt', 'Polo Shirts', 'Polo'],
   'apparel': 'Apparel',  // Generic fallback
 };
 

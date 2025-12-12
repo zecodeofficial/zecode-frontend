@@ -37,7 +37,7 @@ export default function DescriptionText({ text }: DescriptionTextProps) {
                     {shouldTruncate && (
                         <button
                             onClick={() => setIsExpanded(!isExpanded)}
-                            className="mt-4 inline-flex items-center text-sm font-semibold text-blue-600 hover:text-blue-800 transition-colors z-10 relative"
+                            className="mt-4 inline-flex items-center text-sm font-bold text-[#C83232] hover:text-[#a02828] transition-colors z-10 relative uppercase tracking-wider"
                         >
                             {isExpanded ? "Read Less" : "Read More"}
                         </button>
