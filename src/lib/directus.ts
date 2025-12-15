@@ -369,7 +369,7 @@ export type Product = {
   model_image_2?: string;
   model_image_3?: string;
   images?: string[];
-  product_gallery?: { directus_file: string }[];
+  product_gallery?: { directus_file: string | null }[];
   category?: string;
   subcategory?: string;
   gender_category?: string;

@@ -23,9 +23,10 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
         // 1. Prioritize uploaded M2M images (New System - Repeater)
         if (p.product_gallery && Array.isArray(p.product_gallery) && p.product_gallery.length > 0) {
             p.product_gallery.forEach((item) => {
-                if (item.directus_file && typeof item.directus_file === 'string') {
+                const fileId = item.directus_file;
+                if (fileId != null && typeof fileId === 'string') {
                     // Convert UUID to full URL for consistency
-                    galleryRaw.push(fileUrl(item.directus_file));
+                    galleryRaw.push(fileUrl(fileId));
                 }
             });
         }
