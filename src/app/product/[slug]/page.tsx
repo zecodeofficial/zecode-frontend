@@ -14,22 +14,35 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
     // Normalize Directus Product -> ProductDetailContent shape
     const normalized = ((): any => {
         const p: Product = product as Product;
-        const imageId = p.image || p.image_url || (p.images && p.images[0]) || null;
+
+        // LEGACY: p.images is string[] (URLs)
+        // NEW: p.product_gallery is M2M array [{ directus_files_id: "uuid" }]
 
         let galleryRaw: (string | undefined)[] = [];
 
-        // 1. Prioritize real photo session images (Directus M2M)
-        if (p.images && p.images.length > 0) {
-            galleryRaw = [...p.images];
+        // 1. Prioritize uploaded M2M images (New System - Repeater)
+        if (p.product_gallery && Array.isArray(p.product_gallery) && p.product_gallery.length > 0) {
+            p.product_gallery.forEach((item) => {
+                if (item.directus_file && typeof item.directus_file === 'string') {
+                    // Convert UUID to full URL for consistency
+                    galleryRaw.push(fileUrl(item.directus_file));
+                }
+            });
         }
 
-        // 2. Add Main Image if not already detected
-        if (imageId && !galleryRaw.includes(imageId)) {
-            galleryRaw.unshift(imageId);
+        // 2. Add legacy images (URLs/Strings)
+        if (p.images && Array.isArray(p.images) && p.images.length > 0) {
+            galleryRaw = [...galleryRaw, ...p.images];
         }
 
-        // 3. Fallback: Use AI model images only if no Photo Session images exist
-        if ((!p.images || p.images.length === 0)) {
+        // 3. Fallback to main image (if not in gallery)
+        const mainImage = p.image || p.image_url;
+        if (mainImage && !galleryRaw.includes(mainImage)) {
+            galleryRaw.unshift(mainImage);
+        }
+
+        // 4. Fallback: Use AI model images only if no gallery images exist
+        if (galleryRaw.length === 0) {
             if (p.model_image_1) galleryRaw.push(p.model_image_1);
             if (p.model_image_2) galleryRaw.push(p.model_image_2);
             if (p.model_image_3) galleryRaw.push(p.model_image_3);
@@ -38,11 +51,8 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
         // Filter out nulls/undefined and duplicates
         const uniqueGallery = Array.from(new Set(galleryRaw.filter(Boolean)));
 
-        const gallery = (uniqueGallery.length > 0)
-            ? uniqueGallery
-            : imageId
-                ? [imageId]
-                : [];
+        // Determine main display image (first in gallery or fallback)
+        const displayImage = uniqueGallery[0] || mainImage || '/placeholders/product-placeholder.png';
 
         return {
             id: p.id,
@@ -52,8 +62,8 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             categoryLabel: p.subcategory ?? undefined,
             price: (typeof p.sale_price === 'number' ? p.sale_price : (typeof p.price === 'number' ? p.price : null)),
             originalPrice: typeof p.price === 'number' ? p.price : undefined,
-            image: fileUrl(imageId) || '/placeholders/product-placeholder.png',
-            gallery: gallery.map((g) => fileUrl(g) || g),
+            image: fileUrl(displayImage),
+            gallery: uniqueGallery.map((g) => fileUrl(g) || g),
             description: p.description ?? '',
             sizes: p.sizes ?? undefined,
             rating: undefined,

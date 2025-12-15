@@ -2,7 +2,8 @@
 "use client";
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { fetchDirectusNavigation, DirectusNavigationItem } from "@/lib/directus";
+import { processNavigation, Category, QuickLink } from "@/lib/navigation";
+import type { DirectusNavigationItem } from "@/lib/directus";
 
 /**
  * HeaderV3 - Minimal Floating Navigation
@@ -28,29 +29,27 @@ const DEFAULT_NAV_LINKS: NavLink[] = [
   { href: "/store-locator-map", label: "STORES" },
 ];
 
-// Process CMS navigation - V3 only shows top-level items
-function processNavigation(items: DirectusNavigationItem[]): NavLink[] {
-  return items
-    .filter(item => item.parent === null)
-    .sort((a, b) => (a.sort || 0) - (b.sort || 0))
-    .map(item => ({
-      href: item.href,
-      label: item.label.toUpperCase(),
-    }));
-}
+
 
 export default function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [navLinks, setNavLinks] = useState<NavLink[]>(DEFAULT_NAV_LINKS);
 
-  // Fetch navigation from CMS
+  // Fetch navigation from CMS via API route (client-safe)
   useEffect(() => {
     async function loadNavigation() {
       try {
-        const navItems = await fetchDirectusNavigation();
+        const res = await fetch('/api/directus/items/navigation_menu?sort=parent,sort&filter[status][_eq]=published');
+        if (!res.ok) throw new Error('Failed to fetch navigation');
+        const data = await res.json();
+        const navItems = data?.data || [];
         if (navItems && navItems.length > 0) {
-          const links = processNavigation(navItems);
+          const { categories, quickLinks } = processNavigation(navItems);
+          const links = [
+            ...categories.map((c: Category) => ({ href: c.href, label: c.label })),
+            ...quickLinks.map((q: QuickLink) => ({ href: q.href, label: q.label }))
+          ];
           if (links.length > 0) setNavLinks(links);
         }
       } catch (error) {

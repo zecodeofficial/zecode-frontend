@@ -369,6 +369,7 @@ export type Product = {
   model_image_2?: string;
   model_image_3?: string;
   images?: string[];
+  product_gallery?: { directus_file: string }[];
   category?: string;
   subcategory?: string;
   gender_category?: string;
@@ -404,6 +405,7 @@ async function _fetchProducts(): Promise<Product[] | null> {
       const res = await axios.get(url, {
         params: {
           sort: "sort,name",
+          fields: "*.*", // Deep fetch for M2M
           limit: -1,  // Get all products
         },
         timeout: TIMEOUT_PRODUCTS,
@@ -576,6 +578,7 @@ export async function fetchProductBySlug(slug: string): Promise<Product | null> 
     const res = await axios.get(url, {
       params: {
         "filter[slug][_eq]": slug,
+        fields: "*.*", // Fetch relations deep
         limit: 1
       },
       timeout: TIMEOUT_DEFAULT,

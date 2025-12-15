@@ -3,7 +3,8 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { fetchDirectusNavigation, DirectusNavigationItem } from "@/lib/directus";
+import { processNavigation } from "@/lib/navigation";
+import type { DirectusNavigationItem } from "@/lib/directus";
 
 /**
  * HeaderV2 - Bold Navigation Header
@@ -80,38 +81,7 @@ const DEFAULT_NAV_LINKS: NavLink[] = [
   { href: "/about", label: "ABOUT", icon: "ℹ️" },
 ];
 
-// Process CMS navigation into categories and quick links
-function processNavigation(items: DirectusNavigationItem[]): { categories: Category[]; navLinks: NavLink[] } {
-  const categories: Category[] = [];
-  const navLinks: NavLink[] = [];
-  
-  const parentItems = items.filter(item => item.parent === null);
-  
-  parentItems.forEach(parent => {
-    const isCategory = ["MEN", "WOMEN", "KIDS"].includes(parent.label.toUpperCase());
-    
-    if (isCategory) {
-      const children = items
-        .filter(item => item.parent === parent.id)
-        .sort((a, b) => (a.sort || 0) - (b.sort || 0))
-        .map(child => ({ label: child.label, href: child.href }));
-      
-      categories.push({
-        href: parent.href,
-        label: parent.label.toUpperCase(),
-        subcategories: children,
-      });
-    } else {
-      navLinks.push({
-        href: parent.href,
-        label: parent.label.toUpperCase(),
-        icon: parent.highlight ? "🔥" : undefined,
-      });
-    }
-  });
-  
-  return { categories, navLinks };
-}
+
 
 export default function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -121,15 +91,18 @@ export default function Header() {
   const [navLinks, setNavLinks] = useState<NavLink[]>(DEFAULT_NAV_LINKS);
   const pathname = usePathname();
 
-  // Fetch navigation from CMS
+  // Fetch navigation from CMS via API route (client-safe)
   useEffect(() => {
     async function loadNavigation() {
       try {
-        const navItems = await fetchDirectusNavigation();
+        const res = await fetch('/api/directus/items/navigation_menu?sort=parent,sort&filter[status][_eq]=published');
+        if (!res.ok) throw new Error('Failed to fetch navigation');
+        const data = await res.json();
+        const navItems = data?.data || [];
         if (navItems && navItems.length > 0) {
-          const { categories: cmsCategories, navLinks: cmsNavLinks } = processNavigation(navItems);
+          const { categories: cmsCategories, quickLinks: cmsQuickLinks } = processNavigation(navItems);
           if (cmsCategories.length > 0) setCategories(cmsCategories);
-          if (cmsNavLinks.length > 0) setNavLinks(cmsNavLinks);
+          if (cmsQuickLinks.length > 0) setNavLinks(cmsQuickLinks.map(q => ({ href: q.href, label: q.label, icon: q.icon || (q.highlight ? '🔥' : undefined) })));
         }
       } catch (error) {
         console.error("Failed to load navigation from CMS:", error);

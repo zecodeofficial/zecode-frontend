@@ -3,7 +3,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useState, useEffect } from "react";
 import { useTheme } from "@/contexts/ThemeContext";
-import { fetchDirectusNavigation, DirectusNavigationItem, fetchProductCounts } from "@/lib/directus";
+import type { DirectusNavigationItem } from "@/lib/directus";
 
 // Mapping from URL slugs to CMS subcategory values for proper matching
 const SLUG_TO_CMS_SUBCATEGORY: Record<string, string[]> = {
@@ -28,27 +28,7 @@ const SLUG_TO_CMS_SUBCATEGORY: Record<string, string[]> = {
   'women': ['flats', 'flat', 'mules', 'mule', 'heels', 'heel', 'sandals', 'sandal', 'boots', 'boot', 'sneakers', 'sneaker'],
 };
 
-// Type for processed navigation
-// Type for processed navigation
-export type Subcategory = {
-  label: string;
-  href: string;
-  type?: 'section' | 'link'; // Explicit type to control styling
-  items?: { label: string; href: string }[]; // For nested sub-sections like Western Wear, Ethnic Fusion
-};
-
-export type Category = {
-  href: string;
-  label: string;
-  subcategories: Subcategory[];
-};
-
-export type QuickLink = {
-  href: string;
-  label: string;
-  icon?: string;
-  highlight?: boolean;
-};
+import { processNavigation, Category, QuickLink } from "@/lib/navigation";
 
 // Fallback category data
 const DEFAULT_CATEGORIES: Category[] = [
@@ -121,53 +101,7 @@ const DEFAULT_QUICK_LINKS: QuickLink[] = [
   { href: "/about", label: "ABOUT", icon: "ℹ️" },
 ];
 
-// Helper to process CMS navigation data into categories and quick links
-export function processNavigation(items: DirectusNavigationItem[]): { categories: Category[]; quickLinks: QuickLink[] } {
-  const categories: Category[] = [];
-  const quickLinks: QuickLink[] = [];
-
-  // First, find all parent items (parent === null)
-  const parentItems = items.filter(item => item.parent === null);
-
-  parentItems.forEach(parent => {
-    // Check if this is a category (MEN, WOMEN, KIDS, FOOTWEAR) or a quick link
-    const isCategory = ["MEN", "WOMEN", "KIDS", "FOOTWEAR"].includes(parent.label.toUpperCase());
-
-    if (isCategory) {
-      // Find all children for this parent
-      const children = items
-        .filter(item => item.parent === parent.id)
-        .sort((a, b) => (a.sort || 0) - (b.sort || 0))
-        .map(child => ({
-          label: child.label,
-          href: child.href,
-        }));
-
-      categories.push({
-        href: parent.href,
-        label: parent.label.toUpperCase(),
-        subcategories: children,
-      });
-    } else {
-      // It's a quick link
-      quickLinks.push({
-        href: parent.href,
-        label: parent.label.toUpperCase(),
-        icon: parent.icon || (parent.highlight ? "🔥" : undefined),
-        highlight: parent.highlight || false,
-      });
-    }
-  });
-
-  // Sort categories by their sort order
-  categories.sort((a, b) => {
-    const aItem = parentItems.find(p => p.label.toUpperCase() === a.label);
-    const bItem = parentItems.find(p => p.label.toUpperCase() === b.label);
-    return (aItem?.sort || 0) - (bItem?.sort || 0);
-  });
-
-  return { categories, quickLinks };
-}
+// `processNavigation` is provided by `src/lib/navigation.ts` (server-safe)
 
 interface HeaderProps {
   initialCategories?: Category[];

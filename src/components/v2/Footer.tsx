@@ -2,11 +2,7 @@
 "use client";
 import Link from "next/link";
 import { useState, useEffect } from "react";
-import { 
-  fetchFooterLinkGroups, 
-  fetchFooterLinks, 
-  fetchDirectusSocialLinks,
-  fetchDirectusFooterSettings,
+import type {
   FooterLinkGroup,
   FooterLink,
   DirectusSocialLink,
@@ -97,16 +93,28 @@ export default function Footer() {
   const [socialLinks, setSocialLinks] = useState<DirectusSocialLink[]>(DEFAULT_SOCIALS);
   const [footerSettings, setFooterSettings] = useState<DirectusFooterSettings>(DEFAULT_FOOTER_SETTINGS);
 
-  // Fetch data from CMS
+  // Fetch data from CMS via API routes (client-safe)
   useEffect(() => {
     async function loadFooterData() {
       try {
-        const [groups, footerLinks, socials, settings] = await Promise.all([
-          fetchFooterLinkGroups(),
-          fetchFooterLinks(),
-          fetchDirectusSocialLinks(),
-          fetchDirectusFooterSettings(),
+        const [groupsRes, footerLinksRes, socialRes, settingsRes] = await Promise.all([
+          fetch('/api/directus/items/footer_link_groups?sort=sort&filter[status][_eq]=published'),
+          fetch('/api/directus/items/footer_links?sort=group,sort&filter[status][_eq]=published'),
+          fetch('/api/directus/items/social_links?sort=sort&filter[status][_eq]=published'),
+          fetch('/api/directus/items/footer_settings'),
         ]);
+
+        const [groupsData, footerLinksData, socialData, settingsData] = await Promise.all([
+          groupsRes.ok ? groupsRes.json() : null,
+          footerLinksRes.ok ? footerLinksRes.json() : null,
+          socialRes.ok ? socialRes.json() : null,
+          settingsRes.ok ? settingsRes.json() : null,
+        ]);
+
+        const groups = groupsData?.data || [];
+        const footerLinks = footerLinksData?.data || [];
+        const socials = socialData?.data || [];
+        const settings = settingsData?.data?.[0] || settingsData?.data || null;
 
         if (groups && groups.length > 0) setLinkGroups(groups);
         if (footerLinks && footerLinks.length > 0) setLinks(footerLinks);

@@ -2,10 +2,7 @@
 "use client";
 import Link from "next/link";
 import { useState, useEffect } from "react";
-import { 
-  fetchDirectusNavigation, 
-  fetchDirectusSocialLinks,
-  fetchDirectusFooterSettings,
+import type {
   DirectusNavigationItem,
   DirectusSocialLink,
   DirectusFooterSettings
@@ -53,16 +50,23 @@ export default function Footer() {
   const [socialLinks, setSocialLinks] = useState<DirectusSocialLink[]>(DEFAULT_SOCIAL);
   const [footerSettings, setFooterSettings] = useState<DirectusFooterSettings>(DEFAULT_FOOTER_SETTINGS);
 
-  // Fetch data from CMS
+  // Fetch data from CMS via API routes (client-safe)
   useEffect(() => {
     async function loadFooterData() {
       try {
-        const [navItems, socials, settings] = await Promise.all([
-          fetchDirectusNavigation(),
-          fetchDirectusSocialLinks(),
-          fetchDirectusFooterSettings(),
+        const [navRes, socialRes, settingsRes] = await Promise.all([
+          fetch('/api/directus/items/navigation_menu?sort=parent,sort&filter[status][_eq]=published'),
+          fetch('/api/directus/items/social_links?sort=sort&filter[status][_eq]=published'),
+          fetch('/api/directus/items/footer_settings'),
         ]);
 
+        const [navData, socialData, settingsData] = await Promise.all([
+          navRes.ok ? navRes.json() : null,
+          socialRes.ok ? socialRes.json() : null,
+          settingsRes.ok ? settingsRes.json() : null,
+        ]);
+
+        const navItems = navData?.data || [];
         if (navItems && navItems.length > 0) {
           const processedLinks = navItems
             .filter((item: DirectusNavigationItem) => item.parent === null)
@@ -74,7 +78,10 @@ export default function Footer() {
           if (processedLinks.length > 0) setLinks(processedLinks);
         }
 
+        const socials = socialData?.data || [];
         if (socials && socials.length > 0) setSocialLinks(socials);
+        
+        const settings = settingsData?.data?.[0] || settingsData?.data || null;
         if (settings) setFooterSettings(settings);
       } catch (error) {
         console.error("Failed to load footer data from CMS:", error);
