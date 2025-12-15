@@ -160,7 +160,7 @@ function getCloudinaryUrl(localPath: string): string {
 
 
 /** fileUrl helper */
-export function fileUrl(file: any) {
+export function fileUrl(file: string | null | undefined | any) {
   if (!file) return null;
   const id = typeof file === "string" ? file : (file?.id ?? file?.data?.id);
   if (!id) return null;
