@@ -1,16 +1,29 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { FormEvent, useState } from "react";
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
+import { FormEvent, useEffect, useState } from "react";
+import { ProductImageManager } from "./ProductImageManager";
 
 export default function ProductImagesEntry() {
+  const params = useSearchParams();
   const [productId, setProductId] = useState("");
+  const [activeId, setActiveId] = useState<string | null>(null);
   const router = useRouter();
+
+  useEffect(() => {
+    const initialId = params.get("id");
+    if (initialId) {
+      setProductId(initialId);
+      setActiveId(initialId);
+    }
+  }, [params]);
 
   const handleSubmit = (event: FormEvent) => {
     event.preventDefault();
     const trimmed = productId.trim();
     if (!trimmed) return;
+    setActiveId(trimmed);
     router.push(`/admin/product-images/${trimmed}`);
   };
 
@@ -38,14 +51,30 @@ export default function ProductImagesEntry() {
           className="w-full rounded border border-gray-300 p-2"
         />
         <p className="text-xs text-gray-500">You can copy the ID from the Directus product edit URL.</p>
-        <button
-          type="submit"
-          className="rounded bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow hover:bg-indigo-700 disabled:cursor-not-allowed disabled:bg-gray-300"
-          disabled={!productId.trim()}
-        >
-          Go to upload page
-        </button>
+        <div className="flex gap-3">
+          <button
+            type="submit"
+            className="rounded bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow hover:bg-indigo-700 disabled:cursor-not-allowed disabled:bg-gray-300"
+            disabled={!productId.trim()}
+          >
+            Load image fields
+          </button>
+          {activeId && (
+            <Link
+              href={`/admin/product-images/${activeId}`}
+              className="rounded border border-indigo-200 px-3 py-2 text-sm font-medium text-indigo-700 hover:bg-indigo-50"
+            >
+              Open dedicated page
+            </Link>
+          )}
+        </div>
       </form>
+
+      {activeId && (
+        <div className="rounded border border-gray-200 bg-white shadow-sm">
+          <ProductImageManager key={activeId} productId={activeId} />
+        </div>
+      )}
     </div>
   );
 }
