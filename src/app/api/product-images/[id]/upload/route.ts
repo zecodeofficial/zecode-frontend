@@ -33,7 +33,7 @@ async function fetchProduct(id: string) {
   return json?.data ?? null;
 }
 
-async function updateProductImage(id: string, field: string, value: string) {
+async function updateProductImage(id: string, field: string, value: any) {
   const headers: HeadersInit = { "Content-Type": "application/json" };
   if (DIRECTUS_TOKEN) {
     headers["Authorization"] = `Bearer ${DIRECTUS_TOKEN}`;
@@ -67,6 +67,11 @@ export async function POST(
     const file = formData.get("file");
     const field = formData.get("field")?.toString();
     const desiredName = formData.get("name")?.toString();
+    const galleryIndexRaw = formData.get("index");
+    const galleryIndex =
+      typeof galleryIndexRaw === "string" && galleryIndexRaw !== ""
+        ? Number(galleryIndexRaw)
+        : null;
 
     if (!(file instanceof File)) {
       return NextResponse.json({ error: "Missing file" }, { status: 400 });
@@ -77,7 +82,15 @@ export async function POST(
 
     const { id } = await context.params;
     const product = await fetchProduct(id);
-    const currentUrl = product?.[field];
+
+    const currentGallery: string[] = Array.isArray(product?.images)
+      ? (product.images as string[]).filter(Boolean)
+      : [];
+
+    const currentUrl =
+      field === "images" && galleryIndex !== null
+        ? currentGallery[galleryIndex]
+        : product?.[field];
 
     // Remove existing image if present
     const currentPublicId = extractPublicId(currentUrl);
@@ -102,6 +115,23 @@ export async function POST(
       });
       stream.end(buffer);
     });
+
+    if (field === "images") {
+      const updatedGallery = [...currentGallery];
+      if (galleryIndex !== null && galleryIndex >= 0 && galleryIndex < updatedGallery.length) {
+        updatedGallery[galleryIndex] = uploaded.secure_url;
+      } else {
+        updatedGallery.push(uploaded.secure_url);
+      }
+
+      await updateProductImage(id, field, updatedGallery);
+
+      return NextResponse.json({
+        success: true,
+        urls: updatedGallery,
+        public_id: uploaded.public_id,
+      });
+    }
 
     await updateProductImage(id, field, uploaded.secure_url);
 
