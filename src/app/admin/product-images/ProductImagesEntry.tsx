@@ -9,10 +9,36 @@ export function ProductImagesEntry() {
   const params = useSearchParams();
   const [productId, setProductId] = useState("");
   const [activeId, setActiveId] = useState<string | null>(null);
+  const [directusUrl, setDirectusUrl] = useState("");
   const router = useRouter();
+
+  const parseProductIdFromUrl = (url: string) => {
+    try {
+      const parsed = new URL(url);
+      const segments = parsed.pathname.split("/").filter(Boolean);
+      const idFromPath = segments[segments.length - 1];
+      if (idFromPath && /^\d+$/.test(idFromPath)) {
+        return idFromPath;
+      }
+    } catch (error) {
+      console.warn("Unable to parse Directus URL", error);
+    }
+    return "";
+  };
 
   useEffect(() => {
     const initialId = params.get("id");
+    const directusParam = params.get("directus");
+    if (directusParam) {
+      setDirectusUrl(directusParam);
+      const extracted = parseProductIdFromUrl(directusParam);
+      if (extracted) {
+        setProductId(extracted);
+        setActiveId(extracted);
+        return;
+      }
+    }
+
     if (initialId) {
       setProductId(initialId);
       setActiveId(initialId);
@@ -38,19 +64,47 @@ export function ProductImagesEntry() {
         </p>
       </div>
 
-      <form onSubmit={handleSubmit} className="max-w-lg space-y-3 rounded border border-gray-200 bg-white p-4 shadow-sm">
-        <label className="block text-sm font-medium text-gray-700" htmlFor="product-id">
-          Product ID
-        </label>
-        <input
-          id="product-id"
-          type="text"
-          value={productId}
-          onChange={(event) => setProductId(event.target.value)}
-          placeholder="Enter a Directus product ID (e.g. 1)"
-          className="w-full rounded border border-gray-300 p-2"
-        />
-        <p className="text-xs text-gray-500">You can copy the ID from the Directus product edit URL.</p>
+      <form onSubmit={handleSubmit} className="max-w-xl space-y-3 rounded border border-gray-200 bg-white p-4 shadow-sm">
+        <div className="space-y-1">
+          <label className="block text-sm font-medium text-gray-700" htmlFor="directus-url">
+            Directus product URL (paste from the admin page)
+          </label>
+          <input
+            id="directus-url"
+            type="url"
+            value={directusUrl}
+            onChange={(event) => {
+              const url = event.target.value;
+              setDirectusUrl(url);
+              const extracted = parseProductIdFromUrl(url);
+              if (extracted) {
+                setProductId(extracted);
+                setActiveId(extracted);
+              }
+            }}
+            placeholder="https://zecode-directus.onrender.com/admin/content/products/45"
+            className="w-full rounded border border-gray-300 p-2"
+          />
+          <p className="text-xs text-gray-500">
+            Pasting the Directus product URL auto-fills the ID so you can jump to the uploader without guessing.
+          </p>
+        </div>
+
+        <div className="space-y-1">
+          <label className="block text-sm font-medium text-gray-700" htmlFor="product-id">
+            Product ID
+          </label>
+          <input
+            id="product-id"
+            type="text"
+            value={productId}
+            onChange={(event) => setProductId(event.target.value)}
+            placeholder="Enter a Directus product ID (e.g. 45)"
+            className="w-full rounded border border-gray-300 p-2"
+          />
+          <p className="text-xs text-gray-500">The uploader will replace Cloudinary assets for this product.</p>
+        </div>
+
         <div className="flex gap-3">
           <button
             type="submit"
