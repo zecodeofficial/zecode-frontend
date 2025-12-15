@@ -56,7 +56,10 @@ function extractPublicId(url?: string | null) {
   return match?.[1] || null;
 }
 
-export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(
+  request: NextRequest,
+  context: { params: Promise<{ id: string }> }
+) {
   try {
     ensureEnv();
 
@@ -72,7 +75,8 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
       return NextResponse.json({ error: "Missing field" }, { status: 400 });
     }
 
-    const product = await fetchProduct(params.id);
+    const { id } = await context.params;
+    const product = await fetchProduct(id);
     const currentUrl = product?.[field];
 
     // Remove existing image if present
@@ -84,7 +88,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
     const folderBase = "zecode/products";
     const publicId = desiredName?.trim()
       ? `${folderBase}/${desiredName.trim()}`
-      : `${folderBase}/product-${params.id}/${field}`;
+      : `${folderBase}/product-${id}/${field}`;
 
     const buffer = Buffer.from(await file.arrayBuffer());
     const uploaded: any = await new Promise((resolve, reject) => {
@@ -99,7 +103,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
       stream.end(buffer);
     });
 
-    await updateProductImage(params.id, field, uploaded.secure_url);
+    await updateProductImage(id, field, uploaded.secure_url);
 
     return NextResponse.json({
       success: true,
