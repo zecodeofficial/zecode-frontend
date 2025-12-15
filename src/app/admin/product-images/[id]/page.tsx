@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { type ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import { Product } from "@/lib/directus";
 
@@ -19,6 +19,85 @@ async function fetchProduct(id: string): Promise<Product | null> {
   return data?.data?.[0] ?? null;
 }
 
+type ImageField = (typeof IMAGE_FIELDS)[number];
+
+function ImageFieldCard({
+  field,
+  value,
+  busy,
+  onUpload,
+}: {
+  field: ImageField;
+  value?: string | null;
+  busy: boolean;
+  onUpload: (file: File, name?: string) => Promise<void>;
+}) {
+  const [rename, setRename] = useState<string>("");
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  const handleButtonClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    await onUpload(file, rename || undefined);
+    event.target.value = "";
+  };
+
+  return (
+    <div className="rounded border border-gray-200 p-4 shadow-sm">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-lg font-medium">{field.label}</h2>
+          <p className="text-sm text-gray-500 break-all">{value || "No image"}</p>
+        </div>
+        {value && (
+          <div className="relative h-20 w-20 overflow-hidden rounded bg-gray-50">
+            <Image src={value} alt={field.label} fill className="object-cover" />
+          </div>
+        )}
+      </div>
+
+      <div className="mt-4 space-y-3">
+        <div className="space-y-1">
+          <label className="block text-sm font-medium text-gray-700">Rename (optional)</label>
+          <input
+            type="text"
+            value={rename}
+            onChange={(event) => setRename(event.target.value)}
+            placeholder="e.g. summer-dress-front"
+            className="w-full rounded border border-gray-300 p-2"
+            disabled={busy}
+          />
+          <p className="text-xs text-gray-500">Provide a new filename before uploading to replace the Cloudinary asset.</p>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={handleFileChange}
+            disabled={busy}
+          />
+          <button
+            type="button"
+            onClick={handleButtonClick}
+            disabled={busy}
+            className="rounded bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow hover:bg-indigo-700 disabled:cursor-not-allowed disabled:bg-gray-300"
+          >
+            {busy ? "Uploading..." : `Upload ${field.label}`}
+          </button>
+          {busy && <span className="text-sm text-gray-500">Replacing on Cloudinary and updating Directus...</span>}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function ProductImageManager({ params }: { params: { id: string } }) {
   const [product, setProduct] = useState<Product | null>(null);
   const [status, setStatus] = useState<string>("");
@@ -28,6 +107,14 @@ export default function ProductImageManager({ params }: { params: { id: string }
     fetchProduct(params.id).then(setProduct);
   }, [params.id]);
 
+  const productImages = useMemo(() => {
+    if (!product) return {} as Record<string, string | null | undefined>;
+    return IMAGE_FIELDS.reduce<Record<string, string | null | undefined>>((acc, field) => {
+      acc[field.key] = (product as any)?.[field.key] as string | null | undefined;
+      return acc;
+    }, {});
+  }, [product]);
+
   const handleUpload = async (field: string, file: File, name?: string) => {
     const formData = new FormData();
     formData.append("file", file);
@@ -35,7 +122,7 @@ export default function ProductImageManager({ params }: { params: { id: string }
     if (name) formData.append("name", name);
 
     setBusyField(field);
-    setStatus("Uploading...");
+    setStatus(`Uploading ${field}...`);
 
     const res = await fetch(`/api/product-images/${params.id}/upload`, {
       method: "POST",
@@ -64,51 +151,14 @@ export default function ProductImageManager({ params }: { params: { id: string }
       <h1 className="text-2xl font-semibold">Manage Images for {product.name}</h1>
       {status && <div className="rounded bg-blue-50 p-2 text-blue-700">{status}</div>}
       <div className="grid gap-6 md:grid-cols-2">
-        {IMAGE_FIELDS.map(({ key, label }) => (
-          <div key={key} className="rounded border border-gray-200 p-4 shadow-sm">
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="text-lg font-medium">{label}</h2>
-                <p className="text-sm text-gray-500 break-all">{(product as any)?.[key] || "No image"}</p>
-              </div>
-              {(product as any)?.[key] && (
-                <div className="relative h-20 w-20 overflow-hidden rounded bg-gray-50">
-                  <Image src={(product as any)[key]} alt={label} fill className="object-cover" />
-                </div>
-              )}
-            </div>
-
-            <div className="mt-4 space-y-2">
-              <label className="block text-sm font-medium text-gray-700">New file</label>
-              <input
-                type="file"
-                accept="image/*"
-                onChange={(event) => {
-                  const file = event.target.files?.[0];
-                  const nameInput = (event.currentTarget.parentElement?.querySelector(
-                    `input[data-name-for=${key}]`
-                  ) as HTMLInputElement | null)?.value;
-                  if (file) {
-                    handleUpload(key, file, nameInput || undefined);
-                    event.target.value = "";
-                  }
-                }}
-                className="block w-full rounded border border-gray-300 p-2"
-                disabled={busyField === key}
-              />
-              <div className="space-y-1">
-                <label className="text-sm text-gray-700">Rename (optional)</label>
-                <input
-                  type="text"
-                  data-name-for={key}
-                  placeholder="e.g. summer-dress-front"
-                  className="w-full rounded border border-gray-300 p-2"
-                  disabled={busyField === key}
-                />
-              </div>
-              {busyField === key && <p className="text-sm text-gray-500">Uploading and replacing on Cloudinary...</p>}
-            </div>
-          </div>
+        {IMAGE_FIELDS.map((field) => (
+          <ImageFieldCard
+            key={field.key}
+            field={field}
+            value={productImages[field.key] as string | null | undefined}
+            busy={busyField === field.key}
+            onUpload={(file, name) => handleUpload(field.key, file, name)}
+          />
         ))}
       </div>
     </div>
