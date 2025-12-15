@@ -1,5 +1,6 @@
 import { fetchDirectusNavigation } from "@/lib/directus";
-import Header, { processNavigation, Category, QuickLink } from "./Header";
+import { processNavigation, Category, QuickLink } from "@/lib/navigation";
+import Header from "./Header";
 
 export default async function HeaderWrapper() {
     // Fetch navigation data from Directus (cached)
