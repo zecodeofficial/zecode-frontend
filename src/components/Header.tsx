@@ -3,7 +3,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useState, useEffect } from "react";
 import { useTheme } from "@/contexts/ThemeContext";
-import { Category, QuickLink, Subcategory } from "@/lib/navigation";
+import type { Category, QuickLink, Subcategory } from "@/lib/navigation";
 
 // Mapping from URL slugs to CMS subcategory values for proper matching
 const SLUG_TO_CMS_SUBCATEGORY: Record<string, string[]> = {

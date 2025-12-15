@@ -1,4 +1,4 @@
-import { DirectusNavigationItem } from "@/lib/directus";
+import type { DirectusNavigationItem } from "@/lib/directus";
 
 export type Subcategory = {
   label: string;
