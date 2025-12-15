@@ -24,9 +24,10 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
         if (p.product_gallery && Array.isArray(p.product_gallery) && p.product_gallery.length > 0) {
             p.product_gallery.forEach((item) => {
                 const fileId = item.directus_file;
+                // TypeScript type narrowing: after this check, fileId is guaranteed to be string
                 if (fileId != null && typeof fileId === 'string') {
                     // Convert UUID to full URL for consistency
-                    galleryRaw.push(fileUrl(fileId));
+                    galleryRaw.push(fileUrl(fileId as string));
                 }
             });
         }
