@@ -22,13 +22,17 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
 
         // 1. Prioritize uploaded M2M images (New System - Repeater)
         if (p.product_gallery && Array.isArray(p.product_gallery) && p.product_gallery.length > 0) {
-            const validFileIds: string[] = p.product_gallery
-                .map(item => item.directus_file)
-                .filter((fileId): fileId is string => fileId != null && typeof fileId === 'string');
-            
-            validFileIds.forEach((fileId) => {
-                // Convert UUID to full URL for consistency
-                galleryRaw.push(fileUrl(fileId));
+            p.product_gallery.forEach((item) => {
+                const fileId = item.directus_file;
+                // Explicit type guard: check for string and non-null
+                if (typeof fileId === 'string' && fileId !== null) {
+                    // TypeScript now knows fileId is string
+                    const fileIdString: string = fileId;
+                    const url = fileUrl(fileIdString);
+                    if (url) {
+                        galleryRaw.push(url);
+                    }
+                }
             });
         }
 
