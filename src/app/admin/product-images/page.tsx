@@ -1,10 +1,17 @@
-import { Suspense } from "react";
 import { ProductImagesEntry } from "./ProductImagesEntry";
 
-export default function ProductImagesPage() {
+export default function ProductImagesPage({
+  searchParams,
+}: {
+  searchParams: { id?: string; directus?: string };
+}) {
+  const initialId = searchParams?.id;
+  const initialDirectusUrl = searchParams?.directus;
+
   return (
-    <Suspense fallback={<div className="p-6">Loading product images...</div>}>
-      <ProductImagesEntry />
-    </Suspense>
+    <ProductImagesEntry
+      initialProductId={initialId}
+      initialDirectusUrl={initialDirectusUrl}
+    />
   );
 }

@@ -1,12 +1,19 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useState } from "react";
 import { ProductImageManager } from "./ProductImageManager";
 
-export function ProductImagesEntry() {
-  const params = useSearchParams();
+type ProductImagesEntryProps = {
+  initialProductId?: string;
+  initialDirectusUrl?: string;
+};
+
+export function ProductImagesEntry({
+  initialProductId,
+  initialDirectusUrl,
+}: ProductImagesEntryProps) {
   const [productId, setProductId] = useState("");
   const [activeId, setActiveId] = useState<string | null>(null);
   const [directusUrl, setDirectusUrl] = useState("");
@@ -14,7 +21,7 @@ export function ProductImagesEntry() {
 
   const parseProductIdFromUrl = (url: string) => {
     try {
-      const parsed = new URL(url);
+      const parsed = new URL(url, "https://placeholder.local");
       const segments = parsed.pathname.split("/").filter(Boolean);
       const idFromPath = segments[segments.length - 1];
       if (idFromPath && /^\d+$/.test(idFromPath)) {
@@ -27,11 +34,10 @@ export function ProductImagesEntry() {
   };
 
   useEffect(() => {
-    const initialId = params.get("id");
-    const directusParam = params.get("directus");
-    if (directusParam) {
-      setDirectusUrl(directusParam);
-      const extracted = parseProductIdFromUrl(directusParam);
+    const candidateDirectusUrl = initialDirectusUrl || "";
+    if (candidateDirectusUrl) {
+      setDirectusUrl(candidateDirectusUrl);
+      const extracted = parseProductIdFromUrl(candidateDirectusUrl);
       if (extracted) {
         setProductId(extracted);
         setActiveId(extracted);
@@ -39,11 +45,11 @@ export function ProductImagesEntry() {
       }
     }
 
-    if (initialId) {
-      setProductId(initialId);
-      setActiveId(initialId);
+    if (initialProductId) {
+      setProductId(initialProductId);
+      setActiveId(initialProductId);
     }
-  }, [params]);
+  }, [initialDirectusUrl, initialProductId]);
 
   const handleSubmit = (event: FormEvent) => {
     event.preventDefault();
