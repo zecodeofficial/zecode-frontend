@@ -11,14 +11,14 @@ export async function GET(request: NextRequest) {
       'Content-Type': 'application/json',
     };
 
-    // TEMPORARILY DISABLED: Testing if public access works without token
-    // Add authorization if token is available
-    // if (directusToken) {
-    //   headers['Authorization'] = `Bearer ${directusToken}`;
-    //   console.log('[API] Using Directus token (length:', directusToken.length, ')');
-    // } else {
-    //   console.error('[API] DIRECTUS_API_TOKEN not found in environment!');
-    // }
+    // Use the configured Directus API token when available so the product fetch works
+    // inside the admin uploader even if the instance is not publicly readable.
+    if (directusToken) {
+      headers['Authorization'] = `Bearer ${directusToken}`;
+      console.log('[API] Using Directus token (length:', directusToken.length, ')');
+    } else {
+      console.warn('[API] DIRECTUS_API_TOKEN not found in environment; falling back to unauthenticated request');
+    }
 
     const response = await fetch(`${directusUrl}/items/products?${searchParams}`, {
       headers,
