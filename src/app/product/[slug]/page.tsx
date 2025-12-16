@@ -5,6 +5,9 @@ import { notFound } from 'next/navigation';
 // Revalidate product pages every 10 seconds for faster updates during debugging
 export const revalidate = 10;
 
+// Force dynamic rendering to ensure fresh data
+export const dynamic = 'force-dynamic';
+
 export default async function ProductPage({ params }: { params: Promise<{ slug: string }> }) {
     const { slug } = await params;
     const productSlug = slug;
