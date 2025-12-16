@@ -129,6 +129,11 @@ export default function ProductDetailContent({ product }: { product: ProductDeta
                 console.error('[ProductDetailContent] ⚠️⚠️⚠️ Computed gallery (full):', JSON.stringify(gallery, null, 2));
                 console.error('[ProductDetailContent] ⚠️⚠️⚠️ Product image:', product.image);
                 console.error('[ProductDetailContent] ⚠️⚠️⚠️ Gallery items:', gallery.map((url, idx) => `${idx}: ${url}`).join('\n'));
+                
+                // Check if debug data is available
+                if (typeof window !== 'undefined' && (window as any).__DEBUG_PRODUCT_DATA) {
+                    console.error('[ProductDetailContent] ⚠️⚠️⚠️ DEBUG DATA from server:', (window as any).__DEBUG_PRODUCT_DATA);
+                }
             }
         }
     }, [product, gallery, selectedImage, selectedImageIndex]);

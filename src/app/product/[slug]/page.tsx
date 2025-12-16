@@ -339,8 +339,27 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
         console.error(`[ProductPage] ⚠️⚠️⚠️ Gallery contents:`, normalized.gallery);
     }
 
+    // DEBUG: Output raw product data in HTML comment for inspection
+    const debugData = {
+        productId: product.id,
+        hasModelImage1: !!product.model_image_1,
+        hasModelImage2: !!product.model_image_2,
+        hasModelImage3: !!product.model_image_3,
+        modelImage1Type: typeof product.model_image_1,
+        modelImage1Keys: product.model_image_1 && typeof product.model_image_1 === 'object' ? Object.keys(product.model_image_1) : null,
+        modelImage1Id: product.model_image_1 && typeof product.model_image_1 === 'object' ? (product.model_image_1 as any)?.id : null,
+        normalizedGalleryLength: normalized.gallery?.length || 0,
+        normalizedGallery: normalized.gallery
+    };
+
     return (
         <>
+            {/* DEBUG DATA - Remove after fixing */}
+            <script
+                dangerouslySetInnerHTML={{
+                    __html: `window.__DEBUG_PRODUCT_DATA = ${JSON.stringify(debugData, null, 2)};`
+                }}
+            />
             <script
                 type="application/ld+json"
                 dangerouslySetInnerHTML={{
