@@ -26,7 +26,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
     
     console.error(`[ProductPage] ⚠️ PRODUCT FETCHED - id: ${product?.id}, exists: ${!!product}`);
     
-    // Log after fetch
+    // Log after fetch - CRITICAL: Log URL fields to verify they're present
     console.error(`[ProductPage] ⚠️ Product details:`, {
         id: product?.id,
         name: product?.name,
@@ -34,7 +34,13 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
         hasModelImage2: !!product?.model_image_2,
         hasModelImage3: !!product?.model_image_3,
         modelImage1Type: typeof product?.model_image_1,
-        modelImage1IsObject: product?.model_image_1 && typeof product?.model_image_1 === 'object'
+        modelImage1IsObject: product?.model_image_1 && typeof product?.model_image_1 === 'object',
+        hasModelImage1Url: !!(product as any)?.model_image_1_url,
+        hasModelImage2Url: !!(product as any)?.model_image_2_url,
+        hasModelImage3Url: !!(product as any)?.model_image_3_url,
+        modelImage1Url: (product as any)?.model_image_1_url || 'MISSING',
+        modelImage2Url: (product as any)?.model_image_2_url || 'MISSING',
+        modelImage3Url: (product as any)?.model_image_3_url || 'MISSING'
     });
 
     if (!product) {
