@@ -33,14 +33,18 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
     }
 
     // Log product BEFORE normalization to see what we have
-    console.log(`[ProductPage] Product object BEFORE normalization:`, {
+    console.error(`[ProductPage] ⚠️ Product object BEFORE normalization:`, {
         id: product?.id,
         model_image_1: product?.model_image_1,
         model_image_1_type: typeof product?.model_image_1,
         model_image_1_isObject: product?.model_image_1 && typeof product?.model_image_1 === 'object',
         model_image_1_hasId: product?.model_image_1 && typeof product?.model_image_1 === 'object' && 'id' in product.model_image_1,
+        model_image_1_keys: product?.model_image_1 && typeof product?.model_image_1 === 'object' ? Object.keys(product.model_image_1) : null,
+        model_image_1_full: JSON.stringify(product?.model_image_1),
         model_image_2: product?.model_image_2,
-        model_image_3: product?.model_image_3
+        model_image_2_keys: product?.model_image_2 && typeof product?.model_image_2 === 'object' ? Object.keys(product.model_image_2) : null,
+        model_image_3: product?.model_image_3,
+        model_image_3_keys: product?.model_image_3 && typeof product?.model_image_3 === 'object' ? Object.keys(product.model_image_3) : null
     });
 
     // Normalize Directus Product -> ProductDetailContent shape
@@ -116,11 +120,25 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
                     return url;
                 }
                 // If it's an object (full file from Directus), extract the ID
-                if (img && typeof img === 'object' && img !== null && 'id' in img) {
-                    const fileObj = img as { id: string };
-                    const url = fileUrl(fileObj.id);
-                    console.log(`[Product ${p.id}] model_image_${idx + 1} is object, extracted ID ${fileObj.id}, converted to:`, url);
-                    return url;
+                if (img && typeof img === 'object' && img !== null) {
+                    console.error(`[Product ${p.id}] ⚠️ model_image_${idx + 1} is object, inspecting structure:`, {
+                        keys: Object.keys(img),
+                        hasId: 'id' in img,
+                        hasData: 'data' in img,
+                        idValue: (img as any)?.id,
+                        dataIdValue: (img as any)?.data?.id,
+                        fullObject: JSON.stringify(img)
+                    });
+                    
+                    // Try multiple ways to get the ID
+                    const fileId = (img as any)?.id ?? (img as any)?.data?.id ?? null;
+                    if (fileId) {
+                        const url = fileUrl(fileId);
+                        console.error(`[Product ${p.id}] ⚠️ model_image_${idx + 1} extracted ID ${fileId}, converted to:`, url);
+                        return url;
+                    } else {
+                        console.error(`[Product ${p.id}] ⚠️ model_image_${idx + 1} object has no ID field!`);
+                    }
                 }
                 console.log(`[Product ${p.id}] model_image_${idx + 1} could not be processed`);
                 return null;
