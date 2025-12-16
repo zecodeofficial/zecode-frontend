@@ -112,21 +112,23 @@ export default function ProductDetailContent({ product }: { product: ProductDeta
                 image: product.image,
                 gallery: product.gallery,
                 galleryLength: product.gallery?.length || 0,
-                galleryArray: JSON.stringify(product.gallery)
+                galleryArray: JSON.stringify(product.gallery, null, 2)
             });
             console.error('[ProductDetailContent] ⚠️ Computed gallery:', {
                 gallery,
                 galleryLength: gallery.length,
-                galleryArray: JSON.stringify(gallery),
+                galleryArray: JSON.stringify(gallery, null, 2),
                 selectedImage,
                 selectedImageIndex
             });
             
-            // CRITICAL: If gallery only has 1 image, log a warning
+            // CRITICAL: If gallery only has 1 image, log a warning with full details
             if (gallery.length <= 1) {
                 console.error('[ProductDetailContent] ⚠️⚠️⚠️ CRITICAL: Gallery only has 1 image! Expected 4 images (1 main + 3 model images).');
-                console.error('[ProductDetailContent] ⚠️⚠️⚠️ Product gallery prop:', product.gallery);
-                console.error('[ProductDetailContent] ⚠️⚠️⚠️ Computed gallery:', gallery);
+                console.error('[ProductDetailContent] ⚠️⚠️⚠️ Product gallery prop (full):', JSON.stringify(product.gallery, null, 2));
+                console.error('[ProductDetailContent] ⚠️⚠️⚠️ Computed gallery (full):', JSON.stringify(gallery, null, 2));
+                console.error('[ProductDetailContent] ⚠️⚠️⚠️ Product image:', product.image);
+                console.error('[ProductDetailContent] ⚠️⚠️⚠️ Gallery items:', gallery.map((url, idx) => `${idx}: ${url}`).join('\n'));
             }
         }
     }, [product, gallery, selectedImage, selectedImageIndex]);
