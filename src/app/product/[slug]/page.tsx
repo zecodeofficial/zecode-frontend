@@ -118,10 +118,28 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
         });
         
         // Add model images that aren't already in the gallery
-        modelImageFields.forEach(modelImg => {
+        console.log(`[Product ${p.id}] Adding model images to gallery:`, {
+            modelImageFieldsCount: modelImageFields.length,
+            modelImageFields,
+            galleryRawBefore: galleryRaw.length,
+            galleryRawBeforeItems: galleryRaw
+        });
+        
+        modelImageFields.forEach((modelImg, idx) => {
             if (modelImg && !galleryRaw.includes(modelImg)) {
+                console.log(`[Product ${p.id}] Adding model image ${idx + 1} to gallery:`, modelImg);
                 galleryRaw.push(modelImg);
+            } else {
+                console.log(`[Product ${p.id}] Skipping model image ${idx + 1}:`, {
+                    modelImg,
+                    alreadyInGallery: galleryRaw.includes(modelImg)
+                });
             }
+        });
+        
+        console.log(`[Product ${p.id}] Gallery after adding model images:`, {
+            galleryRawCount: galleryRaw.length,
+            galleryRawItems: galleryRaw
         });
 
         // Debug: Log raw model image data - ALWAYS log (not just dev)
