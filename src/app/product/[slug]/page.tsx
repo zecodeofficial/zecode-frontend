@@ -60,9 +60,11 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
     });
 
     // Normalize Directus Product -> ProductDetailContent shape
-    console.log(`[ProductPage] About to start normalization for product ${product?.id}`);
+    console.error(`[ProductPage] ⚠️ About to start normalization for product ${product?.id}`);
     
-    const normalized = ((): any => {
+    let normalized: any;
+    try {
+        normalized = ((): any => {
         const p: Product = product as Product;
 
         // Log at start of normalization - USE console.error to ensure it shows
