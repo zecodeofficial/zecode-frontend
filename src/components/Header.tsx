@@ -132,10 +132,30 @@ export default function Header({ initialCategories, initialQuickLinks }: HeaderP
     });
   };
 
-  // Use props if provided, otherwise default, and deduplicate
+  // Helper to ensure section types are preserved for known sections
+  const ensureSectionTypes = (cats: Category[]): Category[] => {
+    return cats.map(cat => {
+      if (cat.label === "WOMEN") {
+        return {
+          ...cat,
+          subcategories: cat.subcategories.map(sub => {
+            const isSection = ["WESTERN WEAR", "ETHNIC FUSION", "ACTIVEWEAR", "SHOES"].includes(sub.label.toUpperCase());
+            if (isSection && !sub.type) {
+              return { ...sub, type: 'section' as const };
+            }
+            return sub;
+          })
+        };
+      }
+      return cat;
+    });
+  };
+
+  // Use props if provided, otherwise default, deduplicate, and ensure section types
   const [categories] = useState<Category[]>(() => {
     const cats = initialCategories && initialCategories.length > 0 ? initialCategories : DEFAULT_CATEGORIES;
-    return deduplicateCategories(cats);
+    const deduplicated = deduplicateCategories(cats);
+    return ensureSectionTypes(deduplicated);
   });
   const [quickLinks] = useState<QuickLink[]>(() => {
     const links = initialQuickLinks && initialQuickLinks.length > 0 ? initialQuickLinks : DEFAULT_QUICK_LINKS;

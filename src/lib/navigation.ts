@@ -65,11 +65,15 @@ export function processNavigation(items: DirectusNavigationItem[]): { categories
                href: grandChild.href,
              }));
 
+           // Check if this child should be a section based on label or if it has grandchildren
+           const isSectionLabel = ["WESTERN WEAR", "ETHNIC FUSION", "ACTIVEWEAR", "SHOES"].includes(child.label.toUpperCase());
+           const hasGrandChildren = grandChildren.length > 0;
+
            return {
              label: child.label,
              href: child.href,
-             type: grandChildren.length > 0 ? 'section' as const : undefined,
-             items: grandChildren.length > 0 ? grandChildren : undefined,
+             type: (isSectionLabel || hasGrandChildren) ? 'section' as const : undefined,
+             items: hasGrandChildren ? grandChildren : undefined,
            };
         });
 
