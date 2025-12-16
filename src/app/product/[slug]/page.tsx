@@ -110,7 +110,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
         
         // CRITICAL: Check if model images exist before processing
         const modelImagesArray = [p.model_image_1, p.model_image_2, p.model_image_3];
-        console.log(`[Product ${p.id}] Model images array before filter:`, {
+        console.error(`[Product ${p.id}] ⚠️ Model images array before filter:`, {
             length: modelImagesArray.length,
             items: modelImagesArray.map((img, idx) => ({
                 index: idx,
@@ -169,13 +169,13 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             })
             .filter((url): url is string => typeof url === 'string' && url !== null);
         
-        console.log(`[Product ${p.id}] Model images after processing:`, {
+        console.error(`[Product ${p.id}] ⚠️ Model images after processing:`, {
             count: modelImageFields.length,
             urls: modelImageFields
         });
         
-        // Add model images that aren't already in the gallery
-        console.log(`[Product ${p.id}] Adding model images to gallery:`, {
+        // CRITICAL: Add model images that aren't already in the gallery
+        console.error(`[Product ${p.id}] ⚠️ Adding model images to gallery:`, {
             modelImageFieldsCount: modelImageFields.length,
             modelImageFields,
             galleryRawBefore: galleryRaw.length,
@@ -183,18 +183,19 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
         });
         
         modelImageFields.forEach((modelImg, idx) => {
-            if (modelImg && !galleryRaw.includes(modelImg)) {
-                console.log(`[Product ${p.id}] Adding model image ${idx + 1} to gallery:`, modelImg);
-                galleryRaw.push(modelImg);
+            if (modelImg && typeof modelImg === 'string' && modelImg.length > 0) {
+                if (!galleryRaw.includes(modelImg)) {
+                    console.error(`[Product ${p.id}] ⚠️ Adding model image ${idx + 1} to gallery:`, modelImg);
+                    galleryRaw.push(modelImg);
+                } else {
+                    console.error(`[Product ${p.id}] ⚠️ Skipping model image ${idx + 1} (already in gallery):`, modelImg);
+                }
             } else {
-                console.log(`[Product ${p.id}] Skipping model image ${idx + 1}:`, {
-                    modelImg,
-                    alreadyInGallery: galleryRaw.includes(modelImg)
-                });
+                console.error(`[Product ${p.id}] ⚠️ Skipping model image ${idx + 1} (invalid):`, modelImg);
             }
         });
         
-        console.log(`[Product ${p.id}] Gallery after adding model images:`, {
+        console.error(`[Product ${p.id}] ⚠️ Gallery after adding model images:`, {
             galleryRawCount: galleryRaw.length,
             galleryRawItems: galleryRaw
         });
