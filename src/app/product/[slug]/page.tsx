@@ -87,6 +87,16 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
         const finalImage = fileUrl(displayImage) || displayImage;
 
         // Debug logging - always log to help diagnose production issues
+        console.log(`[Product ${p.id}] Final gallery:`, {
+            galleryRawCount: galleryRaw.length,
+            uniqueGalleryCount: uniqueGallery.length,
+            galleryUrlsCount: galleryUrls.length,
+            finalGalleryCount: finalGallery.length,
+            finalGallery,
+            finalImage
+        });
+
+        // Debug logging - always log to help diagnose production issues
         console.log(`[Product ${p.id}] Image normalization:`, {
             rawModelImages: {
                 model_image_1: p.model_image_1,
