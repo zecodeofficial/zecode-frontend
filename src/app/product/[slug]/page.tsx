@@ -43,8 +43,9 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
                     return fileUrl(img);
                 }
                 // If it's an object (full file from Directus), extract the ID
-                if (img && typeof img === 'object' && 'id' in img) {
-                    return fileUrl(img.id);
+                if (img && typeof img === 'object' && img !== null && 'id' in img) {
+                    const fileObj = img as { id: string };
+                    return fileUrl(fileObj.id);
                 }
                 return null;
             })
