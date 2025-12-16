@@ -605,9 +605,9 @@ async function _fetchProductBySlug(slug: string): Promise<Product | null> {
         hasModelImage1Url: !!(product as any).model_image_1_url,
         hasModelImage2Url: !!(product as any).model_image_2_url,
         hasModelImage3Url: !!(product as any).model_image_3_url,
-        modelImage1Url: (product as any).model_image_1_url?.substring(0, 80) || 'null',
-        modelImage2Url: (product as any).model_image_2_url?.substring(0, 80) || 'null',
-        modelImage3Url: (product as any).model_image_3_url?.substring(0, 80) || 'null'
+        modelImage1Url: (product as any).model_image_1_url || 'null',
+        modelImage2Url: (product as any).model_image_2_url || 'null',
+        modelImage3Url: (product as any).model_image_3_url || 'null'
       });
     }
     
