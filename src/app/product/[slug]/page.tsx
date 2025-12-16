@@ -12,9 +12,6 @@ export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
 export default async function ProductPage({ params }: { params: Promise<{ slug: string }> }) {
-    // CRITICAL: This should ALWAYS appear if the component executes
-    throw new Error(`[ProductPage] ⚠️ TEST ERROR - Component is executing! Timestamp: ${Date.now()}`);
-    
     console.error(`[ProductPage] ⚠️ COMPONENT STARTED - About to await params`);
     
     const { slug } = await params;
