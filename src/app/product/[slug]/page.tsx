@@ -44,11 +44,13 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
     });
 
     // Normalize Directus Product -> ProductDetailContent shape
+    console.log(`[ProductPage] About to start normalization for product ${product?.id}`);
+    
     const normalized = ((): any => {
         const p: Product = product as Product;
 
-        // Log at start of normalization
-        console.log(`[Product ${p.id}] Starting normalization:`, {
+        // Log at start of normalization - USE console.error to ensure it shows
+        console.error(`[Product ${p.id}] ⚠️ STARTING NORMALIZATION:`, {
             hasModelImage1: !!p.model_image_1,
             hasModelImage2: !!p.model_image_2,
             hasModelImage3: !!p.model_image_3,
@@ -75,7 +77,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
 
         // 3. Always include model images (uploaded via Directus) in the gallery
         // Handle both UUID strings and full file objects from Directus
-        console.log(`[Product ${p.id}] Processing model images - raw values:`, {
+        console.error(`[Product ${p.id}] ⚠️ PROCESSING MODEL IMAGES - raw values:`, {
             model_image_1: p.model_image_1,
             model_image_1_type: typeof p.model_image_1,
             model_image_2: p.model_image_2,
