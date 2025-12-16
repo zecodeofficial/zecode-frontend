@@ -112,9 +112,35 @@ export default function Header({ initialCategories, initialQuickLinks }: HeaderP
   const { colors } = useTheme();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
-  // Use props if provided, otherwise default
-  const [categories] = useState<Category[]>(initialCategories && initialCategories.length > 0 ? initialCategories : DEFAULT_CATEGORIES);
-  const [quickLinks] = useState<QuickLink[]>(initialQuickLinks && initialQuickLinks.length > 0 ? initialQuickLinks : DEFAULT_QUICK_LINKS);
+  
+  // Deduplicate categories and quickLinks by href to prevent duplicates
+  const deduplicateCategories = (cats: Category[]): Category[] => {
+    const seen = new Set<string>();
+    return cats.filter(cat => {
+      if (seen.has(cat.href)) return false;
+      seen.add(cat.href);
+      return true;
+    });
+  };
+
+  const deduplicateQuickLinks = (links: QuickLink[]): QuickLink[] => {
+    const seen = new Set<string>();
+    return links.filter(link => {
+      if (seen.has(link.href)) return false;
+      seen.add(link.href);
+      return true;
+    });
+  };
+
+  // Use props if provided, otherwise default, and deduplicate
+  const [categories] = useState<Category[]>(() => {
+    const cats = initialCategories && initialCategories.length > 0 ? initialCategories : DEFAULT_CATEGORIES;
+    return deduplicateCategories(cats);
+  });
+  const [quickLinks] = useState<QuickLink[]>(() => {
+    const links = initialQuickLinks && initialQuickLinks.length > 0 ? initialQuickLinks : DEFAULT_QUICK_LINKS;
+    return deduplicateQuickLinks(links);
+  });
 
   // Helper to get default icon for quick links
   function getDefaultIcon(label: string): string {
