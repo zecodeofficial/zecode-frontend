@@ -48,18 +48,22 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
     console.error(`[ProductPage] ⚠️ PRODUCT EXISTS - proceeding to normalization`);
 
     // Log product BEFORE normalization to see what we have
+    const modelImage1 = product?.model_image_1;
+    const modelImage2 = product?.model_image_2;
+    const modelImage3 = product?.model_image_3;
+    
     console.error(`[ProductPage] ⚠️ Product object BEFORE normalization:`, {
         id: product?.id,
-        model_image_1: product?.model_image_1,
-        model_image_1_type: typeof product?.model_image_1,
-        model_image_1_isObject: product?.model_image_1 && typeof product?.model_image_1 === 'object',
-        model_image_1_hasId: product?.model_image_1 && typeof product?.model_image_1 === 'object' && 'id' in product.model_image_1,
-        model_image_1_keys: product?.model_image_1 && typeof product?.model_image_1 === 'object' ? Object.keys(product.model_image_1) : null,
-        model_image_1_full: JSON.stringify(product?.model_image_1),
-        model_image_2: product?.model_image_2,
-        model_image_2_keys: product?.model_image_2 && typeof product?.model_image_2 === 'object' ? Object.keys(product.model_image_2) : null,
-        model_image_3: product?.model_image_3,
-        model_image_3_keys: product?.model_image_3 && typeof product?.model_image_3 === 'object' ? Object.keys(product.model_image_3) : null
+        model_image_1: modelImage1,
+        model_image_1_type: typeof modelImage1,
+        model_image_1_isObject: modelImage1 && typeof modelImage1 === 'object',
+        model_image_1_hasId: modelImage1 && typeof modelImage1 === 'object' && 'id' in modelImage1,
+        model_image_1_keys: modelImage1 && typeof modelImage1 === 'object' ? Object.keys(modelImage1) : null,
+        model_image_1_full: JSON.stringify(modelImage1),
+        model_image_2: modelImage2,
+        model_image_2_keys: modelImage2 && typeof modelImage2 === 'object' ? Object.keys(modelImage2) : null,
+        model_image_3: modelImage3,
+        model_image_3_keys: modelImage3 && typeof modelImage3 === 'object' ? Object.keys(modelImage3) : null
     });
 
     // Normalize Directus Product -> ProductDetailContent shape
