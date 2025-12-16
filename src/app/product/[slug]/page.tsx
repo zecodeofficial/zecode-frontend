@@ -305,8 +305,11 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             });
         }
 
+        console.error(`[Product ${p.id}] ⚠️ NORMALIZATION COMPLETE - Returning product with ${normalizedProduct.gallery.length} images`);
         return normalizedProduct;
     })();
+    
+    console.error(`[ProductPage] ⚠️ NORMALIZED PRODUCT RECEIVED - Gallery has ${normalized.gallery?.length || 0} images`);
 
     return (
         <>
