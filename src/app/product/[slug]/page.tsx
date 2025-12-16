@@ -36,6 +36,15 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
     const normalized = ((): any => {
         const p: Product = product as Product;
 
+        // Log at start of normalization
+        console.log(`[Product ${p.id}] Starting normalization:`, {
+            hasModelImage1: !!p.model_image_1,
+            hasModelImage2: !!p.model_image_2,
+            hasModelImage3: !!p.model_image_3,
+            modelImage1Value: p.model_image_1,
+            modelImage1Type: typeof p.model_image_1
+        });
+
         // Build gallery from image fields
         let galleryRaw: (string | undefined)[] = [];
 
@@ -62,7 +71,20 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             model_image_3_type: typeof p.model_image_3
         });
         
-        const modelImageFields = [p.model_image_1, p.model_image_2, p.model_image_3]
+        // CRITICAL: Check if model images exist before processing
+        const modelImagesArray = [p.model_image_1, p.model_image_2, p.model_image_3];
+        console.log(`[Product ${p.id}] Model images array before filter:`, {
+            length: modelImagesArray.length,
+            items: modelImagesArray.map((img, idx) => ({
+                index: idx,
+                exists: !!img,
+                type: typeof img,
+                isObject: img && typeof img === 'object',
+                hasId: img && typeof img === 'object' && 'id' in img
+            }))
+        });
+        
+        const modelImageFields = modelImagesArray
             .filter(Boolean)
             .map((img, idx) => {
                 console.log(`[Product ${p.id}] Processing model_image_${idx + 1}:`, {
