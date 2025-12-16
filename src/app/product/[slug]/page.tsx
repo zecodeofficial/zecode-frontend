@@ -11,7 +11,22 @@ export const dynamic = 'force-dynamic';
 export default async function ProductPage({ params }: { params: Promise<{ slug: string }> }) {
     const { slug } = await params;
     const productSlug = slug;
+    
+    // Log before fetch
+    console.log(`[ProductPage] Fetching product with slug: ${productSlug}`);
+    
     const product = await fetchProductBySlug(productSlug);
+    
+    // Log after fetch
+    console.log(`[ProductPage] Product fetched:`, {
+        id: product?.id,
+        name: product?.name,
+        hasModelImage1: !!product?.model_image_1,
+        hasModelImage2: !!product?.model_image_2,
+        hasModelImage3: !!product?.model_image_3,
+        modelImage1Type: typeof product?.model_image_1,
+        modelImage1IsObject: product?.model_image_1 && typeof product?.model_image_1 === 'object'
+    });
 
     if (!product) {
         notFound();
