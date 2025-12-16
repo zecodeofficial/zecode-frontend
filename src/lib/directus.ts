@@ -569,9 +569,9 @@ export const fetchProductsByGenderAndSubcategory = typeof window === 'undefined'
   : _fetchProductsByGenderAndSubcategory;
 
 /**
- * fetchProductBySlug - fetch a single product by slug
+ * fetchProductBySlug - fetch a single product by slug (internal, uncached)
  */
-export async function fetchProductBySlug(slug: string): Promise<Product | null> {
+async function _fetchProductBySlug(slug: string): Promise<Product | null> {
   try {
     const url = getApiUrl("/items/products");
     const res = await axios.get(url, {
@@ -588,6 +588,17 @@ export async function fetchProductBySlug(slug: string): Promise<Product | null> 
     return null;
   }
 }
+
+// Cached version of fetchProductBySlug
+export const fetchProductBySlug = typeof window === 'undefined'
+  ? (slug: string) => cache(
+    unstable_cache(
+      () => _fetchProductBySlug(slug),
+      [`product-${slug}`],
+      { revalidate: CACHE_PRODUCTS, tags: ['products', `product-${slug}`] }
+    )
+  )()
+  : _fetchProductBySlug;
 
 /**
  * fetchProductCounts - aggregate product counts grouped by subcategory and gender

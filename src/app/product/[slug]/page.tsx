@@ -2,6 +2,9 @@ import ProductDetailContent from '@/components/ProductDetailContent';
 import { fetchProductBySlug, fileUrl, type Product } from '@/lib/directus';
 import { notFound } from 'next/navigation';
 
+// Revalidate product pages every 5 minutes (300 seconds)
+export const revalidate = 300;
+
 export default async function ProductPage({ params }: { params: Promise<{ slug: string }> }) {
     const { slug } = await params;
     const productSlug = slug;
@@ -49,6 +52,16 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
         // Determine main display image (first in gallery or fallback)
         const displayImage = uniqueGallery[0] || mainImage || '/placeholders/product-placeholder.png';
 
+        // Convert gallery URLs (handle both UUIDs and already-converted URLs)
+        const galleryUrls = uniqueGallery
+            .map((g) => {
+                if (!g) return null;
+                // If already a URL, return as-is; otherwise convert
+                const url = typeof g === 'string' && g.startsWith('http') ? g : (fileUrl(g) || g);
+                return url;
+            })
+            .filter((url): url is string => typeof url === 'string' && url !== null);
+
         return {
             id: p.id,
             name: p.name,
@@ -57,8 +70,8 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             categoryLabel: p.subcategory ?? undefined,
             price: (typeof p.sale_price === 'number' ? p.sale_price : (typeof p.price === 'number' ? p.price : null)),
             originalPrice: typeof p.price === 'number' ? p.price : undefined,
-            image: fileUrl(displayImage),
-            gallery: uniqueGallery.map((g) => fileUrl(g) || g),
+            image: fileUrl(displayImage) || displayImage,
+            gallery: galleryUrls.length > 0 ? galleryUrls : [fileUrl(displayImage) || displayImage].filter(Boolean),
             description: p.description ?? '',
             sizes: p.sizes ?? undefined,
             rating: undefined,
