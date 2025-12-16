@@ -586,7 +586,7 @@ async function _fetchProductBySlug(slug: string): Promise<Product | null> {
     const res = await axios.get(url, {
       params: {
         "filter[slug][_eq]": slug,
-        fields: "*.*", // Fetch relations deep
+        fields: "*,*.*,model_image_1_url,model_image_2_url,model_image_3_url", // Fetch relations deep + URL fields explicitly
         limit: 1,
         _t: cacheBuster // Cache buster
       },
@@ -601,7 +601,13 @@ async function _fetchProductBySlug(slug: string): Promise<Product | null> {
         hasModelImage2: !!product.model_image_2,
         hasModelImage3: !!product.model_image_3,
         modelImage1Type: typeof product.model_image_1,
-        modelImage1IsObject: product.model_image_1 && typeof product.model_image_1 === 'object'
+        modelImage1IsObject: product.model_image_1 && typeof product.model_image_1 === 'object',
+        hasModelImage1Url: !!(product as any).model_image_1_url,
+        hasModelImage2Url: !!(product as any).model_image_2_url,
+        hasModelImage3Url: !!(product as any).model_image_3_url,
+        modelImage1Url: (product as any).model_image_1_url?.substring(0, 80) || 'null',
+        modelImage2Url: (product as any).model_image_2_url?.substring(0, 80) || 'null',
+        modelImage3Url: (product as any).model_image_3_url?.substring(0, 80) || 'null'
       });
     }
     
