@@ -132,6 +132,43 @@ export default function Header({ initialCategories, initialQuickLinks }: HeaderP
     });
   };
 
+  // Helper to merge Directus data with defaults, preserving section structure
+  const mergeWithDefaults = (cmsCategories: Category[] | undefined): Category[] => {
+    if (!cmsCategories || cmsCategories.length === 0) {
+      return DEFAULT_CATEGORIES;
+    }
+
+    // Merge CMS categories with defaults, preserving section structure from defaults
+    return DEFAULT_CATEGORIES.map(defaultCat => {
+      const cmsCat = cmsCategories.find(c => c.href === defaultCat.href);
+      
+      if (!cmsCat) {
+        return defaultCat; // Use default if not in CMS
+      }
+
+      // For WOMEN category, preserve the section structure from defaults
+      if (defaultCat.label === "WOMEN") {
+        return {
+          ...defaultCat,
+          // Keep default subcategories structure (with sections)
+          subcategories: defaultCat.subcategories
+        };
+      }
+
+      // For other categories, use CMS data but ensure section types
+      return {
+        ...cmsCat,
+        subcategories: cmsCat.subcategories.map(sub => {
+          const isSection = ["WESTERN WEAR", "ETHNIC FUSION", "ACTIVEWEAR", "SHOES"].includes(sub.label.toUpperCase());
+          if (isSection && !sub.type) {
+            return { ...sub, type: 'section' as const };
+          }
+          return sub;
+        })
+      };
+    });
+  };
+
   // Helper to ensure section types are preserved for known sections
   const ensureSectionTypes = (cats: Category[]): Category[] => {
     return cats.map(cat => {
@@ -151,10 +188,10 @@ export default function Header({ initialCategories, initialQuickLinks }: HeaderP
     });
   };
 
-  // Use props if provided, otherwise default, deduplicate, and ensure section types
+  // Merge with defaults to preserve section structure, then deduplicate and ensure section types
   const [categories] = useState<Category[]>(() => {
-    const cats = initialCategories && initialCategories.length > 0 ? initialCategories : DEFAULT_CATEGORIES;
-    const deduplicated = deduplicateCategories(cats);
+    const merged = mergeWithDefaults(initialCategories);
+    const deduplicated = deduplicateCategories(merged);
     return ensureSectionTypes(deduplicated);
   });
   const [quickLinks] = useState<QuickLink[]>(() => {
