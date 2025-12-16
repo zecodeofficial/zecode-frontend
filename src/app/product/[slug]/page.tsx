@@ -95,6 +95,22 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             finalGallery,
             finalImage
         });
+        
+        // CRITICAL: If gallery is empty or only has 1 image, log warning
+        if (finalGallery.length <= 1) {
+            console.error(`[Product ${p.id}] WARNING: Gallery only has ${finalGallery.length} image(s)!`, {
+                model_image_1_type: typeof p.model_image_1,
+                model_image_1_value: p.model_image_1,
+                model_image_2_type: typeof p.model_image_2,
+                model_image_2_value: p.model_image_2,
+                model_image_3_type: typeof p.model_image_3,
+                model_image_3_value: p.model_image_3,
+                modelImageFields,
+                galleryRaw,
+                uniqueGallery,
+                galleryUrls
+            });
+        }
 
         // Debug logging - always log to help diagnose production issues
         console.log(`[Product ${p.id}] Image normalization:`, {
