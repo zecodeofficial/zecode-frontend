@@ -574,15 +574,35 @@ export const fetchProductsByGenderAndSubcategory = typeof window === 'undefined'
 async function _fetchProductBySlug(slug: string): Promise<Product | null> {
   try {
     const url = getApiUrl("/items/products");
+    
+    // Add cache-busting parameter to ensure fresh data
+    const cacheBuster = Date.now();
+    
+    console.log(`[Directus] Fetching product by slug: ${slug} (cache-buster: ${cacheBuster})`);
+    
     const res = await axios.get(url, {
       params: {
         "filter[slug][_eq]": slug,
         fields: "*.*", // Fetch relations deep
-        limit: 1
+        limit: 1,
+        _t: cacheBuster // Cache buster
       },
       timeout: TIMEOUT_DEFAULT,
     });
-    return res?.data?.data?.[0] ?? null;
+    
+    const product = res?.data?.data?.[0] ?? null;
+    
+    if (product) {
+      console.log(`[Directus] Product ${product.id} fetched:`, {
+        hasModelImage1: !!product.model_image_1,
+        hasModelImage2: !!product.model_image_2,
+        hasModelImage3: !!product.model_image_3,
+        modelImage1Type: typeof product.model_image_1,
+        modelImage1IsObject: product.model_image_1 && typeof product.model_image_1 === 'object'
+      });
+    }
+    
+    return product;
   } catch (err: any) {
     console.error("Directus fetchProductBySlug error:", err.message);
     return null;
