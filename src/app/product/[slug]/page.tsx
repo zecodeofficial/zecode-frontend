@@ -32,6 +32,17 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
         notFound();
     }
 
+    // Log product BEFORE normalization to see what we have
+    console.log(`[ProductPage] Product object BEFORE normalization:`, {
+        id: product?.id,
+        model_image_1: product?.model_image_1,
+        model_image_1_type: typeof product?.model_image_1,
+        model_image_1_isObject: product?.model_image_1 && typeof product?.model_image_1 === 'object',
+        model_image_1_hasId: product?.model_image_1 && typeof product?.model_image_1 === 'object' && 'id' in product.model_image_1,
+        model_image_2: product?.model_image_2,
+        model_image_3: product?.model_image_3
+    });
+
     // Normalize Directus Product -> ProductDetailContent shape
     const normalized = ((): any => {
         const p: Product = product as Product;
@@ -42,7 +53,9 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             hasModelImage2: !!p.model_image_2,
             hasModelImage3: !!p.model_image_3,
             modelImage1Value: p.model_image_1,
-            modelImage1Type: typeof p.model_image_1
+            modelImage1Type: typeof p.model_image_1,
+            modelImage1IsObject: p.model_image_1 && typeof p.model_image_1 === 'object',
+            modelImage1HasId: p.model_image_1 && typeof p.model_image_1 === 'object' && 'id' in p.model_image_1
         });
 
         // Build gallery from image fields
