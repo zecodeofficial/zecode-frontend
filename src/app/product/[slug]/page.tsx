@@ -306,10 +306,18 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
         }
 
         console.error(`[Product ${p.id}] ⚠️ NORMALIZATION COMPLETE - Returning product with ${normalizedProduct.gallery.length} images`);
+        console.error(`[Product ${p.id}] ⚠️ FINAL GALLERY DUMP:`, JSON.stringify(normalizedProduct.gallery, null, 2));
         return normalizedProduct;
     })();
     
     console.error(`[ProductPage] ⚠️ NORMALIZED PRODUCT RECEIVED - Gallery has ${normalized.gallery?.length || 0} images`);
+    console.error(`[ProductPage] ⚠️ FINAL NORMALIZED PRODUCT DUMP:`, JSON.stringify({
+        id: normalized.id,
+        name: normalized.name,
+        image: normalized.image,
+        gallery: normalized.gallery,
+        galleryLength: normalized.gallery?.length || 0
+    }, null, 2));
 
     return (
         <>
