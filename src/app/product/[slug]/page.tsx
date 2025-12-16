@@ -9,16 +9,22 @@ export const revalidate = 10;
 export const dynamic = 'force-dynamic';
 
 export default async function ProductPage({ params }: { params: Promise<{ slug: string }> }) {
+    console.error(`[ProductPage] ⚠️ COMPONENT STARTED - About to await params`);
+    
     const { slug } = await params;
     const productSlug = slug;
     
+    console.error(`[ProductPage] ⚠️ PARAMS RECEIVED - slug: ${productSlug}`);
+    
     // Log before fetch
-    console.log(`[ProductPage] Fetching product with slug: ${productSlug}`);
+    console.error(`[ProductPage] ⚠️ About to fetch product with slug: ${productSlug}`);
     
     const product = await fetchProductBySlug(productSlug);
     
+    console.error(`[ProductPage] ⚠️ PRODUCT FETCHED - id: ${product?.id}, exists: ${!!product}`);
+    
     // Log after fetch
-    console.log(`[ProductPage] Product fetched:`, {
+    console.error(`[ProductPage] ⚠️ Product details:`, {
         id: product?.id,
         name: product?.name,
         hasModelImage1: !!product?.model_image_1,
@@ -29,8 +35,11 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
     });
 
     if (!product) {
+        console.error(`[ProductPage] ⚠️ PRODUCT NOT FOUND - calling notFound()`);
         notFound();
     }
+    
+    console.error(`[ProductPage] ⚠️ PRODUCT EXISTS - proceeding to normalization`);
 
     // Log product BEFORE normalization to see what we have
     console.error(`[ProductPage] ⚠️ Product object BEFORE normalization:`, {
