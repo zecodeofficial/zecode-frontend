@@ -240,6 +240,23 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             image: normalizedProduct.image
         });
 
+        // CRITICAL CHECK: If gallery only has 1 image, log everything
+        if (normalizedProduct.gallery.length <= 1) {
+            console.error(`[Product ${p.id}] ⚠️ CRITICAL: Gallery only has ${normalizedProduct.gallery.length} image!`, {
+                normalizedProduct,
+                rawProduct: {
+                    model_image_1: p.model_image_1,
+                    model_image_2: p.model_image_2,
+                    model_image_3: p.model_image_3
+                },
+                modelImageFields,
+                galleryRaw,
+                uniqueGallery,
+                galleryUrls,
+                finalGallery
+            });
+        }
+
         return normalizedProduct;
     })();
 
