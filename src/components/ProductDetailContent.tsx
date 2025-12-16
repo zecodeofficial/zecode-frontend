@@ -103,6 +103,15 @@ export default function ProductDetailContent({ product }: { product: ProductDeta
     const [selectedImageIndex, setSelectedImageIndex] = useState(0);
     const selectedImage = gallery[selectedImageIndex] ?? gallery[0];
 
+    // Debug logging
+    useEffect(() => {
+        if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
+            console.log('[ProductDetailContent] Gallery:', gallery);
+            console.log('[ProductDetailContent] Gallery length:', gallery.length);
+            console.log('[ProductDetailContent] Selected image:', selectedImage);
+        }
+    }, [gallery, selectedImage]);
+
     const [shareUrl, setShareUrl] = useState('');
     const [reviewRating, setReviewRating] = useState(0);
     const [reviewerName, setReviewerName] = useState('');

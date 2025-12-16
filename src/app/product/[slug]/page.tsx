@@ -2,8 +2,8 @@ import ProductDetailContent from '@/components/ProductDetailContent';
 import { fetchProductBySlug, fileUrl, type Product } from '@/lib/directus';
 import { notFound } from 'next/navigation';
 
-// Revalidate product pages every 5 minutes (300 seconds)
-export const revalidate = 300;
+// Revalidate product pages every 60 seconds for faster updates
+export const revalidate = 60;
 
 export default async function ProductPage({ params }: { params: Promise<{ slug: string }> }) {
     const { slug } = await params;
@@ -62,6 +62,17 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             })
             .filter((url): url is string => typeof url === 'string' && url !== null);
 
+        const finalGallery = galleryUrls.length > 0 ? galleryUrls : [fileUrl(displayImage) || displayImage].filter(Boolean);
+        const finalImage = fileUrl(displayImage) || displayImage;
+
+        // Debug logging (remove in production if needed)
+        if (process.env.NODE_ENV === 'development') {
+            console.log(`[Product ${p.id}] Gallery images:`, finalGallery.length);
+            finalGallery.forEach((url, idx) => {
+                console.log(`  ${idx + 1}. ${url}`);
+            });
+        }
+
         return {
             id: p.id,
             name: p.name,
@@ -70,8 +81,8 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             categoryLabel: p.subcategory ?? undefined,
             price: (typeof p.sale_price === 'number' ? p.sale_price : (typeof p.price === 'number' ? p.price : null)),
             originalPrice: typeof p.price === 'number' ? p.price : undefined,
-            image: fileUrl(displayImage) || displayImage,
-            gallery: galleryUrls.length > 0 ? galleryUrls : [fileUrl(displayImage) || displayImage].filter(Boolean),
+            image: finalImage,
+            gallery: finalGallery,
             description: p.description ?? '',
             sizes: p.sizes ?? undefined,
             rating: undefined,
