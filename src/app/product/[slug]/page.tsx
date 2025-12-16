@@ -113,10 +113,32 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
         
         // CRITICAL: Check if model images exist before processing
         // Priority: UUID fields first, then URL fields as fallback
+        // Handle empty objects {} as falsy values - they should fall back to _url fields
+        const getModelImageValue = (uuidField: any, urlField: string | undefined): any => {
+            // If URL field exists, prefer it when UUID is empty/invalid
+            if (urlField && typeof urlField === 'string' && urlField.length > 0) {
+                // If UUID is null, undefined, or empty object, use URL
+                if (!uuidField || (typeof uuidField === 'object' && Object.keys(uuidField).length === 0)) {
+                    return urlField;
+                }
+                // If UUID is a valid string or object with id, use UUID
+                if (typeof uuidField === 'string' && uuidField.length > 0) {
+                    return uuidField;
+                }
+                if (uuidField && typeof uuidField === 'object' && ('id' in uuidField || 'data' in uuidField)) {
+                    return uuidField;
+                }
+                // Fallback to URL if UUID is invalid
+                return urlField;
+            }
+            // No URL field, use UUID if it exists
+            return uuidField || null;
+        };
+        
         const modelImagesArray = [
-            p.model_image_1 || p.model_image_1_url,
-            p.model_image_2 || p.model_image_2_url,
-            p.model_image_3 || p.model_image_3_url
+            getModelImageValue(p.model_image_1, p.model_image_1_url),
+            getModelImageValue(p.model_image_2, p.model_image_2_url),
+            getModelImageValue(p.model_image_3, p.model_image_3_url)
         ];
         console.error(`[Product ${p.id}] ⚠️ Model images array before filter:`, {
             length: modelImagesArray.length,
@@ -125,7 +147,9 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
                 exists: !!img,
                 type: typeof img,
                 isObject: img && typeof img === 'object',
-                hasId: img && typeof img === 'object' && 'id' in img
+                hasId: img && typeof img === 'object' && 'id' in img,
+                isUrl: typeof img === 'string' && img.startsWith('http'),
+                value: typeof img === 'string' ? img.substring(0, 100) : img
             }))
         });
         
