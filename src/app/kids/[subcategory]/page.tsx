@@ -12,7 +12,7 @@ export const dynamic = 'force-dynamic';
 
 // Helper to extract photo session ID (e.g., DSC1234) from image path
 function getSessionId(imagePath: string | null | undefined): string | null {
-  if (!imagePath) return null;
+  if (!imagePath || typeof imagePath !== 'string') return null;
   // Match patterns like __DSC1234 or _DSC1234 in the filename
   const match = imagePath.match(/_?_?(DSC\d+)/i);
   return match ? match[1] : null;
@@ -21,22 +21,28 @@ function getSessionId(imagePath: string | null | undefined): string | null {
 // Build gallery with model images - include AI-generated images from Cloudinary
 function buildMatchingGallery(product: any): string[] {
   const mainImage = product.image || product.image_url;
-  const mainSessionId = getSessionId(mainImage);
+  // Convert main image to URL if it's a UUID
+  const mainImageUrl = typeof mainImage === 'string' ? fileUrl(mainImage) || mainImage : null;
+  const mainSessionId = getSessionId(mainImageUrl);
 
-  // Start with just the main product image
-  const gallery: string[] = [mainImage].filter(Boolean);
+  // Start with just the main product image (as URL)
+  const gallery: string[] = mainImageUrl ? [mainImageUrl] : [];
 
   // Add model images - either matching session ID or AI-generated (Cloudinary URLs)
   const modelImages = [product.model_image_1, product.model_image_2, product.model_image_3].filter(Boolean);
 
   for (const modelImg of modelImages) {
-    const modelSessionId = getSessionId(modelImg);
+    // Convert UUID to URL if needed
+    const modelImgUrl = typeof modelImg === 'string' ? fileUrl(modelImg) || modelImg : null;
+    if (!modelImgUrl || typeof modelImgUrl !== 'string') continue;
+    
+    const modelSessionId = getSessionId(modelImgUrl);
     // Include if: session IDs match OR it's an AI-generated image (Cloudinary URL)
-    const isCloudinaryImage = modelImg.includes('cloudinary.com');
+    const isCloudinaryImage = modelImgUrl.includes('cloudinary.com');
     const isMatchingSession = mainSessionId && modelSessionId && mainSessionId === modelSessionId;
 
     if (isCloudinaryImage || isMatchingSession) {
-      gallery.push(modelImg);
+      gallery.push(modelImgUrl);
     }
   }
 

@@ -15,7 +15,7 @@ export const dynamic = 'force-dynamic';
  * This helps match model images with the correct product
  */
 function getSessionId(imagePath: string | null | undefined): string | null {
-  if (!imagePath) return null;
+  if (!imagePath || typeof imagePath !== 'string') return null;
   // Match patterns like __DSC1234 or _DSC1234
   const match = imagePath.match(/_?_?(DSC\d+)/i);
   return match ? match[1] : null;
@@ -27,13 +27,19 @@ function getSessionId(imagePath: string | null | undefined): string | null {
  */
 function buildMatchingGallery(product: any): string[] {
   const mainImage = product.image || product.image_url;
-
-  const gallery: string[] = [
-    mainImage,
+  // Convert to URLs if they're UUIDs
+  const mainImageUrl = typeof mainImage === 'string' ? fileUrl(mainImage) || mainImage : null;
+  
+  const modelImages = [
     product.model_image_1,
     product.model_image_2,
     product.model_image_3,
-  ].filter(Boolean);
+  ]
+    .filter(Boolean)
+    .map(img => typeof img === 'string' ? fileUrl(img) || img : null)
+    .filter((url): url is string => url !== null);
+
+  const gallery: string[] = mainImageUrl ? [mainImageUrl, ...modelImages] : modelImages;
 
   return gallery;
 }

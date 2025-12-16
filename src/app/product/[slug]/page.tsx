@@ -43,15 +43,18 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
 
         // 3. Fallback to main image (if not in gallery)
         const mainImage = p.image || p.image_url;
-        if (mainImage && !galleryRaw.includes(mainImage)) {
-            galleryRaw.unshift(mainImage);
+        const mainImageUrl = mainImage ? (fileUrl(mainImage) || mainImage) : null;
+        if (mainImageUrl && !galleryRaw.includes(mainImageUrl)) {
+            galleryRaw.unshift(mainImageUrl);
         }
 
         // 4. Fallback: Use AI model images only if no gallery images exist
         if (galleryRaw.length === 0) {
-            if (p.model_image_1) galleryRaw.push(p.model_image_1);
-            if (p.model_image_2) galleryRaw.push(p.model_image_2);
-            if (p.model_image_3) galleryRaw.push(p.model_image_3);
+            const modelImages = [p.model_image_1, p.model_image_2, p.model_image_3]
+                .filter(Boolean)
+                .map(img => fileUrl(img) || img)
+                .filter((url): url is string => typeof url === 'string');
+            galleryRaw.push(...modelImages);
         }
 
         // Filter out nulls/undefined and duplicates
