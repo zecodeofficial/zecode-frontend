@@ -124,44 +124,46 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
         const modelImageFields = modelImagesArray
             .filter(Boolean)
             .map((img, idx) => {
-                console.log(`[Product ${p.id}] Processing model_image_${idx + 1}:`, {
+                console.error(`[Product ${p.id}] ⚠️ Processing model_image_${idx + 1}:`, {
                     type: typeof img,
                     isObject: typeof img === 'object',
                     hasId: img && typeof img === 'object' && 'id' in img,
-                    value: img
+                    value: img,
+                    isNull: img === null,
+                    isUndefined: img === undefined
                 });
                 
                 // If it's already a string (UUID), use it directly
                 if (typeof img === 'string') {
                     const url = fileUrl(img);
-                    console.log(`[Product ${p.id}] model_image_${idx + 1} is string, converted to:`, url);
+                    console.error(`[Product ${p.id}] ⚠️ model_image_${idx + 1} is string "${img}", converted to:`, url);
+                    if (!url) {
+                        console.error(`[Product ${p.id}] ⚠️ CRITICAL: fileUrl returned NULL for string "${img}"!`);
+                    }
                     return url;
                 }
                 // If it's an object (full file from Directus), extract the ID
                 if (img && typeof img === 'object' && img !== null) {
-                    console.error(`[Product ${p.id}] ⚠️ model_image_${idx + 1} is object, inspecting structure:`, {
-                        keys: Object.keys(img),
-                        hasId: 'id' in img,
-                        hasData: 'data' in img,
-                        idValue: (img as any)?.id,
-                        dataIdValue: (img as any)?.data?.id,
-                        fullObject: JSON.stringify(img)
-                    });
+                    const keys = Object.keys(img);
+                    console.error(`[Product ${p.id}] ⚠️ model_image_${idx + 1} is object with keys:`, keys);
+                    console.error(`[Product ${p.id}] ⚠️ model_image_${idx + 1} full object:`, JSON.stringify(img, null, 2));
                     
                     // Try multiple ways to get the ID
-                    const fileId = (img as any)?.id ?? (img as any)?.data?.id ?? null;
+                    const fileId = (img as any)?.id ?? (img as any)?.data?.id ?? (img as any)?.directus_files_id ?? null;
+                    console.error(`[Product ${p.id}] ⚠️ model_image_${idx + 1} extracted fileId:`, fileId);
+                    
                     if (fileId) {
                         const url = fileUrl(fileId);
-                        console.error(`[Product ${p.id}] ⚠️ model_image_${idx + 1} extracted ID ${fileId}, converted to:`, url);
+                        console.error(`[Product ${p.id}] ⚠️ model_image_${idx + 1} fileUrl("${fileId}") =`, url);
                         if (!url) {
-                            console.error(`[Product ${p.id}] ⚠️ CRITICAL: fileUrl returned NULL for ID ${fileId}!`);
+                            console.error(`[Product ${p.id}] ⚠️ CRITICAL: fileUrl returned NULL for ID "${fileId}"!`);
                         }
                         return url;
                     } else {
-                        console.error(`[Product ${p.id}] ⚠️ model_image_${idx + 1} object has no ID field!`);
+                        console.error(`[Product ${p.id}] ⚠️ CRITICAL: model_image_${idx + 1} object has no ID field! Keys:`, keys);
                     }
                 }
-                console.log(`[Product ${p.id}] model_image_${idx + 1} could not be processed`);
+                console.error(`[Product ${p.id}] ⚠️ model_image_${idx + 1} could not be processed - type: ${typeof img}, value:`, img);
                 return null;
             })
             .filter((url): url is string => typeof url === 'string' && url !== null);
