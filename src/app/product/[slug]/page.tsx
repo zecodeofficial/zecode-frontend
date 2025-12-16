@@ -245,23 +245,28 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
         });
         
         // CRITICAL: Add model images that aren't already in the gallery
-        console.error(`[Product ${p.id}] ⚠️ Adding model images to gallery:`, {
+        console.error(`[Product ${p.id}] ⚠️⚠️⚠️ CRITICAL: Adding model images to gallery:`, {
             modelImageFieldsCount: modelImageFields.length,
-            modelImageFields,
+            modelImageFields: JSON.stringify(modelImageFields),
             galleryRawBefore: galleryRaw.length,
-            galleryRawBeforeItems: galleryRaw
+            galleryRawBeforeItems: JSON.stringify(galleryRaw)
         });
+        
+        if (modelImageFields.length === 0) {
+            console.error(`[Product ${p.id}] ⚠️⚠️⚠️ CRITICAL ERROR: modelImageFields is EMPTY! This means getModelImageValue returned no valid URLs!`);
+            console.error(`[Product ${p.id}] ⚠️⚠️⚠️ Check getModelImageValue logs above to see why URLs weren't returned.`);
+        }
         
         modelImageFields.forEach((modelImg, idx) => {
             if (modelImg && typeof modelImg === 'string' && modelImg.length > 0) {
                 if (!galleryRaw.includes(modelImg)) {
-                    console.error(`[Product ${p.id}] ⚠️ Adding model image ${idx + 1} to gallery:`, modelImg);
+                    console.error(`[Product ${p.id}] ⚠️⚠️⚠️ CRITICAL: Adding model image ${idx + 1} to gallery:`, modelImg.substring(0, 100));
                     galleryRaw.push(modelImg);
                 } else {
-                    console.error(`[Product ${p.id}] ⚠️ Skipping model image ${idx + 1} (already in gallery):`, modelImg);
+                    console.error(`[Product ${p.id}] ⚠️ Skipping model image ${idx + 1} (already in gallery):`, modelImg.substring(0, 100));
                 }
             } else {
-                console.error(`[Product ${p.id}] ⚠️ Skipping model image ${idx + 1} (invalid):`, modelImg);
+                console.error(`[Product ${p.id}] ⚠️⚠️⚠️ CRITICAL: Skipping model image ${idx + 1} (invalid):`, modelImg, `type: ${typeof modelImg}`);
             }
         });
         
