@@ -147,6 +147,9 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
                     if (fileId) {
                         const url = fileUrl(fileId);
                         console.error(`[Product ${p.id}] ⚠️ model_image_${idx + 1} extracted ID ${fileId}, converted to:`, url);
+                        if (!url) {
+                            console.error(`[Product ${p.id}] ⚠️ CRITICAL: fileUrl returned NULL for ID ${fileId}!`);
+                        }
                         return url;
                     } else {
                         console.error(`[Product ${p.id}] ⚠️ model_image_${idx + 1} object has no ID field!`);
