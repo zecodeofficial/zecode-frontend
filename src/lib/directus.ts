@@ -610,15 +610,9 @@ async function _fetchProductBySlug(slug: string): Promise<Product | null> {
 }
 
 // Cached version of fetchProductBySlug
-// Reduced cache time for faster updates during debugging
+// DISABLED CACHE for debugging - always fetch fresh data
 export const fetchProductBySlug = typeof window === 'undefined'
-  ? (slug: string) => cache(
-    unstable_cache(
-      () => _fetchProductBySlug(slug),
-      [`product-${slug}`],
-      { revalidate: 10, tags: ['products', `product-${slug}`] } // Reduced from CACHE_PRODUCTS (300s) to 10s
-    )
-  )()
+  ? _fetchProductBySlug // Direct call, no cache
   : _fetchProductBySlug;
 
 /**

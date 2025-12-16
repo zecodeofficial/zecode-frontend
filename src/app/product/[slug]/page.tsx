@@ -3,10 +3,13 @@ import { fetchProductBySlug, fileUrl, type Product } from '@/lib/directus';
 import { notFound } from 'next/navigation';
 
 // Revalidate product pages every 10 seconds for faster updates during debugging
-export const revalidate = 10;
+export const revalidate = 0; // Disable caching completely for debugging
 
 // Force dynamic rendering to ensure fresh data
 export const dynamic = 'force-dynamic';
+
+// Ensure Node.js runtime
+export const runtime = 'nodejs';
 
 export default async function ProductPage({ params }: { params: Promise<{ slug: string }> }) {
     console.error(`[ProductPage] ⚠️ COMPONENT STARTED - About to await params`);
