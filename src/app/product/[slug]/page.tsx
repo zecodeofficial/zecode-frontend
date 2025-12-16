@@ -34,13 +34,24 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
         }
 
         // 3. Always include model images (uploaded via Directus) in the gallery
-        const modelImages = [p.model_image_1, p.model_image_2, p.model_image_3]
+        // Handle both UUID strings and full file objects from Directus
+        const modelImageFields = [p.model_image_1, p.model_image_2, p.model_image_3]
             .filter(Boolean)
-            .map(img => fileUrl(img) || img)
+            .map(img => {
+                // If it's already a string (UUID), use it directly
+                if (typeof img === 'string') {
+                    return fileUrl(img);
+                }
+                // If it's an object (full file from Directus), extract the ID
+                if (img && typeof img === 'object' && 'id' in img) {
+                    return fileUrl(img.id);
+                }
+                return null;
+            })
             .filter((url): url is string => typeof url === 'string' && url !== null);
         
         // Add model images that aren't already in the gallery
-        modelImages.forEach(modelImg => {
+        modelImageFields.forEach(modelImg => {
             if (modelImg && !galleryRaw.includes(modelImg)) {
                 galleryRaw.push(modelImg);
             }
