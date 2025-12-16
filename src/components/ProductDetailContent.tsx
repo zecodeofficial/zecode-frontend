@@ -106,19 +106,28 @@ export default function ProductDetailContent({ product }: { product: ProductDeta
     // Debug logging - always log to help diagnose production issues
     useEffect(() => {
         if (typeof window !== 'undefined') {
-            console.log('[ProductDetailContent] Props:', {
+            console.error('[ProductDetailContent] ⚠️ Props received:', {
                 productId: product.id,
                 productName: product.name,
                 image: product.image,
                 gallery: product.gallery,
                 galleryLength: product.gallery?.length || 0,
+                galleryArray: JSON.stringify(product.gallery)
             });
-            console.log('[ProductDetailContent] Computed gallery:', {
+            console.error('[ProductDetailContent] ⚠️ Computed gallery:', {
                 gallery,
                 galleryLength: gallery.length,
+                galleryArray: JSON.stringify(gallery),
                 selectedImage,
                 selectedImageIndex
             });
+            
+            // CRITICAL: If gallery only has 1 image, log a warning
+            if (gallery.length <= 1) {
+                console.error('[ProductDetailContent] ⚠️⚠️⚠️ CRITICAL: Gallery only has 1 image! Expected 4 images (1 main + 3 model images).');
+                console.error('[ProductDetailContent] ⚠️⚠️⚠️ Product gallery prop:', product.gallery);
+                console.error('[ProductDetailContent] ⚠️⚠️⚠️ Computed gallery:', gallery);
+            }
         }
     }, [product, gallery, selectedImage, selectedImageIndex]);
 

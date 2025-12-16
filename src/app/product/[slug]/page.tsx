@@ -330,6 +330,12 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
         gallery: normalized.gallery,
         galleryLength: normalized.gallery?.length || 0
     }, null, 2));
+    
+    // CRITICAL: If gallery only has 1 image, log a warning that will definitely appear
+    if (normalized.gallery?.length <= 1) {
+        console.error(`[ProductPage] ⚠️⚠️⚠️ CRITICAL WARNING: Gallery only has ${normalized.gallery?.length || 0} image(s)! This should have 4 images (1 main + 3 model images).`);
+        console.error(`[ProductPage] ⚠️⚠️⚠️ Gallery contents:`, normalized.gallery);
+    }
 
     return (
         <>
