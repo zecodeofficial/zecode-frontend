@@ -368,6 +368,9 @@ export type Product = {
   model_image_1?: string;
   model_image_2?: string;
   model_image_3?: string;
+  model_image_1_url?: string;
+  model_image_2_url?: string;
+  model_image_3_url?: string;
   images?: string[];
   category?: string;
   subcategory?: string;

@@ -98,18 +98,26 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
         }
 
         // 3. Always include model images (uploaded via Directus) in the gallery
-        // Handle both UUID strings and full file objects from Directus
+        // Handle both UUID strings, full file objects, and URL fields from Directus
         console.error(`[Product ${p.id}] ⚠️ PROCESSING MODEL IMAGES - raw values:`, {
             model_image_1: p.model_image_1,
             model_image_1_type: typeof p.model_image_1,
+            model_image_1_url: p.model_image_1_url,
             model_image_2: p.model_image_2,
             model_image_2_type: typeof p.model_image_2,
+            model_image_2_url: p.model_image_2_url,
             model_image_3: p.model_image_3,
-            model_image_3_type: typeof p.model_image_3
+            model_image_3_type: typeof p.model_image_3,
+            model_image_3_url: p.model_image_3_url
         });
         
         // CRITICAL: Check if model images exist before processing
-        const modelImagesArray = [p.model_image_1, p.model_image_2, p.model_image_3];
+        // Priority: UUID fields first, then URL fields as fallback
+        const modelImagesArray = [
+            p.model_image_1 || p.model_image_1_url,
+            p.model_image_2 || p.model_image_2_url,
+            p.model_image_3 || p.model_image_3_url
+        ];
         console.error(`[Product ${p.id}] ⚠️ Model images array before filter:`, {
             length: modelImagesArray.length,
             items: modelImagesArray.map((img, idx) => ({
@@ -130,8 +138,15 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
                     hasId: img && typeof img === 'object' && 'id' in img,
                     value: img,
                     isNull: img === null,
-                    isUndefined: img === undefined
+                    isUndefined: img === undefined,
+                    isUrl: typeof img === 'string' && img.startsWith('http')
                 });
+                
+                // If it's already a full URL (from _url fields), return it directly
+                if (typeof img === 'string' && img.startsWith('http')) {
+                    console.error(`[Product ${p.id}] ⚠️ model_image_${idx + 1} is already a URL:`, img);
+                    return img;
+                }
                 
                 // If it's already a string (UUID), use it directly
                 if (typeof img === 'string') {
