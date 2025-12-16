@@ -58,11 +58,17 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             }
         });
 
-        // Debug: Log raw model image data
+        // Debug: Log raw model image data - ALWAYS log (not just dev)
         console.log(`[Product ${p.id}] Raw model images:`, {
             model_image_1: p.model_image_1,
+            model_image_1_type: typeof p.model_image_1,
+            model_image_1_has_id: p.model_image_1 && typeof p.model_image_1 === 'object' && 'id' in p.model_image_1,
             model_image_2: p.model_image_2,
+            model_image_2_type: typeof p.model_image_2,
+            model_image_2_has_id: p.model_image_2 && typeof p.model_image_2 === 'object' && 'id' in p.model_image_2,
             model_image_3: p.model_image_3,
+            model_image_3_type: typeof p.model_image_3,
+            model_image_3_has_id: p.model_image_3 && typeof p.model_image_3 === 'object' && 'id' in p.model_image_3,
             modelImageFieldsCount: modelImageFields.length,
             modelImageFields
         });
@@ -127,7 +133,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             finalImage
         });
 
-        return {
+        const normalizedProduct = {
             id: p.id,
             name: p.name,
             // prefer category, fallback to gender or a safe string
@@ -142,6 +148,15 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             rating: undefined,
             reviewCount: undefined,
         };
+
+        // Final check - log what we're actually returning
+        console.log(`[Product ${p.id}] Returning normalized product:`, {
+            galleryLength: normalizedProduct.gallery.length,
+            gallery: normalizedProduct.gallery,
+            image: normalizedProduct.image
+        });
+
+        return normalizedProduct;
     })();
 
     return (
