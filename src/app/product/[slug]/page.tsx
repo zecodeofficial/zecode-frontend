@@ -114,32 +114,56 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
         // CRITICAL: Check if model images exist before processing
         // Priority: UUID fields first, then URL fields as fallback
         // Handle empty objects {} as falsy values - they should fall back to _url fields
-        const getModelImageValue = (uuidField: any, urlField: string | undefined): any => {
+        const getModelImageValue = (uuidField: any, urlField: string | undefined, fieldName: string): any => {
+            console.error(`[Product ${p.id}] ⚠️ getModelImageValue for ${fieldName}:`, {
+                uuidField,
+                uuidFieldType: typeof uuidField,
+                uuidFieldIsNull: uuidField === null,
+                uuidFieldIsEmptyObject: typeof uuidField === 'object' && uuidField !== null && Object.keys(uuidField).length === 0,
+                urlField,
+                urlFieldType: typeof urlField
+            });
+            
             // If URL field exists, prefer it when UUID is empty/invalid
             if (urlField && typeof urlField === 'string' && urlField.length > 0) {
-                // If UUID is null, undefined, or empty object, use URL
-                if (!uuidField || (typeof uuidField === 'object' && Object.keys(uuidField).length === 0)) {
+                // Check if UUID is null, undefined, or empty object
+                const isUuidEmpty = uuidField === null || 
+                    uuidField === undefined ||
+                    (typeof uuidField === 'object' && uuidField !== null && Object.keys(uuidField).length === 0);
+                
+                if (isUuidEmpty) {
+                    // UUID is empty/invalid, use URL field
+                    console.error(`[Product ${p.id}] ⚠️ ${fieldName}: UUID is empty, using URL field:`, urlField);
                     return urlField;
                 }
-                // If UUID is a valid string or object with id, use UUID
+                
+                // If UUID is a valid string, use UUID
                 if (typeof uuidField === 'string' && uuidField.length > 0) {
+                    console.error(`[Product ${p.id}] ⚠️ ${fieldName}: UUID is valid string, using UUID:`, uuidField);
                     return uuidField;
                 }
-                if (uuidField && typeof uuidField === 'object' && ('id' in uuidField || 'data' in uuidField)) {
+                
+                // If UUID is an object with id/data, use UUID
+                if (uuidField && typeof uuidField === 'object' && uuidField !== null && ('id' in uuidField || 'data' in uuidField)) {
+                    console.error(`[Product ${p.id}] ⚠️ ${fieldName}: UUID is valid object with id/data, using UUID`);
                     return uuidField;
                 }
+                
                 // Fallback to URL if UUID is invalid
+                console.error(`[Product ${p.id}] ⚠️ ${fieldName}: UUID is invalid, falling back to URL:`, urlField);
                 return urlField;
             }
             // No URL field, use UUID if it exists
+            console.error(`[Product ${p.id}] ⚠️ ${fieldName}: No URL field, using UUID:`, uuidField);
             return uuidField || null;
         };
         
         const modelImagesArray = [
-            getModelImageValue(p.model_image_1, p.model_image_1_url),
-            getModelImageValue(p.model_image_2, p.model_image_2_url),
-            getModelImageValue(p.model_image_3, p.model_image_3_url)
+            getModelImageValue(p.model_image_1, p.model_image_1_url, 'model_image_1'),
+            getModelImageValue(p.model_image_2, p.model_image_2_url, 'model_image_2'),
+            getModelImageValue(p.model_image_3, p.model_image_3_url, 'model_image_3')
         ];
+        
         console.error(`[Product ${p.id}] ⚠️ Model images array before filter:`, {
             length: modelImagesArray.length,
             items: modelImagesArray.map((img, idx) => ({
