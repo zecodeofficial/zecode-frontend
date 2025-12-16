@@ -75,7 +75,8 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
     let normalized: any;
     try {
         normalized = ((): any => {
-        const p: Product = product as Product;
+        // Use 'any' to access URL fields that might not be in Product type
+        const p: any = product;
 
         // Log at start of normalization - USE console.error to ensure it shows
         console.error(`[Product ${p.id}] ⚠️ STARTING NORMALIZATION:`, {
@@ -408,6 +409,17 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
     if (normalized.gallery?.length <= 1) {
         console.error(`[ProductPage] ⚠️⚠️⚠️ CRITICAL WARNING: Gallery only has ${normalized.gallery?.length || 0} image(s)! This should have 4 images (1 main + 3 model images).`);
         console.error(`[ProductPage] ⚠️⚠️⚠️ Gallery contents:`, normalized.gallery);
+        console.error(`[ProductPage] ⚠️⚠️⚠️ RAW PRODUCT DATA CHECK:`, {
+            hasModelImage1: !!product.model_image_1,
+            hasModelImage2: !!product.model_image_2,
+            hasModelImage3: !!product.model_image_3,
+            hasModelImage1Url: !!(product as any).model_image_1_url,
+            hasModelImage2Url: !!(product as any).model_image_2_url,
+            hasModelImage3Url: !!(product as any).model_image_3_url,
+            modelImage1Url: (product as any).model_image_1_url || 'MISSING',
+            modelImage2Url: (product as any).model_image_2_url || 'MISSING',
+            modelImage3Url: (product as any).model_image_3_url || 'MISSING'
+        });
     }
 
     // DEBUG: Output raw product data in HTML comment for inspection
