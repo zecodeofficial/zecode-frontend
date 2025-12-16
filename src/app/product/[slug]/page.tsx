@@ -311,6 +311,12 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
         console.error(`[Product ${p.id}] ⚠️ FINAL GALLERY DUMP:`, JSON.stringify(normalizedProduct.gallery, null, 2));
         return normalizedProduct;
     })();
+    } catch (error: any) {
+        console.error(`[ProductPage] ⚠️ CRITICAL ERROR IN NORMALIZATION:`, error);
+        console.error(`[ProductPage] ⚠️ ERROR STACK:`, error?.stack);
+        console.error(`[ProductPage] ⚠️ ERROR MESSAGE:`, error?.message);
+        throw error; // Re-throw to see the error in Vercel
+    }
     
     console.error(`[ProductPage] ⚠️ NORMALIZED PRODUCT RECEIVED - Gallery has ${normalized.gallery?.length || 0} images`);
     console.error(`[ProductPage] ⚠️ FINAL NORMALIZED PRODUCT DUMP:`, JSON.stringify({
