@@ -15,47 +15,33 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
     const normalized = ((): any => {
         const p: Product = product as Product;
 
-        // LEGACY: p.images is string[] (URLs)
-        // NEW: p.product_gallery is M2M array [{ directus_files_id: "uuid" }]
-
+        // Build gallery from image fields
         let galleryRaw: (string | undefined)[] = [];
 
-        // 1. Prioritize uploaded M2M images (New System - Repeater)
-        if (p.product_gallery && Array.isArray(p.product_gallery) && p.product_gallery.length > 0) {
-            p.product_gallery.forEach((item) => {
-                const fileId = item.directus_file;
-                // Explicit type guard: check for string and non-null
-                if (typeof fileId === 'string' && fileId !== null) {
-                    // TypeScript now knows fileId is string
-                    const fileIdString: string = fileId;
-                    const url = fileUrl(fileIdString);
-                    if (url) {
-                        galleryRaw.push(url);
-                    }
-                }
-            });
-        }
-
-        // 2. Add legacy images (URLs/Strings)
+        // 1. Add legacy images array (URLs/Strings) if present
         if (p.images && Array.isArray(p.images) && p.images.length > 0) {
             galleryRaw = [...galleryRaw, ...p.images];
         }
 
-        // 3. Fallback to main image (if not in gallery)
+        // 2. Add main image (prioritize UUID field, fallback to URL field)
         const mainImage = p.image || p.image_url;
         const mainImageUrl = mainImage ? (fileUrl(mainImage) || mainImage) : null;
         if (mainImageUrl && !galleryRaw.includes(mainImageUrl)) {
             galleryRaw.unshift(mainImageUrl);
         }
 
-        // 4. Fallback: Use AI model images only if no gallery images exist
-        if (galleryRaw.length === 0) {
-            const modelImages = [p.model_image_1, p.model_image_2, p.model_image_3]
-                .filter(Boolean)
-                .map(img => fileUrl(img) || img)
-                .filter((url): url is string => typeof url === 'string');
-            galleryRaw.push(...modelImages);
-        }
+        // 3. Always include model images (uploaded via Directus) in the gallery
+        const modelImages = [p.model_image_1, p.model_image_2, p.model_image_3]
+            .filter(Boolean)
+            .map(img => fileUrl(img) || img)
+            .filter((url): url is string => typeof url === 'string' && url !== null);
+        
+        // Add model images that aren't already in the gallery
+        modelImages.forEach(modelImg => {
+            if (modelImg && !galleryRaw.includes(modelImg)) {
+                galleryRaw.push(modelImg);
+            }
+        });
 
         // Filter out nulls/undefined and duplicates
         const uniqueGallery = Array.from(new Set(galleryRaw.filter(Boolean)));
