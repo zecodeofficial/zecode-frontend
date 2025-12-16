@@ -53,21 +53,47 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
 
         // 3. Always include model images (uploaded via Directus) in the gallery
         // Handle both UUID strings and full file objects from Directus
+        console.log(`[Product ${p.id}] Processing model images - raw values:`, {
+            model_image_1: p.model_image_1,
+            model_image_1_type: typeof p.model_image_1,
+            model_image_2: p.model_image_2,
+            model_image_2_type: typeof p.model_image_2,
+            model_image_3: p.model_image_3,
+            model_image_3_type: typeof p.model_image_3
+        });
+        
         const modelImageFields = [p.model_image_1, p.model_image_2, p.model_image_3]
             .filter(Boolean)
-            .map(img => {
+            .map((img, idx) => {
+                console.log(`[Product ${p.id}] Processing model_image_${idx + 1}:`, {
+                    type: typeof img,
+                    isObject: typeof img === 'object',
+                    hasId: img && typeof img === 'object' && 'id' in img,
+                    value: img
+                });
+                
                 // If it's already a string (UUID), use it directly
                 if (typeof img === 'string') {
-                    return fileUrl(img);
+                    const url = fileUrl(img);
+                    console.log(`[Product ${p.id}] model_image_${idx + 1} is string, converted to:`, url);
+                    return url;
                 }
                 // If it's an object (full file from Directus), extract the ID
                 if (img && typeof img === 'object' && img !== null && 'id' in img) {
                     const fileObj = img as { id: string };
-                    return fileUrl(fileObj.id);
+                    const url = fileUrl(fileObj.id);
+                    console.log(`[Product ${p.id}] model_image_${idx + 1} is object, extracted ID ${fileObj.id}, converted to:`, url);
+                    return url;
                 }
+                console.log(`[Product ${p.id}] model_image_${idx + 1} could not be processed`);
                 return null;
             })
             .filter((url): url is string => typeof url === 'string' && url !== null);
+        
+        console.log(`[Product ${p.id}] Model images after processing:`, {
+            count: modelImageFields.length,
+            urls: modelImageFields
+        });
         
         // Add model images that aren't already in the gallery
         modelImageFields.forEach(modelImg => {
