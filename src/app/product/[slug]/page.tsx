@@ -145,22 +145,23 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
                 // If it's an object (full file from Directus), extract the ID
                 if (img && typeof img === 'object' && img !== null) {
                     const keys = Object.keys(img);
-                    console.error(`[Product ${p.id}] ⚠️ model_image_${idx + 1} is object with keys:`, keys);
-                    console.error(`[Product ${p.id}] ⚠️ model_image_${idx + 1} full object:`, JSON.stringify(img, null, 2));
                     
-                    // Try multiple ways to get the ID
+                    // CRITICAL: The object has an 'id' field directly (confirmed by Directus structure check)
+                    // Extract ID - try multiple ways but prioritize direct 'id' field
                     const fileId = (img as any)?.id ?? (img as any)?.data?.id ?? (img as any)?.directus_files_id ?? null;
-                    console.error(`[Product ${p.id}] ⚠️ model_image_${idx + 1} extracted fileId:`, fileId);
                     
-                    if (fileId) {
+                    if (fileId && typeof fileId === 'string') {
                         const url = fileUrl(fileId);
-                        console.error(`[Product ${p.id}] ⚠️ model_image_${idx + 1} fileUrl("${fileId}") =`, url);
-                        if (!url) {
+                        if (url) {
+                            // SUCCESS - return the URL
+                            return url;
+                        } else {
+                            // fileUrl returned null - this shouldn't happen but log it
                             console.error(`[Product ${p.id}] ⚠️ CRITICAL: fileUrl returned NULL for ID "${fileId}"!`);
                         }
-                        return url;
                     } else {
-                        console.error(`[Product ${p.id}] ⚠️ CRITICAL: model_image_${idx + 1} object has no ID field! Keys:`, keys);
+                        // No valid ID found
+                        console.error(`[Product ${p.id}] ⚠️ CRITICAL: model_image_${idx + 1} object has no valid ID! Keys: ${keys.join(', ')}, fileId: ${fileId}`);
                     }
                 }
                 console.error(`[Product ${p.id}] ⚠️ model_image_${idx + 1} could not be processed - type: ${typeof img}, value:`, img);
