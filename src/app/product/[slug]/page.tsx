@@ -58,6 +58,15 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             }
         });
 
+        // Debug: Log raw model image data
+        console.log(`[Product ${p.id}] Raw model images:`, {
+            model_image_1: p.model_image_1,
+            model_image_2: p.model_image_2,
+            model_image_3: p.model_image_3,
+            modelImageFieldsCount: modelImageFields.length,
+            modelImageFields
+        });
+
         // Filter out nulls/undefined and duplicates
         const uniqueGallery = Array.from(new Set(galleryRaw.filter(Boolean)));
 
@@ -77,13 +86,20 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
         const finalGallery = galleryUrls.length > 0 ? galleryUrls : [fileUrl(displayImage) || displayImage].filter(Boolean);
         const finalImage = fileUrl(displayImage) || displayImage;
 
-        // Debug logging (remove in production if needed)
-        if (process.env.NODE_ENV === 'development') {
-            console.log(`[Product ${p.id}] Gallery images:`, finalGallery.length);
-            finalGallery.forEach((url, idx) => {
-                console.log(`  ${idx + 1}. ${url}`);
-            });
-        }
+        // Debug logging - always log to help diagnose production issues
+        console.log(`[Product ${p.id}] Image normalization:`, {
+            rawModelImages: {
+                model_image_1: p.model_image_1,
+                model_image_2: p.model_image_2,
+                model_image_3: p.model_image_3,
+            },
+            modelImageFields,
+            galleryRaw: galleryRaw.length,
+            uniqueGallery: uniqueGallery.length,
+            galleryUrls: galleryUrls.length,
+            finalGallery: finalGallery.length,
+            finalImage
+        });
 
         return {
             id: p.id,

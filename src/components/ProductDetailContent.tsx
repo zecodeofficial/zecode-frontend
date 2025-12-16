@@ -103,14 +103,24 @@ export default function ProductDetailContent({ product }: { product: ProductDeta
     const [selectedImageIndex, setSelectedImageIndex] = useState(0);
     const selectedImage = gallery[selectedImageIndex] ?? gallery[0];
 
-    // Debug logging
+    // Debug logging - always log to help diagnose production issues
     useEffect(() => {
-        if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
-            console.log('[ProductDetailContent] Gallery:', gallery);
-            console.log('[ProductDetailContent] Gallery length:', gallery.length);
-            console.log('[ProductDetailContent] Selected image:', selectedImage);
+        if (typeof window !== 'undefined') {
+            console.log('[ProductDetailContent] Props:', {
+                productId: product.id,
+                productName: product.name,
+                image: product.image,
+                gallery: product.gallery,
+                galleryLength: product.gallery?.length || 0,
+            });
+            console.log('[ProductDetailContent] Computed gallery:', {
+                gallery,
+                galleryLength: gallery.length,
+                selectedImage,
+                selectedImageIndex
+            });
         }
-    }, [gallery, selectedImage]);
+    }, [product, gallery, selectedImage, selectedImageIndex]);
 
     const [shareUrl, setShareUrl] = useState('');
     const [reviewRating, setReviewRating] = useState(0);
