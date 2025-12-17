@@ -463,30 +463,33 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             }
         }
         
-        // SIMPLIFIED APPROACH: Always ensure model images are in the final gallery
-        // Get model image URLs directly from product object
+        // SIMPLIFIED APPROACH: Build final gallery directly from model image URLs
+        // This ensures model images are ALWAYS included, regardless of earlier normalization steps
         const modelImageUrls = [
             p.model_image_1_url,
             p.model_image_2_url,
             p.model_image_3_url
         ].filter((url): url is string => typeof url === 'string' && url.length > 0 && url.startsWith('http'));
         
-        // Build final gallery: main image first, then model images, then any other images
-        const finalGalleryWithModelImages = [
+        console.error(`[Product ${p.id}] ⚠️ FINAL GALLERY BUILD - Model URLs:`, {
+            modelImageUrlsCount: modelImageUrls.length,
+            modelImageUrls: modelImageUrls,
+            finalImage: finalImage,
+            finalGalleryArrayBefore: finalGalleryArray
+        });
+        
+        // Build final gallery: main image + model images (simple and direct)
+        const finalGallerySimple = [
             finalImage,
-            ...modelImageUrls,
-            ...finalGalleryArray.filter((url: string) => url !== finalImage && !modelImageUrls.includes(url))
+            ...modelImageUrls
         ].filter(Boolean);
         
-        // Deduplicate
-        const finalGalleryDeduplicated = Array.from(new Set(finalGalleryWithModelImages));
+        // Deduplicate (in case main image is already in model images)
+        const finalGalleryFinal = Array.from(new Set(finalGallerySimple));
         
-        console.error(`[Product ${p.id}] ⚠️ FINAL GALLERY BUILD:`, {
-            modelImageUrlsCount: modelImageUrls.length,
-            finalGalleryArrayCount: finalGalleryArray.length,
-            finalGalleryWithModelImagesCount: finalGalleryWithModelImages.length,
-            finalGalleryDeduplicatedCount: finalGalleryDeduplicated.length,
-            finalGallery: finalGalleryDeduplicated
+        console.error(`[Product ${p.id}] ⚠️ FINAL GALLERY FINAL:`, {
+            finalGalleryFinalCount: finalGalleryFinal.length,
+            finalGalleryFinal: finalGalleryFinal
         });
         
         const normalizedProduct = {
@@ -498,7 +501,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             price: (typeof p.sale_price === 'number' ? p.sale_price : (typeof p.price === 'number' ? p.price : null)),
             originalPrice: typeof p.price === 'number' ? p.price : undefined,
             image: finalImage,
-            gallery: finalGalleryDeduplicated, // Always include model images
+            gallery: finalGalleryFinal, // Simple: main image + model images
             description: p.description ?? '',
             sizes: p.sizes ?? undefined,
             rating: undefined,
