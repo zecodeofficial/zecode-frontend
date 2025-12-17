@@ -392,6 +392,15 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
 
         console.error(`[Product ${p.id}] ⚠️ NORMALIZATION COMPLETE - Returning product with ${normalizedProduct.gallery.length} images`);
         console.error(`[Product ${p.id}] ⚠️ FINAL GALLERY DUMP:`, JSON.stringify(normalizedProduct.gallery, null, 2));
+        
+        // CRITICAL: Verify gallery has model images before returning
+        if (normalizedProduct.gallery.length <= 1) {
+            console.error(`[Product ${p.id}] ⚠️⚠️⚠️ CRITICAL: Gallery only has ${normalizedProduct.gallery.length} image before return!`);
+            console.error(`[Product ${p.id}] ⚠️⚠️⚠️ finalGallery:`, JSON.stringify(finalGallery, null, 2));
+            console.error(`[Product ${p.id}] ⚠️⚠️⚠️ modelImageFields:`, JSON.stringify(modelImageFields, null, 2));
+            console.error(`[Product ${p.id}] ⚠️⚠️⚠️ galleryRaw:`, JSON.stringify(galleryRaw, null, 2));
+        }
+        
         return normalizedProduct;
     })();
     } catch (error: any) {
