@@ -227,15 +227,20 @@ export default async function WomenSubcategoryPage({ params }: PageProps) {
     const gallery = buildMatchingGallery(product);
 
     // Extract model images separately for the dedicated section
+    // Check both standard relation fields and direct URL fields
     const modelImages = [
-      product.model_image_1,
-      product.model_image_2,
-      product.model_image_3,
+      product.model_image_1_url || product.model_image_1,
+      product.model_image_2_url || product.model_image_2,
+      product.model_image_3_url || product.model_image_3,
     ]
       .filter(Boolean)
       .map(img => {
-        const url = fileUrl(img);
-        return url || (typeof img === 'string' && img.startsWith('http') ? img : null);
+        // If it's already a URL string (from _url field), use it directly
+        // Otherwise pass to fileUrl to handle Directus ID/Object
+        if (typeof img === 'string' && (img.startsWith('http') || img.startsWith('/'))) {
+          return img;
+        }
+        return fileUrl(img);
       })
       .filter((url): url is string => url !== null);
 
