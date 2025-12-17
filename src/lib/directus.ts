@@ -147,9 +147,11 @@ const CLOUDINARY_BASE_URL = `https://res.cloudinary.com/${CLOUDINARY_CLOUD_NAME}
  * /products/image.jpg → https://res.cloudinary.com/ds8llatku/image/upload/f_auto,q_auto/zecode/products/image
  */
 function getCloudinaryUrl(localPath: string): string {
-  // Remove leading slash and file extension
-  const cleanPath = localPath.replace(/^\//, '').replace(/\.[^.]+$/, '');
+  // Remove leading slash but KEEP file extension (Cloudinary needs it for proper format detection)
+  const cleanPath = localPath.replace(/^\//, '');
   // Add auto format and quality optimization
+  // Note: We keep the extension because Cloudinary uses it for format detection
+  // and some images might not work without it
   return `${CLOUDINARY_BASE_URL}/f_auto,q_auto/zecode/${cleanPath}`;
 }
 
@@ -170,19 +172,25 @@ export function fileUrl(file: any) {
     return id;
   }
 
-  // If it's a local path (starts with /), transform to Cloudinary URL
-  if (typeof id === 'string' && id.startsWith('/')) {
+  // Check if it's a Cloudinary path (with or without leading slash)
+  // Paths like: /products/... or products/... should go to Cloudinary directly
+  if (typeof id === 'string') {
+    const normalizedPath = id.startsWith('/') ? id : `/${id}`;
+    
     // Check if it's one of our image folders
-    if (id.startsWith('/products/') || id.startsWith('/categories/') ||
-      id.startsWith('/hero/') || id.startsWith('/brand/') ||
-      id.startsWith('/placeholders/')) {
-      return getCloudinaryUrl(id);
+    if (normalizedPath.startsWith('/products/') || normalizedPath.startsWith('/categories/') ||
+      normalizedPath.startsWith('/hero/') || normalizedPath.startsWith('/brand/') ||
+      normalizedPath.startsWith('/placeholders/')) {
+      return getCloudinaryUrl(normalizedPath);
     }
-    // Other local paths (like fonts) stay as-is
-    return id;
+    
+    // If it starts with /, it's a local path (like fonts) - keep as-is
+    if (id.startsWith('/')) {
+      return id;
+    }
   }
 
-  // Otherwise treat as Directus asset ID
+  // Otherwise treat as Directus asset ID (UUID)
   // Use Cloudinary Fetch to proxy and optimize Directus images
   // Format: https://res.cloudinary.com/<cloud_name>/image/fetch/<options>/<remote_url>
   const directusUrl = `${DIRECTUS}/assets/${id}`;
