@@ -549,14 +549,46 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
         galleryLength: normalized.gallery?.length || 0
     }, null, 2));
     
-    // CRITICAL: If gallery only has 1 image, log a warning and try to fix it
-    if (normalized.gallery?.length <= 1) {
-        console.error(`[ProductPage] ⚠️⚠️⚠️ CRITICAL WARNING: Gallery only has ${normalized.gallery?.length || 0} image(s)! This should have 4 images (1 main + 3 model images).`);
-        console.error(`[ProductPage] ⚠️⚠️⚠️ Gallery contents:`, normalized.gallery);
-        console.error(`[ProductPage] ⚠️⚠️⚠️ RAW PRODUCT DATA CHECK:`, {
-            hasModelImage1: !!product.model_image_1,
-            hasModelImage2: !!product.model_image_2,
-            hasModelImage3: !!product.model_image_3,
+    // CRITICAL: ALWAYS check and ensure model images are included
+    // This runs regardless of current gallery length to catch any edge cases
+    const modelUrlsFromProduct = [
+        (product as any).model_image_1_url,
+        (product as any).model_image_2_url,
+        (product as any).model_image_3_url
+    ].filter((url): url is string => typeof url === 'string' && url.length > 0 && url.startsWith('http'));
+    
+    console.error(`[ProductPage] ⚠️ FINAL CHECK: Found ${modelUrlsFromProduct.length} model image URLs in product object`);
+    if (modelUrlsFromProduct.length > 0) {
+        modelUrlsFromProduct.forEach((url, idx) => {
+            console.error(`[ProductPage] ⚠️ Model image ${idx + 1}: ${url.substring(0, 100)}...`);
+        });
+        
+        // Check if model images are missing from gallery
+        const missingModelImages = modelUrlsFromProduct.filter(url => !normalized.gallery?.includes(url));
+        
+        if (missingModelImages.length > 0) {
+            console.error(`[ProductPage] ⚠️⚠️⚠️ CRITICAL: Found ${missingModelImages.length} model images missing from gallery!`);
+            console.error(`[ProductPage] ⚠️⚠️⚠️ Missing URLs:`, JSON.stringify(missingModelImages, null, 2));
+            console.error(`[ProductPage] ⚠️⚠️⚠️ Current gallery:`, JSON.stringify(normalized.gallery, null, 2));
+            
+            // Force add missing model images
+            normalized.gallery = [
+                normalized.image,
+                ...(normalized.gallery || []).filter((url: string) => url !== normalized.image),
+                ...missingModelImages
+            ].filter(Boolean);
+            
+            // Deduplicate
+            normalized.gallery = Array.from(new Set(normalized.gallery));
+            
+            console.error(`[ProductPage] ⚠️⚠️⚠️ FIXED: Gallery now has ${normalized.gallery.length} images`);
+            console.error(`[ProductPage] ⚠️⚠️⚠️ Fixed gallery:`, JSON.stringify(normalized.gallery, null, 2));
+        } else {
+            console.error(`[ProductPage] ⚠️ All ${modelUrlsFromProduct.length} model images are already in gallery`);
+        }
+    } else {
+        console.error(`[ProductPage] ⚠️⚠️⚠️ WARNING: No model image URLs found in product object!`);
+        console.error(`[ProductPage] ⚠️⚠️⚠️ Product object check:`, {
             hasModelImage1Url: !!(product as any).model_image_1_url,
             hasModelImage2Url: !!(product as any).model_image_2_url,
             hasModelImage3Url: !!(product as any).model_image_3_url,
@@ -564,21 +596,15 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             modelImage2Url: (product as any).model_image_2_url || 'MISSING',
             modelImage3Url: (product as any).model_image_3_url || 'MISSING'
         });
-        
-        // LAST RESORT FIX: If gallery only has 1 image, force add model images from product
-        const lastResortModelUrls = [
-            (product as any).model_image_1_url,
-            (product as any).model_image_2_url,
-            (product as any).model_image_3_url
-        ].filter((url): url is string => typeof url === 'string' && url.length > 0 && url.startsWith('http'));
-        
-        if (lastResortModelUrls.length > 0) {
-            console.error(`[ProductPage] ⚠️⚠️⚠️ LAST RESORT FIX: Adding ${lastResortModelUrls.length} model images directly from product object!`);
-            normalized.gallery = [normalized.image, ...lastResortModelUrls].filter(Boolean);
-            console.error(`[ProductPage] ⚠️⚠️⚠️ Last resort fix applied - gallery now has ${normalized.gallery.length} images`);
-        } else {
-            console.error(`[ProductPage] ⚠️⚠️⚠️ ERROR: No model image URLs found in product object for last resort fix!`);
-        }
+    }
+    
+    // Final check - if gallery still only has 1 image, force rebuild
+    if (normalized.gallery?.length <= 1 && modelUrlsFromProduct.length > 0) {
+        console.error(`[ProductPage] ⚠️⚠️⚠️ CRITICAL: Gallery still only has ${normalized.gallery?.length || 0} image after all fixes!`);
+        console.error(`[ProductPage] ⚠️⚠️⚠️ Force rebuilding gallery with ${modelUrlsFromProduct.length} model images...`);
+        normalized.gallery = [normalized.image, ...modelUrlsFromProduct].filter(Boolean);
+        console.error(`[ProductPage] ⚠️⚠️⚠️ Force-rebuilt gallery now has ${normalized.gallery.length} images`);
+        console.error(`[ProductPage] ⚠️⚠️⚠️ Force-rebuilt gallery:`, JSON.stringify(normalized.gallery, null, 2));
     }
 
     // DEBUG: Output raw product data in HTML comment for inspection
