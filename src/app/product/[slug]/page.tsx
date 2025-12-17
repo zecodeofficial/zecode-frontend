@@ -465,17 +465,29 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
         
         // SIMPLIFIED APPROACH: Build final gallery directly from model image URLs
         // This ensures model images are ALWAYS included, regardless of earlier normalization steps
+        
+        // CRITICAL: Log raw values to see what we have
+        console.error(`[Product ${p.id}] ⚠️⚠️⚠️ CRITICAL CHECK - Raw _url field values:`, {
+            model_image_1_url: p.model_image_1_url,
+            model_image_2_url: p.model_image_2_url,
+            model_image_3_url: p.model_image_3_url,
+            model_image_1_url_type: typeof p.model_image_1_url,
+            model_image_2_url_type: typeof p.model_image_2_url,
+            model_image_3_url_type: typeof p.model_image_3_url,
+            model_image_1_url_length: p.model_image_1_url ? String(p.model_image_1_url).length : 0,
+            model_image_1_url_starts_with_http: p.model_image_1_url ? String(p.model_image_1_url).startsWith('http') : false
+        });
+        
         const modelImageUrls = [
             p.model_image_1_url,
             p.model_image_2_url,
             p.model_image_3_url
         ].filter((url): url is string => typeof url === 'string' && url.length > 0 && url.startsWith('http'));
         
-        console.error(`[Product ${p.id}] ⚠️ FINAL GALLERY BUILD - Model URLs:`, {
+        console.error(`[Product ${p.id}] ⚠️⚠️⚠️ CRITICAL - After filter:`, {
             modelImageUrlsCount: modelImageUrls.length,
             modelImageUrls: modelImageUrls,
-            finalImage: finalImage,
-            finalGalleryArrayBefore: finalGalleryArray
+            finalImage: finalImage
         });
         
         // Build final gallery: main image + model images (simple and direct)
@@ -487,10 +499,22 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
         // Deduplicate (in case main image is already in model images)
         const finalGalleryFinal = Array.from(new Set(finalGallerySimple));
         
-        console.error(`[Product ${p.id}] ⚠️ FINAL GALLERY FINAL:`, {
+        console.error(`[Product ${p.id}] ⚠️⚠️⚠️ CRITICAL - Final gallery before return:`, {
             finalGalleryFinalCount: finalGalleryFinal.length,
-            finalGalleryFinal: finalGalleryFinal
+            finalGalleryFinal: JSON.stringify(finalGalleryFinal, null, 2)
         });
+        
+        // ABSOLUTE LAST RESORT: If still only 1 image, log everything and force add
+        if (finalGalleryFinal.length <= 1) {
+            console.error(`[Product ${p.id}] ⚠️⚠️⚠️ ABSOLUTE LAST RESORT - Gallery only has ${finalGalleryFinal.length} image!`);
+            console.error(`[Product ${p.id}] ⚠️⚠️⚠️ Product object keys:`, Object.keys(p));
+            console.error(`[Product ${p.id}] ⚠️⚠️⚠️ Full product object:`, JSON.stringify({
+                id: p.id,
+                model_image_1_url: p.model_image_1_url,
+                model_image_2_url: p.model_image_2_url,
+                model_image_3_url: p.model_image_3_url
+            }, null, 2));
+        }
         
         const normalizedProduct = {
             id: p.id,
