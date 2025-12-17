@@ -176,14 +176,14 @@ export function fileUrl(file: any) {
   // Paths like: /products/... or products/... should go to Cloudinary directly
   if (typeof id === 'string') {
     const normalizedPath = id.startsWith('/') ? id : `/${id}`;
-    
+
     // Check if it's one of our image folders
     if (normalizedPath.startsWith('/products/') || normalizedPath.startsWith('/categories/') ||
       normalizedPath.startsWith('/hero/') || normalizedPath.startsWith('/brand/') ||
       normalizedPath.startsWith('/placeholders/')) {
       return getCloudinaryUrl(normalizedPath);
     }
-    
+
     // If it starts with /, it's a local path (like fonts) - keep as-is
     if (id.startsWith('/')) {
       return id;
@@ -570,12 +570,19 @@ async function _fetchProductsByGenderAndSubcategory(gender: string | null, subca
  */
 export const fetchProductsByGenderAndSubcategory = typeof window === 'undefined'
   ? (gender: string | null, subcategory: string | string[]) => {
-    const cacheKey = `products-${gender || 'all'}-${Array.isArray(subcategory) ? subcategory.join('-') : subcategory}`;
+    const cacheKey = `products-${gender || 'all'}-${Array.isArray(subcategory) ? subcategory.join('-') : subcategory}-v2`;
     return unstable_cache(
-      () => _fetchProductsByGenderAndSubcategory(gender, subcategory),
+      async () => {
+        const data = await _fetchProductsByGenderAndSubcategory(gender, subcategory);
+        if (data === null) throw new Error("Fetch failed, do not cache");
+        return data;
+      },
       [cacheKey],
       { revalidate: CACHE_PRODUCTS, tags: ['products'] }
-    )();
+    )().catch(err => {
+      console.error("Cached fetch wrapper error:", err);
+      return null;
+    });
   }
   : _fetchProductsByGenderAndSubcategory;
 
@@ -585,12 +592,12 @@ export const fetchProductsByGenderAndSubcategory = typeof window === 'undefined'
 async function _fetchProductBySlug(slug: string): Promise<Product | null> {
   try {
     const url = getApiUrl("/items/products");
-    
+
     // Add cache-busting parameter to ensure fresh data
     const cacheBuster = Date.now();
-    
+
     console.log(`[Directus] Fetching product by slug: ${slug} (cache-buster: ${cacheBuster})`);
-    
+
     const res = await axios.get(url, {
       params: {
         "filter[slug][_eq]": slug,
@@ -600,9 +607,9 @@ async function _fetchProductBySlug(slug: string): Promise<Product | null> {
       },
       timeout: TIMEOUT_DEFAULT,
     });
-    
+
     const product = res?.data?.data?.[0] ?? null;
-    
+
     if (product) {
       console.log(`[Directus] Product ${product.id} fetched:`, {
         hasModelImage1: !!product.model_image_1,
@@ -618,7 +625,7 @@ async function _fetchProductBySlug(slug: string): Promise<Product | null> {
         modelImage3Url: (product as any).model_image_3_url || 'null'
       });
     }
-    
+
     return product;
   } catch (err: any) {
     console.error("Directus fetchProductBySlug error:", err.message);
