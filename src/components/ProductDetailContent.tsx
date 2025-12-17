@@ -103,7 +103,7 @@ export default function ProductDetailContent({ product }: { product: ProductDeta
     const gallery = useMemo(() => (product.gallery && product.gallery.length > 0 ? product.gallery : [product.image]), [product.gallery, product.image]);
     const [selectedImageIndex, setSelectedImageIndex] = useState(0);
     const selectedImage = gallery[selectedImageIndex] ?? gallery[0];
-    
+
     // Model images state - separate from main gallery
     const modelImages = product.modelImages || [];
     const [selectedModelImageIndex, setSelectedModelImageIndex] = useState(0);
@@ -130,7 +130,7 @@ export default function ProductDetailContent({ product }: { product: ProductDeta
                 selectedImage,
                 selectedImageIndex
             });
-            
+
             // CRITICAL: If gallery only has 1 image, log a warning with full details
             if (gallery.length <= 1) {
                 console.error('[ProductDetailContent] ⚠️⚠️⚠️ CRITICAL: Gallery only has 1 image! Expected 4 images (1 main + 3 model images).');
@@ -138,7 +138,7 @@ export default function ProductDetailContent({ product }: { product: ProductDeta
                 console.error('[ProductDetailContent] ⚠️⚠️⚠️ Computed gallery (full):', JSON.stringify(gallery, null, 2));
                 console.error('[ProductDetailContent] ⚠️⚠️⚠️ Product image:', product.image);
                 console.error('[ProductDetailContent] ⚠️⚠️⚠️ Gallery items:', gallery.map((url, idx) => `${idx}: ${url}`).join('\n'));
-                
+
                 // Check if debug data is available
                 if (typeof window !== 'undefined' && (window as any).__DEBUG_PRODUCT_DATA) {
                     console.error('[ProductDetailContent] ⚠️⚠️⚠️ DEBUG DATA from server:', (window as any).__DEBUG_PRODUCT_DATA);
@@ -284,24 +284,59 @@ export default function ProductDetailContent({ product }: { product: ProductDeta
                                 <span className="text-xs whitespace-nowrap">Try On</span>
                             </button>
                         </div>
-                        
+
                         {/* Model Images Section - Separate from main gallery */}
                         {modelImages.length > 0 && (
                             <div className="mt-8">
                                 <h3 className="text-lg font-semibold text-gray-900 mb-4">
                                     Model Images ({modelImages.length})
                                 </h3>
-                                {console.log('[ProductDetailContent] Model Images:', modelImages)}
+                            </h3>
+
                                 
                                 {/* Main Model Image */}
-                                {selectedModelImage && (
-                                    <div className="relative bg-gray-50 w-full" style={{ height: '500px' }}>
+                        {selectedModelImage && (
+                            <div className="relative bg-gray-50 w-full" style={{ height: '500px' }}>
+                                <Image
+                                    src={selectedModelImage}
+                                    alt={`${product.name} - Model view`}
+                                    fill
+                                    sizes="(max-width: 1024px) 100vw, 500px"
+                                    className="object-contain"
+                                    onError={(e) => {
+                                        const target = e.target as HTMLImageElement;
+                                        if (target.src !== '/placeholders/product-placeholder.png') {
+                                            target.src = '/placeholders/product-placeholder.png';
+                                        }
+                                    }}
+                                />
+                            </div>
+                        )}
+
+                        {/* Model Image Thumbnails - Horizontal below main image */}
+                        <div className="flex gap-2 mt-4 items-center">
+                            {modelImages.map((imageSrc, index) => {
+                                const isActive = index === selectedModelImageIndex;
+                                return (
+                                    <button
+                                        key={`model-${imageSrc}-${index}`}
+                                        type="button"
+                                        onClick={() => setSelectedModelImageIndex(index)}
+                                        onMouseEnter={() => setSelectedModelImageIndex(index)}
+                                        aria-label={`View model image ${index + 1} of ${modelImages.length}`}
+                                        aria-pressed={isActive}
+                                        className={`relative overflow-hidden border transition-all flex-shrink-0 min-w-[48px] min-h-[48px] ${isActive
+                                            ? 'border-gray-800 border-2'
+                                            : 'border-gray-200 hover:border-gray-400'
+                                            }`}
+                                        style={{ width: '60px', height: '75px' }}
+                                    >
                                         <Image
-                                            src={selectedModelImage}
-                                            alt={`${product.name} - Model view`}
+                                            src={imageSrc || '/placeholders/product-placeholder.png'}
+                                            alt={`${product.name} model view ${index + 1}`}
                                             fill
-                                            sizes="(max-width: 1024px) 100vw, 500px"
-                                            className="object-contain"
+                                            sizes="60px"
+                                            className="object-cover"
                                             onError={(e) => {
                                                 const target = e.target as HTMLImageElement;
                                                 if (target.src !== '/placeholders/product-placeholder.png') {
@@ -309,245 +344,211 @@ export default function ProductDetailContent({ product }: { product: ProductDeta
                                                 }
                                             }}
                                         />
-                                    </div>
-                                )}
-                                
-                                {/* Model Image Thumbnails - Horizontal below main image */}
-                                <div className="flex gap-2 mt-4 items-center">
-                                    {modelImages.map((imageSrc, index) => {
-                                        const isActive = index === selectedModelImageIndex;
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </div>
+                        )}
+                </div>
+
+                {/* Right Column - Product Summary */}
+                <div className="space-y-5">
+                    {/* Product Title */}
+                    <h1 className="text-3xl md:text-4xl font-bold text-gray-900 uppercase tracking-wide">
+                        {product.name}
+                    </h1>
+
+                    {/* Price */}
+                    <div className="text-xl font-semibold text-gray-900">
+                        {formatCurrency(product.price)}
+                    </div>
+
+                    {/* Category */}
+                    <div className="text-sm text-gray-600">
+                        <span>Category: </span>
+                        <Link
+                            href={`/${product.category}`}
+                            className="text-blue-700 underline hover:text-blue-900 font-medium"
+                        >
+                            {product.categoryLabel ?? product.category}
+                        </Link>
+                    </div>
+
+                    {/* Description */}
+                    <p className="text-sm leading-relaxed text-gray-700">
+                        {product.description}
+                    </p>
+
+                    {/* Share Section */}
+                    <div className="flex items-center gap-3 pt-4">
+                        <span className="text-sm font-bold text-gray-900">Share:</span>
+                        <div className="flex items-center gap-2 flex-wrap">
+                            <a
+                                href={shareUrl ? buildShareLink('whatsapp', shareUrl, product.name) : '#'}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="border border-gray-300 rounded p-3 text-gray-700 hover:bg-gray-100 transition-colors min-w-[48px] min-h-[48px] flex items-center justify-center"
+                                aria-label="Share on WhatsApp"
+                            >
+                                <WhatsAppIcon />
+                            </a>
+                            <a
+                                href="https://instagram.com"
+                                target="_blank"
+                                rel="noreferrer"
+                                className="border border-gray-300 rounded p-3 text-gray-700 hover:bg-gray-100 transition-colors min-w-[48px] min-h-[48px] flex items-center justify-center"
+                                aria-label="Share on Instagram"
+                            >
+                                <InstagramIcon />
+                            </a>
+                            <a
+                                href={shareUrl ? buildShareLink('facebook', shareUrl, product.name) : '#'}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="border border-gray-300 rounded p-3 text-gray-700 hover:bg-gray-100 transition-colors min-w-[48px] min-h-[48px] flex items-center justify-center"
+                                aria-label="Share on Facebook"
+                            >
+                                <FacebookIcon />
+                            </a>
+                            <a
+                                href={shareUrl ? buildShareLink('email', shareUrl, product.name) : '#'}
+                                className="border border-gray-300 rounded p-3 text-gray-700 hover:bg-gray-100 transition-colors min-w-[48px] min-h-[48px] flex items-center justify-center"
+                                aria-label="Share via Email"
+                            >
+                                <EmailIcon />
+                            </a>
+                            <Link
+                                href="/store-locator-map"
+                                className="border border-gray-300 rounded px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 transition-colors ml-2 underline font-medium min-h-[48px] flex items-center"
+                            >
+                                Find in store
+                            </Link>
+                        </div>
+                    </div>
+
+                    {/* Rating Display */}
+                    <div className="flex items-center gap-2 pt-2">
+                        <div className="flex text-yellow-400">
+                            {Array.from({ length: 5 }).map((_, index) => {
+                                const fill = getStarFill(ratingValue, index);
+                                return (
+                                    <span key={index} className="relative inline-block text-lg">
+                                        <span className="text-gray-300">★</span>
+                                        <span
+                                            className="absolute left-0 top-0 overflow-hidden text-yellow-400"
+                                            style={{ width: `${fill * 100}%` }}
+                                        >
+                                            ★
+                                        </span>
+                                    </span>
+                                );
+                            })}
+                        </div>
+                        <span className="text-sm text-gray-600">
+                            {ratingValue.toFixed(1)} ({reviewCount} {reviewCount === 1 ? 'review' : 'reviews'})
+                        </span>
+                    </div>
+
+                    {/* Write a review Section */}
+                    <div className="pt-6 border-t border-gray-200 bg-gray-50/50 p-6 rounded-lg mt-8">
+                        <h2 className="text-lg font-bold text-gray-900 mb-4 uppercase tracking-wide text-opacity-50">Write a review</h2>
+
+                        <form className="space-y-4" onSubmit={handleReviewSubmit}>
+                            <div>
+                                <label htmlFor="reviewer-name" className="block text-sm text-gray-700 mb-1">
+                                    Name <span className="text-brand-red">*</span>
+                                </label>
+                                <input
+                                    id="reviewer-name"
+                                    type="text"
+                                    required
+                                    value={reviewerName}
+                                    onChange={(e) => setReviewerName(e.target.value)}
+                                    className="w-full px-3 py-2 border border-gray-200 rounded bg-gray-50 focus:outline-none focus:border-gray-500 transition-colors"
+                                />
+                            </div>
+
+                            <div>
+                                <label htmlFor="reviewer-email" className="block text-sm text-gray-700 mb-1">
+                                    Email <span className="text-brand-red">*</span>
+                                </label>
+                                <input
+                                    id="reviewer-email"
+                                    type="email"
+                                    required
+                                    value={reviewerEmail}
+                                    onChange={(e) => setReviewerEmail(e.target.value)}
+                                    className="w-full px-3 py-2 border border-gray-200 rounded bg-gray-50 focus:outline-none focus:border-gray-500 transition-colors"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm text-gray-700 mb-1">
+                                    Rating <span className="text-brand-red">*</span>
+                                </label>
+                                <div className="flex gap-1">
+                                    {Array.from({ length: 5 }).map((_, index) => {
+                                        const value = index + 1;
+                                        const isActive = reviewRating >= value;
                                         return (
                                             <button
-                                                key={`model-${imageSrc}-${index}`}
+                                                key={value}
                                                 type="button"
-                                                onClick={() => setSelectedModelImageIndex(index)}
-                                                onMouseEnter={() => setSelectedModelImageIndex(index)}
-                                                aria-label={`View model image ${index + 1} of ${modelImages.length}`}
-                                                aria-pressed={isActive}
-                                                className={`relative overflow-hidden border transition-all flex-shrink-0 min-w-[48px] min-h-[48px] ${isActive
-                                                    ? 'border-gray-800 border-2'
-                                                    : 'border-gray-200 hover:border-gray-400'
-                                                    }`}
-                                                style={{ width: '60px', height: '75px' }}
+                                                onClick={() => setReviewRating(value)}
+                                                className="text-xl transition-colors focus:outline-none"
+                                                aria-label={`${value} star${value > 1 ? 's' : ''}`}
                                             >
-                                                <Image
-                                                    src={imageSrc || '/placeholders/product-placeholder.png'}
-                                                    alt={`${product.name} model view ${index + 1}`}
-                                                    fill
-                                                    sizes="60px"
-                                                    className="object-cover"
-                                                    onError={(e) => {
-                                                        const target = e.target as HTMLImageElement;
-                                                        if (target.src !== '/placeholders/product-placeholder.png') {
-                                                            target.src = '/placeholders/product-placeholder.png';
-                                                        }
-                                                    }}
-                                                />
+                                                <span className={isActive ? 'text-yellow-400' : 'text-gray-300 hover:text-yellow-200'}>★</span>
                                             </button>
                                         );
                                     })}
                                 </div>
                             </div>
-                        )}
-                    </div>
 
-                    {/* Right Column - Product Summary */}
-                    <div className="space-y-5">
-                        {/* Product Title */}
-                        <h1 className="text-3xl md:text-4xl font-bold text-gray-900 uppercase tracking-wide">
-                            {product.name}
-                        </h1>
+                            <div>
+                                <label htmlFor="review-message" className="block text-sm text-gray-700 mb-1">
+                                    Your review <span className="text-brand-red">*</span>
+                                </label>
+                                <textarea
+                                    id="review-message"
+                                    rows={5}
+                                    required
+                                    value={reviewMessage}
+                                    onChange={(e) => setReviewMessage(e.target.value)}
+                                    className="w-full px-3 py-2 border border-gray-200 rounded bg-gray-50 focus:outline-none focus:border-gray-500 transition-colors resize-none"
+                                />
+                            </div>
 
-                        {/* Price */}
-                        <div className="text-xl font-semibold text-gray-900">
-                            {formatCurrency(product.price)}
-                        </div>
+                            {submitMessage && (
+                                <div className={`p-3 rounded text-sm ${submitMessage.includes('select') ? 'bg-red-50 text-brand-red' : 'bg-green-50 text-green-700'}`}>
+                                    {submitMessage}
+                                </div>
+                            )}
 
-                        {/* Category */}
-                        <div className="text-sm text-gray-600">
-                            <span>Category: </span>
-                            <Link
-                                href={`/${product.category}`}
-                                className="text-blue-700 underline hover:text-blue-900 font-medium"
+                            <button
+                                type="submit"
+                                className="w-full py-3 text-white font-medium rounded transition-colors"
+                                style={{ backgroundColor: '#C83232' }}
+                                onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#a02828'}
+                                onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#C83232'}
                             >
-                                {product.categoryLabel ?? product.category}
-                            </Link>
-                        </div>
-
-                        {/* Description */}
-                        <p className="text-sm leading-relaxed text-gray-700">
-                            {product.description}
-                        </p>
-
-                        {/* Share Section */}
-                        <div className="flex items-center gap-3 pt-4">
-                            <span className="text-sm font-bold text-gray-900">Share:</span>
-                            <div className="flex items-center gap-2 flex-wrap">
-                                <a
-                                    href={shareUrl ? buildShareLink('whatsapp', shareUrl, product.name) : '#'}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                    className="border border-gray-300 rounded p-3 text-gray-700 hover:bg-gray-100 transition-colors min-w-[48px] min-h-[48px] flex items-center justify-center"
-                                    aria-label="Share on WhatsApp"
-                                >
-                                    <WhatsAppIcon />
-                                </a>
-                                <a
-                                    href="https://instagram.com"
-                                    target="_blank"
-                                    rel="noreferrer"
-                                    className="border border-gray-300 rounded p-3 text-gray-700 hover:bg-gray-100 transition-colors min-w-[48px] min-h-[48px] flex items-center justify-center"
-                                    aria-label="Share on Instagram"
-                                >
-                                    <InstagramIcon />
-                                </a>
-                                <a
-                                    href={shareUrl ? buildShareLink('facebook', shareUrl, product.name) : '#'}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                    className="border border-gray-300 rounded p-3 text-gray-700 hover:bg-gray-100 transition-colors min-w-[48px] min-h-[48px] flex items-center justify-center"
-                                    aria-label="Share on Facebook"
-                                >
-                                    <FacebookIcon />
-                                </a>
-                                <a
-                                    href={shareUrl ? buildShareLink('email', shareUrl, product.name) : '#'}
-                                    className="border border-gray-300 rounded p-3 text-gray-700 hover:bg-gray-100 transition-colors min-w-[48px] min-h-[48px] flex items-center justify-center"
-                                    aria-label="Share via Email"
-                                >
-                                    <EmailIcon />
-                                </a>
-                                <Link
-                                    href="/store-locator-map"
-                                    className="border border-gray-300 rounded px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 transition-colors ml-2 underline font-medium min-h-[48px] flex items-center"
-                                >
-                                    Find in store
-                                </Link>
-                            </div>
-                        </div>
-
-                        {/* Rating Display */}
-                        <div className="flex items-center gap-2 pt-2">
-                            <div className="flex text-yellow-400">
-                                {Array.from({ length: 5 }).map((_, index) => {
-                                    const fill = getStarFill(ratingValue, index);
-                                    return (
-                                        <span key={index} className="relative inline-block text-lg">
-                                            <span className="text-gray-300">★</span>
-                                            <span
-                                                className="absolute left-0 top-0 overflow-hidden text-yellow-400"
-                                                style={{ width: `${fill * 100}%` }}
-                                            >
-                                                ★
-                                            </span>
-                                        </span>
-                                    );
-                                })}
-                            </div>
-                            <span className="text-sm text-gray-600">
-                                {ratingValue.toFixed(1)} ({reviewCount} {reviewCount === 1 ? 'review' : 'reviews'})
-                            </span>
-                        </div>
-
-                        {/* Write a review Section */}
-                        <div className="pt-6 border-t border-gray-200 bg-gray-50/50 p-6 rounded-lg mt-8">
-                            <h2 className="text-lg font-bold text-gray-900 mb-4 uppercase tracking-wide text-opacity-50">Write a review</h2>
-
-                            <form className="space-y-4" onSubmit={handleReviewSubmit}>
-                                <div>
-                                    <label htmlFor="reviewer-name" className="block text-sm text-gray-700 mb-1">
-                                        Name <span className="text-brand-red">*</span>
-                                    </label>
-                                    <input
-                                        id="reviewer-name"
-                                        type="text"
-                                        required
-                                        value={reviewerName}
-                                        onChange={(e) => setReviewerName(e.target.value)}
-                                        className="w-full px-3 py-2 border border-gray-200 rounded bg-gray-50 focus:outline-none focus:border-gray-500 transition-colors"
-                                    />
-                                </div>
-
-                                <div>
-                                    <label htmlFor="reviewer-email" className="block text-sm text-gray-700 mb-1">
-                                        Email <span className="text-brand-red">*</span>
-                                    </label>
-                                    <input
-                                        id="reviewer-email"
-                                        type="email"
-                                        required
-                                        value={reviewerEmail}
-                                        onChange={(e) => setReviewerEmail(e.target.value)}
-                                        className="w-full px-3 py-2 border border-gray-200 rounded bg-gray-50 focus:outline-none focus:border-gray-500 transition-colors"
-                                    />
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm text-gray-700 mb-1">
-                                        Rating <span className="text-brand-red">*</span>
-                                    </label>
-                                    <div className="flex gap-1">
-                                        {Array.from({ length: 5 }).map((_, index) => {
-                                            const value = index + 1;
-                                            const isActive = reviewRating >= value;
-                                            return (
-                                                <button
-                                                    key={value}
-                                                    type="button"
-                                                    onClick={() => setReviewRating(value)}
-                                                    className="text-xl transition-colors focus:outline-none"
-                                                    aria-label={`${value} star${value > 1 ? 's' : ''}`}
-                                                >
-                                                    <span className={isActive ? 'text-yellow-400' : 'text-gray-300 hover:text-yellow-200'}>★</span>
-                                                </button>
-                                            );
-                                        })}
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <label htmlFor="review-message" className="block text-sm text-gray-700 mb-1">
-                                        Your review <span className="text-brand-red">*</span>
-                                    </label>
-                                    <textarea
-                                        id="review-message"
-                                        rows={5}
-                                        required
-                                        value={reviewMessage}
-                                        onChange={(e) => setReviewMessage(e.target.value)}
-                                        className="w-full px-3 py-2 border border-gray-200 rounded bg-gray-50 focus:outline-none focus:border-gray-500 transition-colors resize-none"
-                                    />
-                                </div>
-
-                                {submitMessage && (
-                                    <div className={`p-3 rounded text-sm ${submitMessage.includes('select') ? 'bg-red-50 text-brand-red' : 'bg-green-50 text-green-700'}`}>
-                                        {submitMessage}
-                                    </div>
-                                )}
-
-                                <button
-                                    type="submit"
-                                    className="w-full py-3 text-white font-medium rounded transition-colors"
-                                    style={{ backgroundColor: '#C83232' }}
-                                    onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#a02828'}
-                                    onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#C83232'}
-                                >
-                                    Submit review
-                                </button>
-                            </form>
-                        </div>
+                                Submit review
+                            </button>
+                        </form>
                     </div>
                 </div>
             </div>
+        </div>
 
-            {/* Virtual Try-On Modal */}
-            <VirtualTryOn
-                productImage={selectedImage}
-                productName={product.name}
-                productCategory={product.category}
-                isOpen={showVirtualTryOn}
-                onClose={() => setShowVirtualTryOn(false)}
-            />
-        </main>
+            {/* Virtual Try-On Modal */ }
+    <VirtualTryOn
+        productImage={selectedImage}
+        productName={product.name}
+        productCategory={product.category}
+        isOpen={showVirtualTryOn}
+        onClose={() => setShowVirtualTryOn(false)}
+    />
+        </main >
     );
 }
