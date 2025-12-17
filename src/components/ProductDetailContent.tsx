@@ -118,7 +118,10 @@ export default function ProductDetailContent({ product }: { product: ProductDeta
                 image: product.image,
                 gallery: product.gallery,
                 galleryLength: product.gallery?.length || 0,
-                galleryArray: JSON.stringify(product.gallery, null, 2)
+                galleryArray: JSON.stringify(product.gallery, null, 2),
+                modelImages: product.modelImages,
+                modelImagesLength: product.modelImages?.length || 0,
+                modelImagesArray: JSON.stringify(product.modelImages, null, 2)
             });
             console.error('[ProductDetailContent] ⚠️ Computed gallery:', {
                 gallery,
