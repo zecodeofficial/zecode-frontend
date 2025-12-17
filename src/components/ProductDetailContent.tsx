@@ -100,56 +100,23 @@ const TryOnIcon = () => (
 );
 
 export default function ProductDetailContent({ product }: { product: ProductDetail }) {
-    const gallery = useMemo(() => (product.gallery && product.gallery.length > 0 ? product.gallery : [product.image]), [product.gallery, product.image]);
-    const [selectedImageIndex, setSelectedImageIndex] = useState(0);
-    const selectedImage = gallery[selectedImageIndex] ?? gallery[0];
+    // Combine main gallery with model images
+    const combinedGallery = useMemo(() => {
+        const mainImages = (product.gallery && product.gallery.length > 0 ? product.gallery : [product.image]);
+        const modelImgs = product.modelImages || [];
+        return [...mainImages, ...modelImgs].filter(Boolean);
+    }, [product.gallery, product.image, product.modelImages]);
 
-    // Model images state - separate from main gallery
+    const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+    const selectedImage = combinedGallery[selectedImageIndex] ?? combinedGallery[0];
     const modelImages = product.modelImages || [];
-    const [selectedModelImageIndex, setSelectedModelImageIndex] = useState(0);
-    const selectedModelImage = modelImages.length > 0 ? (modelImages[selectedModelImageIndex] || modelImages[0]) : null;
 
     // Debug logging - always log to help diagnose production issues
     useEffect(() => {
         if (typeof window !== 'undefined') {
-            console.error('[ProductDetailContent] ⚠️ Props received:', {
-                productId: product.id,
-                productName: product.name,
-                image: product.image,
-                gallery: product.gallery,
-                galleryLength: product.gallery?.length || 0,
-                galleryArray: JSON.stringify(product.gallery, null, 2),
-                modelImages: product.modelImages,
-                modelImagesLength: product.modelImages?.length || 0,
-                modelImagesArray: JSON.stringify(product.modelImages, null, 2)
-            });
-            console.error('[ProductDetailContent] ⚠️ Computed gallery:', {
-                gallery,
-                galleryLength: gallery.length,
-                galleryArray: JSON.stringify(gallery, null, 2),
-                selectedImage,
-                selectedImageIndex
-            });
-
-            // CRITICAL: If gallery has limited images and NO model images, log a warning
-            // (If modelImages exist, it's fine for gallery to only have the main product image)
-            if (gallery.length <= 1 && modelImages.length === 0) {
-                console.error('[ProductDetailContent] ⚠️⚠️⚠️ CRITICAL: Product has incomplete imagery! Expected either multiple gallery images or model images.');
-                console.error('[ProductDetailContent] ⚠️⚠️⚠️ Product gallery prop (full):', JSON.stringify(product.gallery, null, 2));
-                console.error('[ProductDetailContent] ⚠️⚠️⚠️ Computed gallery (full):', JSON.stringify(gallery, null, 2));
-                console.error('[ProductDetailContent] ⚠️⚠️⚠️ Product image:', product.image);
-                console.error('[ProductDetailContent] ⚠️⚠️⚠️ Gallery items:', gallery.map((url, idx) => `${idx}: ${url}`).join('\n'));
-
-                // Check if debug data is available
-                if (typeof window !== 'undefined' && (window as any).__DEBUG_PRODUCT_DATA) {
-                    console.error('[ProductDetailContent] ⚠️⚠️⚠️ DEBUG DATA from server:', (window as any).__DEBUG_PRODUCT_DATA);
-                }
-            } else if (typeof window !== 'undefined') {
-                // Log success if we have images
-                console.log(`[ProductDetailContent] ✅ Images loaded: Gallery (${gallery.length}) + Model Images (${modelImages.length})`);
-            }
+            console.log(`[ProductDetailContent] ✅ Images loaded: Combined Gallery (${combinedGallery.length})`);
         }
-    }, [product, gallery, selectedImage, selectedImageIndex]);
+    }, [product, combinedGallery, selectedImage, selectedImageIndex]);
 
     const [shareUrl, setShareUrl] = useState('');
     const [reviewRating, setReviewRating] = useState(0);
@@ -241,8 +208,8 @@ export default function ProductDetailContent({ product }: { product: ProductDeta
                         </div>
 
                         {/* Thumbnail Gallery - Horizontal below main image */}
-                        <div className="flex gap-2 mt-4 items-center">
-                            {gallery.slice(0, 4).map((imageSrc, index) => {
+                        <div className="flex gap-2 mt-4 items-center flex-wrap">
+                            {combinedGallery.map((imageSrc, index) => {
                                 const isActive = index === selectedImageIndex;
                                 return (
                                     <button
@@ -250,7 +217,7 @@ export default function ProductDetailContent({ product }: { product: ProductDeta
                                         type="button"
                                         onClick={() => setSelectedImageIndex(index)}
                                         onMouseEnter={() => setSelectedImageIndex(index)}
-                                        aria-label={`View product image ${index + 1} of ${gallery.length}`}
+                                        aria-label={`View product image ${index + 1} of ${combinedGallery.length}`}
                                         aria-pressed={isActive}
                                         className={`relative overflow-hidden border transition-all flex-shrink-0 min-w-[48px] min-h-[48px] ${isActive
                                             ? 'border-gray-800 border-2'
@@ -280,8 +247,8 @@ export default function ProductDetailContent({ product }: { product: ProductDeta
                             <button
                                 onClick={() => setShowVirtualTryOn(true)}
                                 aria-label="Virtual Try-On - Try this product before you buy"
-                                className="flex flex-col items-center justify-center gap-1 px-4 py-3 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-medium rounded-lg transition-all shadow-md hover:shadow-lg flex-shrink-0 min-w-[48px] min-h-[48px]"
-                                style={{ height: '75px' }}
+                                className="flex flex-col items-center justify-center gap-1 px-1 py-1 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-medium rounded-lg transition-all shadow-md hover:shadow-lg flex-shrink-0 min-w-[48px] min-h-[48px]"
+                                style={{ width: '60px', height: '75px' }}
                                 title="Virtual Try-On - Try before you buy!"
                             >
                                 <TryOnIcon />
@@ -289,71 +256,6 @@ export default function ProductDetailContent({ product }: { product: ProductDeta
                             </button>
                         </div>
 
-                        {/* Model Images Section - Separate from main gallery */}
-                        {modelImages.length > 0 && (
-                            <div className="mt-8">
-                                <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                                    Model Images ({modelImages.length})
-                                </h3>
-
-
-
-                                {/* Main Model Image */}
-                                {selectedModelImage && (
-                                    <div className="relative bg-gray-50 w-full" style={{ height: '500px' }}>
-                                        <Image
-                                            src={selectedModelImage}
-                                            alt={`${product.name} - Model view`}
-                                            fill
-                                            sizes="(max-width: 1024px) 100vw, 500px"
-                                            className="object-contain"
-                                            onError={(e) => {
-                                                const target = e.target as HTMLImageElement;
-                                                if (target.src !== '/placeholders/product-placeholder.png') {
-                                                    target.src = '/placeholders/product-placeholder.png';
-                                                }
-                                            }}
-                                        />
-                                    </div>
-                                )}
-
-                                {/* Model Image Thumbnails - Horizontal below main image */}
-                                <div className="flex gap-2 mt-4 items-center">
-                                    {modelImages.map((imageSrc, index) => {
-                                        const isActive = index === selectedModelImageIndex;
-                                        return (
-                                            <button
-                                                key={`model-${imageSrc}-${index}`}
-                                                type="button"
-                                                onClick={() => setSelectedModelImageIndex(index)}
-                                                onMouseEnter={() => setSelectedModelImageIndex(index)}
-                                                aria-label={`View model image ${index + 1} of ${modelImages.length}`}
-                                                aria-pressed={isActive}
-                                                className={`relative overflow-hidden border transition-all flex-shrink-0 min-w-[48px] min-h-[48px] ${isActive
-                                                    ? 'border-gray-800 border-2'
-                                                    : 'border-gray-200 hover:border-gray-400'
-                                                    }`}
-                                                style={{ width: '60px', height: '75px' }}
-                                            >
-                                                <Image
-                                                    src={imageSrc || '/placeholders/product-placeholder.png'}
-                                                    alt={`${product.name} model view ${index + 1}`}
-                                                    fill
-                                                    sizes="60px"
-                                                    className="object-cover"
-                                                    onError={(e) => {
-                                                        const target = e.target as HTMLImageElement;
-                                                        if (target.src !== '/placeholders/product-placeholder.png') {
-                                                            target.src = '/placeholders/product-placeholder.png';
-                                                        }
-                                                    }}
-                                                />
-                                            </button>
-                                        );
-                                    })}
-                                </div>
-                            </div>
-                        )}
                     </div>
 
                     {/* Right Column - Product Summary */}
@@ -553,6 +455,6 @@ export default function ProductDetailContent({ product }: { product: ProductDeta
                 isOpen={showVirtualTryOn}
                 onClose={() => setShowVirtualTryOn(false)}
             />
-        </main >
+        </main>
     );
 }
