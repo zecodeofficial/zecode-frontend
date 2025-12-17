@@ -107,7 +107,7 @@ export default function ProductDetailContent({ product }: { product: ProductDeta
     // Model images state - separate from main gallery
     const modelImages = product.modelImages || [];
     const [selectedModelImageIndex, setSelectedModelImageIndex] = useState(0);
-    const selectedModelImage = modelImages[selectedModelImageIndex] || modelImages[0];
+    const selectedModelImage = modelImages.length > 0 ? (modelImages[selectedModelImageIndex] || modelImages[0]) : null;
 
     // Debug logging - always log to help diagnose production issues
     useEffect(() => {
@@ -288,21 +288,23 @@ export default function ProductDetailContent({ product }: { product: ProductDeta
                                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Model Images</h3>
                                 
                                 {/* Main Model Image */}
-                                <div className="relative bg-gray-50 w-full" style={{ height: '500px' }}>
-                                    <Image
-                                        src={selectedModelImage || '/placeholders/product-placeholder.png'}
-                                        alt={`${product.name} - Model view`}
-                                        fill
-                                        sizes="(max-width: 1024px) 100vw, 500px"
-                                        className="object-contain"
-                                        onError={(e) => {
-                                            const target = e.target as HTMLImageElement;
-                                            if (target.src !== '/placeholders/product-placeholder.png') {
-                                                target.src = '/placeholders/product-placeholder.png';
-                                            }
-                                        }}
-                                    />
-                                </div>
+                                {selectedModelImage && (
+                                    <div className="relative bg-gray-50 w-full" style={{ height: '500px' }}>
+                                        <Image
+                                            src={selectedModelImage}
+                                            alt={`${product.name} - Model view`}
+                                            fill
+                                            sizes="(max-width: 1024px) 100vw, 500px"
+                                            className="object-contain"
+                                            onError={(e) => {
+                                                const target = e.target as HTMLImageElement;
+                                                if (target.src !== '/placeholders/product-placeholder.png') {
+                                                    target.src = '/placeholders/product-placeholder.png';
+                                                }
+                                            }}
+                                        />
+                                    </div>
+                                )}
                                 
                                 {/* Model Image Thumbnails - Horizontal below main image */}
                                 <div className="flex gap-2 mt-4 items-center">
