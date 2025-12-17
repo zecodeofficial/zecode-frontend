@@ -654,6 +654,33 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             }
         }
         
+        // ABSOLUTE FINAL CHECK: Before returning, ensure model images are in gallery
+        // This runs regardless of what happened earlier
+        const finalModelUrls = [
+            p.model_image_1_url,
+            p.model_image_2_url,
+            p.model_image_3_url
+        ].filter((url): url is string => typeof url === 'string' && url.length > 0 && url.startsWith('http'));
+        
+        if (finalModelUrls.length > 0) {
+            const currentGallery = normalizedProduct.gallery || [];
+            const missingUrls = finalModelUrls.filter(url => !currentGallery.includes(url));
+            
+            if (missingUrls.length > 0 || currentGallery.length <= 1) {
+                console.error(`[Product ${p.id}] ⚠️⚠️⚠️ ABSOLUTE FINAL FIX - Rebuilding gallery with model images!`);
+                console.error(`[Product ${p.id}] ⚠️ Current gallery: ${currentGallery.length} images`);
+                console.error(`[Product ${p.id}] ⚠️ Missing URLs: ${missingUrls.length}`);
+                
+                normalizedProduct.gallery = [
+                    normalizedProduct.image,
+                    ...finalModelUrls
+                ].filter(Boolean);
+                
+                console.error(`[Product ${p.id}] ⚠️⚠️⚠️ ABSOLUTE FINAL FIX - Gallery now has ${normalizedProduct.gallery.length} images`);
+                console.error(`[Product ${p.id}] ⚠️⚠️⚠️ Final gallery:`, JSON.stringify(normalizedProduct.gallery, null, 2));
+            }
+        }
+        
         return normalizedProduct;
     })();
     } catch (error: any) {
@@ -661,6 +688,22 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
         console.error(`[ProductPage] ⚠️ ERROR STACK:`, error?.stack);
         console.error(`[ProductPage] ⚠️ ERROR MESSAGE:`, error?.message);
         throw error; // Re-throw to see the error in Vercel
+    }
+    
+    // FINAL CHECK AFTER NORMALIZATION: Ensure model images are in gallery
+    const modelUrlsAfterNormalization = [
+        (product as any).model_image_1_url,
+        (product as any).model_image_2_url,
+        (product as any).model_image_3_url
+    ].filter((url): url is string => typeof url === 'string' && url.length > 0 && url.startsWith('http'));
+    
+    if (modelUrlsAfterNormalization.length > 0 && (normalized.gallery?.length || 0) <= 1) {
+        console.error(`[ProductPage] ⚠️⚠️⚠️ FINAL FIX AFTER NORMALIZATION - Gallery only has ${normalized.gallery?.length || 0} images, adding model images!`);
+        normalized.gallery = [
+            normalized.image,
+            ...modelUrlsAfterNormalization
+        ].filter(Boolean);
+        console.error(`[ProductPage] ⚠️⚠️⚠️ Final fix applied - Gallery now has ${normalized.gallery.length} images`);
     }
     
     console.error(`[ProductPage] ⚠️ NORMALIZED PRODUCT RECEIVED - Gallery has ${normalized.gallery?.length || 0} images`);
