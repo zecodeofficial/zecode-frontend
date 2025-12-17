@@ -92,6 +92,21 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
         // Build gallery from image fields
         let galleryRaw: (string | undefined)[] = [];
 
+        // 0. FIRST PRIORITY: Add model images from URL fields directly (most reliable)
+        // This ensures model images are always included even if UUID processing fails
+        const modelUrlsFromFields = [
+            p.model_image_1_url,
+            p.model_image_2_url,
+            p.model_image_3_url
+        ].filter((url): url is string => typeof url === 'string' && url.length > 0 && url.startsWith('http'));
+        
+        if (modelUrlsFromFields.length > 0) {
+            console.error(`[Product ${p.id}] ⚠️⚠️⚠️ DIRECT ADD: Found ${modelUrlsFromFields.length} model image URLs, adding directly to gallery`);
+            galleryRaw.push(...modelUrlsFromFields);
+        } else {
+            console.error(`[Product ${p.id}] ⚠️⚠️⚠️ WARNING: No model image URLs found in _url fields!`);
+        }
+
         // 1. Add legacy images array (URLs/Strings) if present
         if (p.images && Array.isArray(p.images) && p.images.length > 0) {
             galleryRaw = [...galleryRaw, ...p.images];
@@ -101,7 +116,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
         const mainImage = p.image || p.image_url;
         const mainImageUrl = mainImage ? (fileUrl(mainImage) || mainImage) : null;
         if (mainImageUrl && !galleryRaw.includes(mainImageUrl)) {
-            galleryRaw.unshift(mainImageUrl);
+            galleryRaw.unshift(mainImageUrl); // Put main image first
         }
 
         // 3. Always include model images (uploaded via Directus) in the gallery
@@ -294,20 +309,32 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
         const uniqueGallery = Array.from(new Set(galleryRaw.filter(Boolean)));
 
         // Determine main display image (first in gallery or fallback)
+        // If gallery is empty, try to use mainImage, otherwise use placeholder
         const displayImage = uniqueGallery[0] || mainImage || '/placeholders/product-placeholder.png';
+        
+        // If displayImage is a local path that might not exist, try to convert it
+        // but if conversion fails or returns null, use placeholder
+        const displayImageUrl = displayImage ? (fileUrl(displayImage) || displayImage) : '/placeholders/product-placeholder.png';
 
         // Convert gallery URLs (handle both UUIDs and already-converted URLs)
+        // Note: Direct Cloudinary URLs from _url fields are already full URLs and should not be modified
         const galleryUrls = uniqueGallery
             .map((g) => {
                 if (!g) return null;
-                // If already a URL, return as-is; otherwise convert
-                const url = typeof g === 'string' && g.startsWith('http') ? g : (fileUrl(g) || g);
+                // If already a full URL (http/https), return as-is without modification
+                // This preserves direct Cloudinary URLs from model_image_X_url fields
+                if (typeof g === 'string' && g.startsWith('http')) {
+                    return g;
+                }
+                // Otherwise, convert using fileUrl (handles UUIDs, local paths, etc.)
+                const url = fileUrl(g) || (typeof g === 'string' ? g : null);
                 return url;
             })
             .filter((url): url is string => typeof url === 'string' && url !== null);
 
-        const finalGallery = galleryUrls.length > 0 ? galleryUrls : [fileUrl(displayImage) || displayImage].filter(Boolean);
-        const finalImage = fileUrl(displayImage) || displayImage;
+        // Use displayImageUrl instead of converting displayImage again
+        const finalGallery = galleryUrls.length > 0 ? galleryUrls : [displayImageUrl].filter(Boolean);
+        const finalImage = displayImageUrl;
 
         // Debug logging - always log to help diagnose production issues
         console.log(`[Product ${p.id}] Final gallery:`, {
