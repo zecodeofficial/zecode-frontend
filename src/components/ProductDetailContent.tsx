@@ -131,9 +131,10 @@ export default function ProductDetailContent({ product }: { product: ProductDeta
                 selectedImageIndex
             });
 
-            // CRITICAL: If gallery only has 1 image, log a warning with full details
-            if (gallery.length <= 1) {
-                console.error('[ProductDetailContent] ⚠️⚠️⚠️ CRITICAL: Gallery only has 1 image! Expected 4 images (1 main + 3 model images).');
+            // CRITICAL: If gallery has limited images and NO model images, log a warning
+            // (If modelImages exist, it's fine for gallery to only have the main product image)
+            if (gallery.length <= 1 && modelImages.length === 0) {
+                console.error('[ProductDetailContent] ⚠️⚠️⚠️ CRITICAL: Product has incomplete imagery! Expected either multiple gallery images or model images.');
                 console.error('[ProductDetailContent] ⚠️⚠️⚠️ Product gallery prop (full):', JSON.stringify(product.gallery, null, 2));
                 console.error('[ProductDetailContent] ⚠️⚠️⚠️ Computed gallery (full):', JSON.stringify(gallery, null, 2));
                 console.error('[ProductDetailContent] ⚠️⚠️⚠️ Product image:', product.image);
@@ -143,6 +144,9 @@ export default function ProductDetailContent({ product }: { product: ProductDeta
                 if (typeof window !== 'undefined' && (window as any).__DEBUG_PRODUCT_DATA) {
                     console.error('[ProductDetailContent] ⚠️⚠️⚠️ DEBUG DATA from server:', (window as any).__DEBUG_PRODUCT_DATA);
                 }
+            } else if (typeof window !== 'undefined') {
+                // Log success if we have images
+                console.log(`[ProductDetailContent] ✅ Images loaded: Gallery (${gallery.length}) + Model Images (${modelImages.length})`);
             }
         }
     }, [product, gallery, selectedImage, selectedImageIndex]);
