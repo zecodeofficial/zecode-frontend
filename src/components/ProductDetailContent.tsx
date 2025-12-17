@@ -103,6 +103,11 @@ export default function ProductDetailContent({ product }: { product: ProductDeta
     const gallery = useMemo(() => (product.gallery && product.gallery.length > 0 ? product.gallery : [product.image]), [product.gallery, product.image]);
     const [selectedImageIndex, setSelectedImageIndex] = useState(0);
     const selectedImage = gallery[selectedImageIndex] ?? gallery[0];
+    
+    // Model images state - separate from main gallery
+    const modelImages = product.modelImages || [];
+    const [selectedModelImageIndex, setSelectedModelImageIndex] = useState(0);
+    const selectedModelImage = modelImages[selectedModelImageIndex] || modelImages[0];
 
     // Debug logging - always log to help diagnose production issues
     useEffect(() => {
@@ -276,6 +281,66 @@ export default function ProductDetailContent({ product }: { product: ProductDeta
                                 <span className="text-xs whitespace-nowrap">Try On</span>
                             </button>
                         </div>
+                        
+                        {/* Model Images Section - Separate from main gallery */}
+                        {modelImages.length > 0 && (
+                            <div className="mt-8">
+                                <h3 className="text-lg font-semibold text-gray-900 mb-4">Model Images</h3>
+                                
+                                {/* Main Model Image */}
+                                <div className="relative bg-gray-50 w-full" style={{ height: '500px' }}>
+                                    <Image
+                                        src={selectedModelImage || '/placeholders/product-placeholder.png'}
+                                        alt={`${product.name} - Model view`}
+                                        fill
+                                        sizes="(max-width: 1024px) 100vw, 500px"
+                                        className="object-contain"
+                                        onError={(e) => {
+                                            const target = e.target as HTMLImageElement;
+                                            if (target.src !== '/placeholders/product-placeholder.png') {
+                                                target.src = '/placeholders/product-placeholder.png';
+                                            }
+                                        }}
+                                    />
+                                </div>
+                                
+                                {/* Model Image Thumbnails - Horizontal below main image */}
+                                <div className="flex gap-2 mt-4 items-center">
+                                    {modelImages.map((imageSrc, index) => {
+                                        const isActive = index === selectedModelImageIndex;
+                                        return (
+                                            <button
+                                                key={`model-${imageSrc}-${index}`}
+                                                type="button"
+                                                onClick={() => setSelectedModelImageIndex(index)}
+                                                onMouseEnter={() => setSelectedModelImageIndex(index)}
+                                                aria-label={`View model image ${index + 1} of ${modelImages.length}`}
+                                                aria-pressed={isActive}
+                                                className={`relative overflow-hidden border transition-all flex-shrink-0 min-w-[48px] min-h-[48px] ${isActive
+                                                    ? 'border-gray-800 border-2'
+                                                    : 'border-gray-200 hover:border-gray-400'
+                                                    }`}
+                                                style={{ width: '60px', height: '75px' }}
+                                            >
+                                                <Image
+                                                    src={imageSrc || '/placeholders/product-placeholder.png'}
+                                                    alt={`${product.name} model view ${index + 1}`}
+                                                    fill
+                                                    sizes="60px"
+                                                    className="object-cover"
+                                                    onError={(e) => {
+                                                        const target = e.target as HTMLImageElement;
+                                                        if (target.src !== '/placeholders/product-placeholder.png') {
+                                                            target.src = '/placeholders/product-placeholder.png';
+                                                        }
+                                                    }}
+                                                />
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        )}
                     </div>
 
                     {/* Right Column - Product Summary */}
