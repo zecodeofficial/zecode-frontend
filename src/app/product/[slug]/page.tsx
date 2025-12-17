@@ -463,6 +463,32 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             }
         }
         
+        // SIMPLIFIED APPROACH: Always ensure model images are in the final gallery
+        // Get model image URLs directly from product object
+        const modelImageUrls = [
+            p.model_image_1_url,
+            p.model_image_2_url,
+            p.model_image_3_url
+        ].filter((url): url is string => typeof url === 'string' && url.length > 0 && url.startsWith('http'));
+        
+        // Build final gallery: main image first, then model images, then any other images
+        const finalGalleryWithModelImages = [
+            finalImage,
+            ...modelImageUrls,
+            ...finalGalleryArray.filter((url: string) => url !== finalImage && !modelImageUrls.includes(url))
+        ].filter(Boolean);
+        
+        // Deduplicate
+        const finalGalleryDeduplicated = Array.from(new Set(finalGalleryWithModelImages));
+        
+        console.error(`[Product ${p.id}] ⚠️ FINAL GALLERY BUILD:`, {
+            modelImageUrlsCount: modelImageUrls.length,
+            finalGalleryArrayCount: finalGalleryArray.length,
+            finalGalleryWithModelImagesCount: finalGalleryWithModelImages.length,
+            finalGalleryDeduplicatedCount: finalGalleryDeduplicated.length,
+            finalGallery: finalGalleryDeduplicated
+        });
+        
         const normalizedProduct = {
             id: p.id,
             name: p.name,
@@ -472,7 +498,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             price: (typeof p.sale_price === 'number' ? p.sale_price : (typeof p.price === 'number' ? p.price : null)),
             originalPrice: typeof p.price === 'number' ? p.price : undefined,
             image: finalImage,
-            gallery: finalGalleryArray, // Use the safeguarded array
+            gallery: finalGalleryDeduplicated, // Always include model images
             description: p.description ?? '',
             sizes: p.sizes ?? undefined,
             rating: undefined,
