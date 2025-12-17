@@ -50,6 +50,28 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
     
     console.error(`[ProductPage] ⚠️ PRODUCT EXISTS - proceeding to normalization`);
 
+    // CRITICAL: Verify model image URLs exist BEFORE normalization
+    const modelUrlsBeforeNormalization = [
+        (product as any).model_image_1_url,
+        (product as any).model_image_2_url,
+        (product as any).model_image_3_url
+    ].filter((url): url is string => typeof url === 'string' && url.length > 0 && url.startsWith('http'));
+    
+    console.error(`[ProductPage] ⚠️⚠️⚠️ BEFORE NORMALIZATION: Found ${modelUrlsBeforeNormalization.length} model image URLs in product object`);
+    if (modelUrlsBeforeNormalization.length > 0) {
+        modelUrlsBeforeNormalization.forEach((url, idx) => {
+            console.error(`[ProductPage] ⚠️ Model image ${idx + 1}: ${url.substring(0, 100)}...`);
+        });
+    } else {
+        console.error(`[ProductPage] ⚠️⚠️⚠️ CRITICAL: No model image URLs found in product object BEFORE normalization!`);
+        console.error(`[ProductPage] ⚠️⚠️⚠️ Product object keys:`, Object.keys(product || {}));
+        console.error(`[ProductPage] ⚠️⚠️⚠️ Raw _url fields:`, {
+            model_image_1_url: (product as any).model_image_1_url,
+            model_image_2_url: (product as any).model_image_2_url,
+            model_image_3_url: (product as any).model_image_3_url
+        });
+    }
+
     // Log product BEFORE normalization to see what we have
     const modelImage1 = product?.model_image_1;
     const modelImage2 = product?.model_image_2;
@@ -78,7 +100,13 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
         // Use 'any' to access URL fields that might not be in Product type
         const p: any = product;
 
-        // Log at start of normalization - USE console.error to ensure it shows
+        // CRITICAL: Log model image URLs at the very start to verify they exist
+        const modelUrlsAtStart = [
+            p.model_image_1_url,
+            p.model_image_2_url,
+            p.model_image_3_url
+        ].filter((url): url is string => typeof url === 'string' && url.length > 0 && url.startsWith('http'));
+        
         console.error(`[Product ${p.id}] ⚠️ STARTING NORMALIZATION:`, {
             hasModelImage1: !!p.model_image_1,
             hasModelImage2: !!p.model_image_2,
@@ -86,7 +114,12 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             modelImage1Value: p.model_image_1,
             modelImage1Type: typeof p.model_image_1,
             modelImage1IsObject: p.model_image_1 && typeof p.model_image_1 === 'object',
-            modelImage1HasId: p.model_image_1 && typeof p.model_image_1 === 'object' && 'id' in p.model_image_1
+            modelImage1HasId: p.model_image_1 && typeof p.model_image_1 === 'object' && 'id' in p.model_image_1,
+            modelImage1Url: p.model_image_1_url || 'MISSING',
+            modelImage2Url: p.model_image_2_url || 'MISSING',
+            modelImage3Url: p.model_image_3_url || 'MISSING',
+            modelUrlsAtStartCount: modelUrlsAtStart.length,
+            modelUrlsAtStart: modelUrlsAtStart
         });
 
         // Build gallery from image fields
@@ -99,6 +132,21 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             p.model_image_2_url,
             p.model_image_3_url
         ].filter((url): url is string => typeof url === 'string' && url.length > 0 && url.startsWith('http'));
+        
+        console.error(`[Product ${p.id}] ⚠️ Model URLs from fields: ${modelUrlsFromFields.length} URLs found`);
+        if (modelUrlsFromFields.length === 0) {
+            console.error(`[Product ${p.id}] ⚠️⚠️⚠️ CRITICAL: No model image URLs found at start of normalization!`);
+            console.error(`[Product ${p.id}] ⚠️⚠️⚠️ Raw values:`, {
+                model_image_1_url: p.model_image_1_url,
+                model_image_2_url: p.model_image_2_url,
+                model_image_3_url: p.model_image_3_url,
+                types: {
+                    model_image_1_url: typeof p.model_image_1_url,
+                    model_image_2_url: typeof p.model_image_2_url,
+                    model_image_3_url: typeof p.model_image_3_url
+                }
+            });
+        }
         
         if (modelUrlsFromFields.length > 0) {
             console.error(`[Product ${p.id}] ⚠️⚠️⚠️ DIRECT ADD: Found ${modelUrlsFromFields.length} model image URLs, adding directly to gallery`);
