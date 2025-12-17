@@ -26,6 +26,28 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
     
     console.error(`[ProductPage] ⚠️ PRODUCT FETCHED - id: ${product?.id}, exists: ${!!product}`);
     
+    // CRITICAL: Log URL fields IMMEDIATELY after fetch to verify they're present
+    const modelUrlsAfterFetch = [
+        (product as any)?.model_image_1_url,
+        (product as any)?.model_image_2_url,
+        (product as any)?.model_image_3_url
+    ].filter((url): url is string => typeof url === 'string' && url.length > 0 && url.startsWith('http'));
+    
+    console.error(`[ProductPage] ⚠️⚠️⚠️ CRITICAL - Model URLs immediately after fetch:`, {
+        count: modelUrlsAfterFetch.length,
+        urls: modelUrlsAfterFetch,
+        rawValues: {
+            model_image_1_url: (product as any)?.model_image_1_url,
+            model_image_2_url: (product as any)?.model_image_2_url,
+            model_image_3_url: (product as any)?.model_image_3_url
+        },
+        types: {
+            model_image_1_url: typeof (product as any)?.model_image_1_url,
+            model_image_2_url: typeof (product as any)?.model_image_2_url,
+            model_image_3_url: typeof (product as any)?.model_image_3_url
+        }
+    });
+    
     // Log after fetch - CRITICAL: Log URL fields to verify they're present
     console.error(`[ProductPage] ⚠️ Product details:`, {
         id: product?.id,
