@@ -11,6 +11,10 @@ export const dynamic = 'force-dynamic';
 // Ensure Node.js runtime
 export const runtime = 'nodejs';
 
+// Disable caching to ensure fresh data (for debugging)
+export const revalidate = 0;
+export const dynamic = 'force-dynamic';
+
 export default async function ProductPage({ params }: { params: Promise<{ slug: string }> }) {
     console.error(`[ProductPage] ⚠️ COMPONENT STARTED - About to await params`);
     
