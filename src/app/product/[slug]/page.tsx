@@ -354,11 +354,38 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
         // If finalGallery is empty or only has 1 image, try to rebuild it with model images
         let finalGalleryArray = Array.isArray(finalGallery) ? finalGallery : [finalImage].filter(Boolean);
         
-        if (finalGalleryArray.length <= 1 && modelImageFields.length > 0) {
-            console.error(`[Product ${p.id}] ⚠️⚠️⚠️ CRITICAL: finalGallery only has ${finalGalleryArray.length} image, but modelImageFields has ${modelImageFields.length} items!`);
-            console.error(`[Product ${p.id}] ⚠️⚠️⚠️ Rebuilding gallery with model images...`);
-            finalGalleryArray = [finalImage, ...modelImageFields].filter(Boolean);
-            console.error(`[Product ${p.id}] ⚠️⚠️⚠️ Rebuilt gallery now has ${finalGalleryArray.length} images`);
+        // If gallery only has 1 image, check if we have model image URLs to add
+        if (finalGalleryArray.length <= 1) {
+            console.error(`[Product ${p.id}] ⚠️⚠️⚠️ CRITICAL: finalGallery only has ${finalGalleryArray.length} image!`);
+            console.error(`[Product ${p.id}] ⚠️⚠️⚠️ Checking for model image URLs...`);
+            
+            // Try to get model images from modelImageFields first
+            if (modelImageFields.length > 0) {
+                console.error(`[Product ${p.id}] ⚠️⚠️⚠️ Found ${modelImageFields.length} model images in modelImageFields, rebuilding gallery...`);
+                finalGalleryArray = [finalImage, ...modelImageFields].filter(Boolean);
+                console.error(`[Product ${p.id}] ⚠️⚠️⚠️ Rebuilt gallery now has ${finalGalleryArray.length} images`);
+            } else {
+                // Fallback: Try to get URLs directly from _url fields
+                const modelUrls = [
+                    p.model_image_1_url,
+                    p.model_image_2_url,
+                    p.model_image_3_url
+                ].filter((url): url is string => typeof url === 'string' && url.length > 0);
+                
+                if (modelUrls.length > 0) {
+                    console.error(`[Product ${p.id}] ⚠️⚠️⚠️ Found ${modelUrls.length} model image URLs in _url fields, rebuilding gallery...`);
+                    finalGalleryArray = [finalImage, ...modelUrls].filter(Boolean);
+                    console.error(`[Product ${p.id}] ⚠️⚠️⚠️ Rebuilt gallery now has ${finalGalleryArray.length} images`);
+                } else {
+                    console.error(`[Product ${p.id}] ⚠️⚠️⚠️ No model images found in modelImageFields or _url fields!`);
+                    console.error(`[Product ${p.id}] ⚠️⚠️⚠️ modelImageFields:`, modelImageFields);
+                    console.error(`[Product ${p.id}] ⚠️⚠️⚠️ _url fields:`, {
+                        model_image_1_url: p.model_image_1_url,
+                        model_image_2_url: p.model_image_2_url,
+                        model_image_3_url: p.model_image_3_url
+                    });
+                }
+            }
         }
         
         const normalizedProduct = {
