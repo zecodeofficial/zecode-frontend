@@ -350,6 +350,17 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             finalImage
         });
 
+        // CRITICAL: Ensure gallery is always an array with at least the main image
+        // If finalGallery is empty or only has 1 image, try to rebuild it with model images
+        let finalGalleryArray = Array.isArray(finalGallery) ? finalGallery : [finalImage].filter(Boolean);
+        
+        if (finalGalleryArray.length <= 1 && modelImageFields.length > 0) {
+            console.error(`[Product ${p.id}] ⚠️⚠️⚠️ CRITICAL: finalGallery only has ${finalGalleryArray.length} image, but modelImageFields has ${modelImageFields.length} items!`);
+            console.error(`[Product ${p.id}] ⚠️⚠️⚠️ Rebuilding gallery with model images...`);
+            finalGalleryArray = [finalImage, ...modelImageFields].filter(Boolean);
+            console.error(`[Product ${p.id}] ⚠️⚠️⚠️ Rebuilt gallery now has ${finalGalleryArray.length} images`);
+        }
+        
         const normalizedProduct = {
             id: p.id,
             name: p.name,
@@ -359,7 +370,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             price: (typeof p.sale_price === 'number' ? p.sale_price : (typeof p.price === 'number' ? p.price : null)),
             originalPrice: typeof p.price === 'number' ? p.price : undefined,
             image: finalImage,
-            gallery: finalGallery,
+            gallery: finalGalleryArray, // Use the safeguarded array
             description: p.description ?? '',
             sizes: p.sizes ?? undefined,
             rating: undefined,
