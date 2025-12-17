@@ -538,6 +538,13 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             }, null, 2));
         }
         
+        // Get model images separately for the new model images section
+        const modelImages = [
+            p.model_image_1_url,
+            p.model_image_2_url,
+            p.model_image_3_url
+        ].filter((url): url is string => typeof url === 'string' && url.length > 0 && url.startsWith('http'));
+        
         const normalizedProduct = {
             id: p.id,
             name: p.name,
@@ -547,7 +554,8 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             price: (typeof p.sale_price === 'number' ? p.sale_price : (typeof p.price === 'number' ? p.price : null)),
             originalPrice: typeof p.price === 'number' ? p.price : undefined,
             image: finalImage,
-            gallery: finalGalleryFinal, // Simple: main image + model images
+            gallery: [finalImage].filter(Boolean), // Main product images only
+            modelImages: modelImages, // Model images separately
             description: p.description ?? '',
             sizes: p.sizes ?? undefined,
             rating: undefined,

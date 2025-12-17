@@ -22,6 +22,7 @@ interface ProductDetail {
     originalPrice?: number;
     image: string;
     gallery?: string[];
+    modelImages?: string[]; // Separate model images array
     description: string;
     sizes?: string[];
     rating?: number;
