@@ -35,7 +35,7 @@ function buildMatchingGallery(product: any): string[] {
     // Convert UUID/object to URL - fileUrl handles strings, objects, and null
     const modelImgUrl = modelImg ? (fileUrl(modelImg) || (typeof modelImg === 'string' && modelImg.startsWith('http') ? modelImg : null)) : null;
     if (!modelImgUrl || typeof modelImgUrl !== 'string') continue;
-    
+
     const modelSessionId = getSessionId(modelImgUrl);
     // Include if: session IDs match OR it's an AI-generated image (Cloudinary URL)
     const isCloudinaryImage = modelImgUrl.includes('cloudinary.com');
@@ -210,6 +210,19 @@ export default async function FootwearSubcategoryPage({ params }: PageProps) {
       const mainImage = product.image || product.image_url;
       const matchingGallery = buildMatchingGallery(product);
 
+      // Extract model images separately for the dedicated section
+      const modelImages = [
+        product.model_image_1,
+        product.model_image_2,
+        product.model_image_3,
+      ]
+        .filter(Boolean)
+        .map(img => {
+          const url = fileUrl(img);
+          return url || (typeof img === 'string' && img.startsWith('http') ? img : null);
+        })
+        .filter((url): url is string => url !== null);
+
       // Get proper subcategory slug and title
       const subcategorySlug = getSubcategorySlug(product.subcategory);
       const subcategoryTitle = getSubcategoryTitle(product.subcategory);
@@ -223,6 +236,7 @@ export default async function FootwearSubcategoryPage({ params }: PageProps) {
         originalPrice: product.sale_price,
         image: fileUrl(mainImage) || '',
         gallery: matchingGallery.map(img => fileUrl(img) || ''),
+        modelImages: modelImages, // Pass model images explicitly
         description: product.description || '',
         sizes: product.sizes || [],
         rating: 4.5,

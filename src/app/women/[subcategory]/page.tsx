@@ -29,7 +29,7 @@ function buildMatchingGallery(product: any): string[] {
   const mainImage = product.image || product.image_url;
   // Convert to URLs - fileUrl handles strings, objects, and null
   const mainImageUrl = mainImage ? (fileUrl(mainImage) || (typeof mainImage === 'string' ? mainImage : null)) : null;
-  
+
   const modelImages = [
     product.model_image_1,
     product.model_image_2,
@@ -226,6 +226,19 @@ export default async function WomenSubcategoryPage({ params }: PageProps) {
     // Build gallery with matching model images (same photo session)
     const gallery = buildMatchingGallery(product);
 
+    // Extract model images separately for the dedicated section
+    const modelImages = [
+      product.model_image_1,
+      product.model_image_2,
+      product.model_image_3,
+    ]
+      .filter(Boolean)
+      .map(img => {
+        const url = fileUrl(img);
+        return url || (typeof img === 'string' && img.startsWith('http') ? img : null);
+      })
+      .filter((url): url is string => url !== null);
+
     // Get proper subcategory slug and title
     const subcategorySlug = getSubcategorySlug(product.subcategory);
     const subcategoryTitle = getSubcategoryTitle(product.subcategory);
@@ -239,6 +252,7 @@ export default async function WomenSubcategoryPage({ params }: PageProps) {
       originalPrice: product.sale_price,
       image: fileUrl(gallery[0]) || '',
       gallery: gallery.map(img => fileUrl(img) || ''),
+      modelImages: modelImages, // Pass model images explicitly
       description: product.description || '',
       sizes: product.sizes || [],
       rating: 4.5, // Mock rating
