@@ -460,15 +460,31 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
         
         // CRITICAL: ALWAYS ensure model images from URL fields are included
         // This is a final safeguard to ensure model images are never lost
+        // Access fields using (p as any) to ensure TypeScript doesn't block access
         const modelUrlsFromDirectus = [
-            p.model_image_1_url,
-            p.model_image_2_url,
-            p.model_image_3_url
+            (p as any).model_image_1_url,
+            (p as any).model_image_2_url,
+            (p as any).model_image_3_url
         ].filter((url): url is string => typeof url === 'string' && url.length > 0 && url.startsWith('http'));
+        
+        console.error(`[Product ${p.id}] ⚠️ SAFEGUARD CHECK: Found ${modelUrlsFromDirectus.length} model image URLs from Directus`);
+        if (modelUrlsFromDirectus.length > 0) {
+            modelUrlsFromDirectus.forEach((url, idx) => {
+                console.error(`[Product ${p.id}] ⚠️ Model image ${idx + 1}: ${url.substring(0, 100)}...`);
+            });
+        } else {
+            console.error(`[Product ${p.id}] ⚠️⚠️⚠️ WARNING: No model image URLs found! Raw values:`, {
+                model_image_1_url: (p as any).model_image_1_url,
+                model_image_2_url: (p as any).model_image_2_url,
+                model_image_3_url: (p as any).model_image_3_url
+            });
+        }
         
         if (modelUrlsFromDirectus.length > 0) {
             // Check if model images are already in gallery
             const missingModelImages = modelUrlsFromDirectus.filter(url => !normalizedProduct.gallery.includes(url));
+            
+            console.error(`[Product ${p.id}] ⚠️ SAFEGUARD: ${missingModelImages.length} model images missing from gallery (out of ${modelUrlsFromDirectus.length} total)`);
             
             if (missingModelImages.length > 0) {
                 console.error(`[Product ${p.id}] ⚠️⚠️⚠️ CRITICAL: Found ${missingModelImages.length} model images missing from gallery!`);
@@ -489,16 +505,30 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             } else {
                 console.error(`[Product ${p.id}] ⚠️ All ${modelUrlsFromDirectus.length} model images are already in gallery`);
             }
-        } else {
-            console.error(`[Product ${p.id}] ⚠️⚠️⚠️ WARNING: No model image URLs found in Directus _url fields!`);
         }
         
-        // Final check - if gallery still only has 1 image, force rebuild
-        if (normalizedProduct.gallery.length <= 1 && modelUrlsFromDirectus.length > 0) {
-            console.error(`[Product ${p.id}] ⚠️⚠️⚠️ CRITICAL: Gallery only has ${normalizedProduct.gallery.length} image after all fixes!`);
-            console.error(`[Product ${p.id}] ⚠️⚠️⚠️ Force rebuilding gallery with model images...`);
-            normalizedProduct.gallery = [normalizedProduct.image, ...modelUrlsFromDirectus].filter(Boolean);
-            console.error(`[Product ${p.id}] ⚠️⚠️⚠️ Force-rebuilt gallery now has ${normalizedProduct.gallery.length} images`);
+        // FINAL FORCE REBUILD: If gallery still only has 1 image, force rebuild with model images
+        // This is the absolute last resort to ensure model images are included
+        if (normalizedProduct.gallery.length <= 1) {
+            console.error(`[Product ${p.id}] ⚠️⚠️⚠️ CRITICAL: Gallery only has ${normalizedProduct.gallery.length} image! Force rebuilding...`);
+            
+            // Try to get model images from multiple sources
+            const forceModelUrls = modelUrlsFromDirectus.length > 0 
+                ? modelUrlsFromDirectus 
+                : [
+                    (p as any).model_image_1_url,
+                    (p as any).model_image_2_url,
+                    (p as any).model_image_3_url
+                  ].filter((url): url is string => typeof url === 'string' && url.length > 0);
+            
+            if (forceModelUrls.length > 0) {
+                console.error(`[Product ${p.id}] ⚠️⚠️⚠️ FORCE REBUILD: Using ${forceModelUrls.length} model image URLs`);
+                normalizedProduct.gallery = [normalizedProduct.image, ...forceModelUrls].filter(Boolean);
+                console.error(`[Product ${p.id}] ⚠️⚠️⚠️ Force-rebuilt gallery now has ${normalizedProduct.gallery.length} images`);
+                console.error(`[Product ${p.id}] ⚠️⚠️⚠️ Force-rebuilt gallery:`, JSON.stringify(normalizedProduct.gallery, null, 2));
+            } else {
+                console.error(`[Product ${p.id}] ⚠️⚠️⚠️ ERROR: No model image URLs available for force rebuild!`);
+            }
         }
         
         return normalizedProduct;
