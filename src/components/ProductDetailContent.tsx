@@ -288,7 +288,10 @@ export default function ProductDetailContent({ product }: { product: ProductDeta
                         {/* Model Images Section - Separate from main gallery */}
                         {modelImages.length > 0 && (
                             <div className="mt-8">
-                                <h3 className="text-lg font-semibold text-gray-900 mb-4">Model Images</h3>
+                                <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                                    Model Images ({modelImages.length})
+                                </h3>
+                                {console.log('[ProductDetailContent] Model Images:', modelImages)}
                                 
                                 {/* Main Model Image */}
                                 {selectedModelImage && (
