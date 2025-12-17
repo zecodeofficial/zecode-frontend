@@ -21,8 +21,8 @@ function getSessionId(imagePath: string | null | undefined): string | null {
 // Build gallery with model images - include AI-generated images from Cloudinary
 function buildMatchingGallery(product: any): string[] {
   const mainImage = product.image || product.image_url;
-  // Convert main image to URL if it's a UUID
-  const mainImageUrl = typeof mainImage === 'string' ? fileUrl(mainImage) || mainImage : null;
+  // Convert main image to URL - fileUrl handles strings, objects, and null
+  const mainImageUrl = mainImage ? (fileUrl(mainImage) || (typeof mainImage === 'string' && mainImage.startsWith('http') ? mainImage : null)) : null;
   const mainSessionId = getSessionId(mainImageUrl);
 
   // Start with just the main product image (as URL)
