@@ -431,12 +431,27 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
         console.error(`[Product ${p.id}] ⚠️ NORMALIZATION COMPLETE - Returning product with ${normalizedProduct.gallery.length} images`);
         console.error(`[Product ${p.id}] ⚠️ FINAL GALLERY DUMP:`, JSON.stringify(normalizedProduct.gallery, null, 2));
         
-        // CRITICAL: Verify gallery has model images before returning
+        // CRITICAL: Final check - if gallery still only has 1 image, force add model images from URL fields
         if (normalizedProduct.gallery.length <= 1) {
             console.error(`[Product ${p.id}] ⚠️⚠️⚠️ CRITICAL: Gallery only has ${normalizedProduct.gallery.length} image before return!`);
             console.error(`[Product ${p.id}] ⚠️⚠️⚠️ finalGallery:`, JSON.stringify(finalGallery, null, 2));
             console.error(`[Product ${p.id}] ⚠️⚠️⚠️ modelImageFields:`, JSON.stringify(modelImageFields, null, 2));
             console.error(`[Product ${p.id}] ⚠️⚠️⚠️ galleryRaw:`, JSON.stringify(galleryRaw, null, 2));
+            
+            // LAST RESORT: Force add model images from URL fields directly
+            const forceModelUrls = [
+                p.model_image_1_url,
+                p.model_image_2_url,
+                p.model_image_3_url
+            ].filter((url): url is string => typeof url === 'string' && url.length > 0 && url.startsWith('http'));
+            
+            if (forceModelUrls.length > 0) {
+                console.error(`[Product ${p.id}] ⚠️⚠️⚠️ LAST RESORT: Force adding ${forceModelUrls.length} model images from _url fields!`);
+                normalizedProduct.gallery = [normalizedProduct.image, ...forceModelUrls].filter(Boolean);
+                console.error(`[Product ${p.id}] ⚠️⚠️⚠️ Force-rebuilt gallery now has ${normalizedProduct.gallery.length} images`);
+            } else {
+                console.error(`[Product ${p.id}] ⚠️⚠️⚠️ ERROR: No model image URLs found in _url fields either!`);
+            }
         }
         
         return normalizedProduct;
