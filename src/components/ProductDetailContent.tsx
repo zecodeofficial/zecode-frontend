@@ -211,12 +211,19 @@ export default function ProductDetailContent({ product }: { product: ProductDeta
                         {/* Main Image */}
                         <div className="relative bg-gray-50 w-full" style={{ height: '500px' }}>
                             <Image
-                                src={selectedImage}
+                                src={selectedImage || '/placeholders/product-placeholder.png'}
                                 alt={product.name}
                                 fill
                                 priority
                                 sizes="(max-width: 1024px) 100vw, 500px"
                                 className="object-contain"
+                                onError={(e) => {
+                                    // If image fails to load, try placeholder
+                                    const target = e.target as HTMLImageElement;
+                                    if (target.src !== '/placeholders/product-placeholder.png') {
+                                        target.src = '/placeholders/product-placeholder.png';
+                                    }
+                                }}
                             />
                         </div>
 
@@ -239,11 +246,18 @@ export default function ProductDetailContent({ product }: { product: ProductDeta
                                         style={{ width: '60px', height: '75px' }}
                                     >
                                         <Image
-                                            src={imageSrc}
+                                            src={imageSrc || '/placeholders/product-placeholder.png'}
                                             alt={`${product.name} view ${index + 1}`}
                                             fill
                                             sizes="60px"
                                             className="object-cover"
+                                            onError={(e) => {
+                                                // If image fails to load, try placeholder
+                                                const target = e.target as HTMLImageElement;
+                                                if (target.src !== '/placeholders/product-placeholder.png') {
+                                                    target.src = '/placeholders/product-placeholder.png';
+                                                }
+                                            }}
                                         />
                                     </button>
                                 );
