@@ -27,8 +27,8 @@ function getSessionId(imagePath: string | null | undefined): string | null {
  */
 function buildMatchingGallery(product: any): string[] {
   const mainImage = product.image || product.image_url;
-  // Convert to URLs if they're UUIDs
-  const mainImageUrl = typeof mainImage === 'string' ? fileUrl(mainImage) || mainImage : null;
+  // Convert to URLs - fileUrl handles strings, objects, and null
+  const mainImageUrl = mainImage ? (fileUrl(mainImage) || (typeof mainImage === 'string' ? mainImage : null)) : null;
   
   const modelImages = [
     product.model_image_1,
@@ -36,7 +36,12 @@ function buildMatchingGallery(product: any): string[] {
     product.model_image_3,
   ]
     .filter(Boolean)
-    .map(img => typeof img === 'string' ? fileUrl(img) || img : null)
+    .map(img => {
+      // fileUrl handles strings, objects (with id field), and null
+      const url = fileUrl(img);
+      // If fileUrl returns null, try using the value directly if it's a string URL
+      return url || (typeof img === 'string' && img.startsWith('http') ? img : null);
+    })
     .filter((url): url is string => url !== null);
 
   const gallery: string[] = mainImageUrl ? [mainImageUrl, ...modelImages] : modelImages;

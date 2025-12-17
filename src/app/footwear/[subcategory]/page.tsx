@@ -32,8 +32,8 @@ function buildMatchingGallery(product: any): string[] {
   const modelImages = [product.model_image_1, product.model_image_2, product.model_image_3].filter(Boolean);
 
   for (const modelImg of modelImages) {
-    // Convert UUID to URL if needed
-    const modelImgUrl = typeof modelImg === 'string' ? fileUrl(modelImg) || modelImg : null;
+    // Convert UUID/object to URL - fileUrl handles strings, objects, and null
+    const modelImgUrl = modelImg ? (fileUrl(modelImg) || (typeof modelImg === 'string' && modelImg.startsWith('http') ? modelImg : null)) : null;
     if (!modelImgUrl || typeof modelImgUrl !== 'string') continue;
     
     const modelSessionId = getSessionId(modelImgUrl);
