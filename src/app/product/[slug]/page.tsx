@@ -549,7 +549,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
         galleryLength: normalized.gallery?.length || 0
     }, null, 2));
     
-    // CRITICAL: If gallery only has 1 image, log a warning that will definitely appear
+    // CRITICAL: If gallery only has 1 image, log a warning and try to fix it
     if (normalized.gallery?.length <= 1) {
         console.error(`[ProductPage] ⚠️⚠️⚠️ CRITICAL WARNING: Gallery only has ${normalized.gallery?.length || 0} image(s)! This should have 4 images (1 main + 3 model images).`);
         console.error(`[ProductPage] ⚠️⚠️⚠️ Gallery contents:`, normalized.gallery);
@@ -564,6 +564,21 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             modelImage2Url: (product as any).model_image_2_url || 'MISSING',
             modelImage3Url: (product as any).model_image_3_url || 'MISSING'
         });
+        
+        // LAST RESORT FIX: If gallery only has 1 image, force add model images from product
+        const lastResortModelUrls = [
+            (product as any).model_image_1_url,
+            (product as any).model_image_2_url,
+            (product as any).model_image_3_url
+        ].filter((url): url is string => typeof url === 'string' && url.length > 0 && url.startsWith('http'));
+        
+        if (lastResortModelUrls.length > 0) {
+            console.error(`[ProductPage] ⚠️⚠️⚠️ LAST RESORT FIX: Adding ${lastResortModelUrls.length} model images directly from product object!`);
+            normalized.gallery = [normalized.image, ...lastResortModelUrls].filter(Boolean);
+            console.error(`[ProductPage] ⚠️⚠️⚠️ Last resort fix applied - gallery now has ${normalized.gallery.length} images`);
+        } else {
+            console.error(`[ProductPage] ⚠️⚠️⚠️ ERROR: No model image URLs found in product object for last resort fix!`);
+        }
     }
 
     // DEBUG: Output raw product data in HTML comment for inspection
