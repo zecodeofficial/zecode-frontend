@@ -93,7 +93,7 @@ const nextConfig: NextConfig = {
       {
         protocol: "https",
         hostname: "zecode-directus.onrender.com",
-        pathname: "/assets/**",
+        pathname: "/**", // Allow all paths (assets and files)
       },
       {
         protocol: "https",
