@@ -1,0 +1,6 @@
+Scanning for products with specific image issues...
+Total Products Scanned: 235
+
+Products with NO image at all: 0
+
+Products with ONLY local path image_url: 0

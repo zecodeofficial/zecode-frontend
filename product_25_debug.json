@@ -1,0 +1,37 @@
+Fetching Product 25...
+Product Data: {
+  "id": 25,
+  "name": "Brown and black tiger-print chiffon blouse with voluminous sleeves, bold animal graphic pattern",
+  "slug": "brown-black-tiger-print-chiffon-blouse-voluminous-sleeves-animal-graphic",
+  "image": "9d1b4099-1a9f-47f3-b744-c318c2abe36f",
+  "image_url": null
+}
+Checking File ID: 9d1b4099-1a9f-47f3-b744-c318c2abe36f...
+File Data: {
+  "id": "9d1b4099-1a9f-47f3-b744-c318c2abe36f",
+  "storage": "local",
+  "filename_disk": "9d1b4099-1a9f-47f3-b744-c318c2abe36f.png",
+  "filename_download": "female_caramel_brown_cropped_blouse_graphic_print_vintage_SONY_ILCE_7RM5_6304x.png",
+  "title": "Female Caramel Brown Cropped Blouse Graphic Print Vintage Sony Ilce 7 R M5 6304x",
+  "type": "image/png",
+  "folder": null,
+  "uploaded_by": "86fc65aa-1283-44ce-ae81-9e8893739d97",
+  "created_on": "2025-12-17T12:03:55.114Z",
+  "modified_by": null,
+  "modified_on": "2025-12-17T12:03:55.227Z",
+  "charset": null,
+  "filesize": "1207751",
+  "width": 1024,
+  "height": 682,
+  "duration": null,
+  "embed": null,
+  "description": null,
+  "location": null,
+  "tags": null,
+  "metadata": {},
+  "focal_point_x": null,
+  "focal_point_y": null,
+  "tus_id": null,
+  "tus_data": null,
+  "uploaded_on": "2025-12-17T12:03:55.225Z"
+}

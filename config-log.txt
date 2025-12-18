@@ -1,0 +1,92 @@
+[dotenv@17.2.3] injecting env (15) from .env.local -- tip: 🔐 encrypt with Dotenvx: https://dotenvx.com
+Logging in...
+Fetching Settings...
+SETTINGS KEYS: [
+  'id',
+  'project_name',
+  'project_url',
+  'project_color',
+  'project_logo',
+  'public_foreground',
+  'public_background',
+  'public_note',
+  'auth_login_attempts',
+  'auth_password_policy',
+  'storage_asset_transform',
+  'storage_asset_presets',
+  'custom_css',
+  'storage_default_folder',
+  'basemaps',
+  'mapbox_key',
+  'module_bar',
+  'project_descriptor',
+  'default_language',
+  'custom_aspect_ratios',
+  'public_favicon',
+  'default_appearance',
+  'default_theme_light',
+  'theme_light_overrides',
+  'default_theme_dark',
+  'theme_dark_overrides',
+  'report_error_url',
+  'report_bug_url',
+  'report_feature_url',
+  'public_registration',
+  'public_registration_verify_email',
+  'public_registration_role',
+  'public_registration_email_filter',
+  'visual_editor_urls',
+  'project_id',
+  'mcp_enabled',
+  'mcp_allow_deletes',
+  'mcp_prompts_collection',
+  'mcp_system_prompt_enabled',
+  'mcp_system_prompt',
+  'project_owner',
+  'project_usage',
+  'org_name',
+  'product_updates',
+  'project_status',
+  'ai_openai_api_key',
+  'ai_anthropic_api_key',
+  'ai_system_prompt'
+]
+FULL PUBLIC ROLE VAL: undefined
+Fetching Role undefined...
+Checking Access (Role -> Policy links)...
+Found 7 policies linked.
+- Policy ID: abf8a154-5b1c-4a46-ac9c-7300570f4f17
+  -> Permissions for directus_files:
+     Action: read, Fields: *
+     Action: create, Fields: *
+     Action: create, Fields: *
+- Policy ID: 492ffa76-18c6-4616-be1b-8a988d49336b
+  -> Permissions for directus_files:
+     Action: create, Fields: *
+     Action: read, Fields: *
+     Action: update, Fields: *
+     Action: delete, Fields: *
+- Policy ID: 492ffa76-18c6-4616-be1b-8a988d49336b
+  -> Permissions for directus_files:
+     Action: create, Fields: *
+     Action: read, Fields: *
+     Action: update, Fields: *
+     Action: delete, Fields: *
+- Policy ID: 2b63544b-fef6-4b61-869a-94a2f1ddb2ed
+  -> Permissions for directus_files:
+     Action: create, Fields: *
+     Action: read, Fields: *
+     Action: update, Fields: *
+     Action: delete, Fields: *
+- Policy ID: 2b63544b-fef6-4b61-869a-94a2f1ddb2ed
+  -> Permissions for directus_files:
+     Action: create, Fields: *
+     Action: read, Fields: *
+     Action: update, Fields: *
+     Action: delete, Fields: *
+- Policy ID: 44e0f080-1fca-4fac-9244-196752c9066a
+  -> Permissions for directus_files:
+     Action: read, Fields: *
+- Policy ID: b2f91254-1214-4ff2-8f3f-06a4f4ce18df
+  -> Permissions for directus_files:
+     Action: read, Fields: *

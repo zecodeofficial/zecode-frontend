@@ -1,0 +1,6 @@
+[dotenv@17.2.3] injecting env (15) from .env.local -- tip: 🗂️ backup and recover secrets: https://dotenvx.com/ops
+Logging in...
+Fetching roles...
+Found 2 roles:
+ID: ff23b7d4-6985-4f1b-a9b5-8c2129d70b09 | Name: Public
+ID: ff62bf73-74c0-4024-bff2-adcde85301ae | Name: Administrator

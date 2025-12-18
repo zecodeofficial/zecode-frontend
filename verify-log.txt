@@ -1,0 +1,9 @@
+[dotenv@17.2.3] injecting env (15) from .env.local -- tip: ⚙️  enable debug logging with { debug: true }
+1. Checking 'public_role' setting...
+   Current public_role: undefined
+   ❌ Public Role is STILL NULL/UNDEFINED.
+
+2. Checking Asset Access (HTTP Request)...
+   URL: https://zecode-directus.onrender.com/assets/9d1b4099-1a9f-47f3-b744-c318c2abe36f?cb=1766037547623
+   Status: 403 Forbidden
+   ❌ Asset is NOT accessible.

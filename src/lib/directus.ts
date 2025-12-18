@@ -193,7 +193,7 @@ export function fileUrl(file: any) {
   // Otherwise treat as Directus asset ID (UUID)
   // Use Cloudinary Fetch to proxy and optimize Directus images
   // Format: https://res.cloudinary.com/<cloud_name>/image/fetch/<options>/<remote_url>
-  const directusUrl = `${DIRECTUS}/assets/${id}`;
+  const directusUrl = `${DIRECTUS}/files/${id}`;
   return `${CLOUDINARY_BASE_URL.replace('/upload', '/fetch')}/f_auto,q_auto/${directusUrl}`;
 }
 

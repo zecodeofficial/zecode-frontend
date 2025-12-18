@@ -1,0 +1,88 @@
+[dotenv@17.2.3] injecting env (15) from .env.local -- tip: ⚙️  write to custom object with { processEnv: myObject }
+Logging in as Admin...
+Checking Access for role: null...
+Found 4 policies linked to NULL role.
+- Policy ID: abf8a154-5b1c-4a46-ac9c-7300570f4f17
+  Name: $t:public_label
+  App Access: false
+  Admin Access: false
+  IP Access: null
+  -> Permissions for directus_files:
+     Action: read
+     Fields: ["*"]
+     Permissions: null
+     Validation: null
+     Presets: null
+     Action: create
+     Fields: ["*"]
+     Permissions: null
+     Validation: null
+     Presets: null
+     Action: create
+     Fields: ["*"]
+     Permissions: null
+     Validation: null
+     Presets: null
+- Policy ID: 492ffa76-18c6-4616-be1b-8a988d49336b
+  Name: Administrator
+  App Access: true
+  Admin Access: false
+  IP Access: null
+  -> Permissions for directus_files:
+     Action: create
+     Fields: ["*"]
+     Permissions: {}
+     Validation: null
+     Presets: null
+     Action: read
+     Fields: ["*"]
+     Permissions: {}
+     Validation: null
+     Presets: null
+     Action: update
+     Fields: ["*"]
+     Permissions: {}
+     Validation: null
+     Presets: null
+     Action: delete
+     Fields: ["*"]
+     Permissions: {}
+     Validation: null
+     Presets: null
+- Policy ID: 2b63544b-fef6-4b61-869a-94a2f1ddb2ed
+  Name: Public Read Access
+  App Access: true
+  Admin Access: true
+  IP Access: null
+  -> Permissions for directus_files:
+     Action: create
+     Fields: ["*"]
+     Permissions: {}
+     Validation: null
+     Presets: null
+     Action: read
+     Fields: ["*"]
+     Permissions: {}
+     Validation: null
+     Presets: null
+     Action: update
+     Fields: ["*"]
+     Permissions: {}
+     Validation: null
+     Presets: null
+     Action: delete
+     Fields: ["*"]
+     Permissions: {}
+     Validation: null
+     Presets: null
+- Policy ID: 44e0f080-1fca-4fac-9244-196752c9066a
+  Name: Public Website Access
+  App Access: true
+  Admin Access: false
+  IP Access: null
+  -> Permissions for directus_files:
+     Action: read
+     Fields: ["*"]
+     Permissions: null
+     Validation: null
+     Presets: null

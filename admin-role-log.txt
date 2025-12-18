@@ -1,0 +1,8 @@
+[dotenv@17.2.3] injecting env (15) from .env.local -- tip: ✅ audit secrets and track compliance: https://dotenvx.com/ops
+Logging in as Admin...
+User ID: 86fc65aa-1283-44ce-ae81-9e8893739d97
+User Role ID: ff62bf73-74c0-4024-bff2-adcde85301ae
+Role Name: Administrator
+Admin Access: undefined
+App Access: undefined
+Policies: ["90de0f4d-f2dc-4742-84be-877af538b370","3a533849-e2b4-47d4-9908-760bd6684704"]
