@@ -194,8 +194,11 @@ export function fileUrl(file: any) {
   // Use Cloudinary Fetch to proxy and optimize Directus images
   // Format: https://res.cloudinary.com/<cloud_name>/image/fetch/<options>/<remote_url>
   // Add a cache buster or version to force Cloudinary to re-fetch after permission fix
-  const directusUrl = `${DIRECTUS}/files/${id}?v=fixed`;
-  return `${CLOUDINARY_BASE_URL.replace('/upload', '/fetch')}/f_auto,q_auto/${directusUrl}`;
+  const directusUrl = `${DIRECTUS}/files/${id}`;
+  // TEMPORARY FIX: Bypass Cloudinary entirely because it is failing to fetch from Directus (403/Timeout)
+  // Return the direct Directus URL which is confirmed working (200 OK)
+  return directusUrl;
+  // return `${CLOUDINARY_BASE_URL.replace('/upload', '/fetch')}/f_auto,q_auto/${directusUrl}`;
 }
 
 /**
