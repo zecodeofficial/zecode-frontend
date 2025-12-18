@@ -1,0 +1,10 @@
+[dotenv@17.2.3] injecting env (15) from .env.local -- tip: 🔐 encrypt with Dotenvx: https://dotenvx.com
+Fetching product: brown-black-tiger-print-chiffon-blouse-voluminous-sleeves-animal-graphic...
+Product Data:
+ID: 25
+Name: Brown and black tiger-print chiffon blouse with voluminous sleeves, bold animal graphic pattern
+Image (ID): 9d1b4099-1a9f-47f3-b744-c318c2abe36f
+Image URL: null
+
+Testing access to Image ID: 9d1b4099-1a9f-47f3-b744-c318c2abe36f
+✅ https://zecode-directus.onrender.com/files/9d1b4099-1a9f-47f3-b744-c318c2abe36f -> 200
