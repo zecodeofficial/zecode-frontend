@@ -30,6 +30,17 @@ function buildMatchingGallery(product: any): string[] {
   // Convert to URLs - fileUrl handles strings, objects, and null
   const mainImageUrl = mainImage ? fileUrl(mainImage) : null;
 
+  console.error(`[buildMatchingGallery] Product ${product.id}:`, {
+    mainImage: mainImage,
+    mainImageUrl: mainImageUrl,
+    model_image_1: product.model_image_1,
+    model_image_1_url: product.model_image_1_url,
+    model_image_2: product.model_image_2,
+    model_image_2_url: product.model_image_2_url,
+    model_image_3: product.model_image_3,
+    model_image_3_url: product.model_image_3_url
+  });
+
   // Check both _url fields (from Directus) and direct relation fields
   const modelImages = [
     product.model_image_1_url || product.model_image_1,
@@ -41,11 +52,15 @@ function buildMatchingGallery(product: any): string[] {
       // Always pass through fileUrl - it will handle Directus URLs and convert them to proxy
       // fileUrl also handles Cloudinary URLs, local paths, and Directus IDs
       // CRITICAL: Don't fall back to Directus URLs - fileUrl must convert them
-      return fileUrl(img);
+      const url = fileUrl(img);
+      console.error(`[buildMatchingGallery] Converting image:`, { input: img, output: url });
+      return url;
     })
     .filter((url): url is string => url !== null && url !== '');
 
   const gallery: string[] = mainImageUrl ? [mainImageUrl, ...modelImages] : modelImages;
+
+  console.error(`[buildMatchingGallery] Final gallery for product ${product.id}:`, gallery);
 
   return gallery;
 }
@@ -246,6 +261,18 @@ export default async function WomenSubcategoryPage({ params }: PageProps) {
     const subcategorySlug = getSubcategorySlug(product.subcategory);
     const subcategoryTitle = getSubcategoryTitle(product.subcategory);
 
+    // Debug logging to diagnose image issues
+    console.error(`[WomenSubcategoryPage] Product ${product.id} - Gallery:`, {
+      galleryLength: gallery.length,
+      gallery: gallery,
+      modelImagesLength: modelImages.length,
+      modelImages: modelImages,
+      productImage: product.image,
+      productImageUrl: product.image_url,
+      modelImage1: product.model_image_1,
+      modelImage1Url: product.model_image_1_url
+    });
+
     const productDetail = {
       id: product.id,
       name: product.name,
@@ -262,6 +289,14 @@ export default async function WomenSubcategoryPage({ params }: PageProps) {
       rating: 4.5, // Mock rating
       reviewCount: 10 // Mock review count
     };
+
+    console.error(`[WomenSubcategoryPage] ProductDetail for ${product.id}:`, {
+      image: productDetail.image,
+      galleryLength: productDetail.gallery.length,
+      gallery: productDetail.gallery,
+      modelImagesLength: productDetail.modelImages.length,
+      modelImages: productDetail.modelImages
+    });
 
     return <ProductDetailContent product={productDetail} />;
   }
