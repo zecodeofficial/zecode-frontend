@@ -124,6 +124,17 @@ export default function ProductDetailContent({ product }: { product: ProductDeta
     const [selectedImageIndex, setSelectedImageIndex] = useState(0);
     const selectedImage = combinedGallery[selectedImageIndex] ?? combinedGallery[0];
     const modelImages = product.modelImages || [];
+    
+    // CRITICAL: Log selectedImage to see what's actually being used
+    console.error(`[ProductDetailContent] Selected image:`, {
+        selectedImageIndex,
+        combinedGalleryLength: combinedGallery.length,
+        combinedGallery: combinedGallery,
+        selectedImage: selectedImage,
+        selectedImageType: typeof selectedImage,
+        selectedImageIsEmpty: selectedImage === '' || selectedImage === null || selectedImage === undefined,
+        willUsePlaceholder: !selectedImage || selectedImage === ''
+    });
 
     // Debug logging - always log to help diagnose production issues
     useEffect(() => {
