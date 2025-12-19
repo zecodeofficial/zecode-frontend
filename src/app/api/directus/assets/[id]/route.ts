@@ -80,64 +80,69 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       cache: 'no-store'
     });
 
-    if (!response.ok) {
-      // If 403, try alternative approach: get file metadata and construct storage path
-      if (response.status === 403) {
-        try {
-          // Get file metadata to verify it exists and get storage info
-          const fileResponse = await fetch(`${DIRECTUS_URL}/files/${id}?fields=*,storage`, {
-            headers: {
-              'Authorization': `Bearer ${token}`
-            }
-          });
-          
-          if (fileResponse.ok) {
-            const fileData = await fileResponse.json();
-            const file = fileData.data;
-            
-            if (file) {
-              // Try alternative: use the files endpoint with download parameter
-              // Some Directus setups allow downloading via /files endpoint
-              const downloadResponse = await fetch(`${DIRECTUS_URL}/files/${id}?download`, {
-                headers: {
-                  'Authorization': `Bearer ${token}`
-                }
-              });
-              
-              if (downloadResponse.ok) {
-                const blob = await downloadResponse.blob();
-                const headers = new Headers();
-                headers.set('Content-Type', file.type || 'application/octet-stream');
-                headers.set('Cache-Control', 'public, max-age=86400, stale-while-revalidate=172800');
-                
-                return new NextResponse(blob, {
-                  status: 200,
-                  headers,
-                });
-              }
-              
-              // If download also fails, log the issue
-              console.error(`Asset access blocked for file ${id} (exists: ${!!file}, storage: ${file.storage})`);
-            }
+    // CRITICAL: Check if response is actually an image
+    // Directus /assets/ endpoint sometimes returns JSON (file metadata) even with 200 status
+    const contentType = response.headers.get('content-type') || '';
+    const isImage = contentType.startsWith('image/');
+    
+    // If not ok OR if it's not an image (likely JSON metadata), use fallback
+    if (!response.ok || !isImage) {
+      // Try alternative approach: use /files/{id}?download endpoint
+      try {
+        // Get file metadata first to get the correct content type
+        const fileResponse = await fetch(`${DIRECTUS_URL}/files/${id}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
           }
-        } catch (e) {
-          // Ignore fallback errors
-          console.error('Fallback asset fetch failed:', e);
+        });
+        
+        if (fileResponse.ok) {
+          const fileData = await fileResponse.json();
+          const file = fileData.data;
+          
+          if (file) {
+            // Use the files endpoint with download parameter
+            const downloadResponse = await fetch(`${DIRECTUS_URL}/files/${id}?download`, {
+              headers: {
+                'Authorization': `Bearer ${token}`
+              },
+              cache: 'no-store'
+            });
+            
+            if (downloadResponse.ok) {
+              const blob = await downloadResponse.blob();
+              const headers = new Headers();
+              headers.set('Content-Type', file.type || 'application/octet-stream');
+              const contentLength = downloadResponse.headers.get('content-length');
+              if (contentLength) headers.set('Content-Length', contentLength);
+              headers.set('Cache-Control', 'public, max-age=86400, stale-while-revalidate=172800');
+              
+              return new NextResponse(blob, {
+                status: 200,
+                headers,
+              });
+            }
+            
+            // If download also fails, log the issue
+            console.error(`Asset access blocked for file ${id} (exists: ${!!file}, storage: ${file.storage}, downloadStatus: ${downloadResponse.status})`);
+          }
         }
+      } catch (e) {
+        console.error('Fallback asset fetch failed:', e);
       }
       
+      // If we get here, both methods failed
       return new NextResponse(
-        `Asset access error: ${response.status} ${response.statusText}`,
-        { status: response.status }
+        `Asset access error: ${response.status} ${response.statusText} (content-type: ${contentType})`,
+        { status: response.status || 500 }
       );
     }
 
-    // Get the blob
+    // Response is ok and is an image - return it
     const blob = await response.blob();
     const headers = new Headers();
 
     // Copy important headers from Directus response
-    const contentType = response.headers.get('content-type');
     if (contentType) {
       headers.set('Content-Type', contentType);
     }
