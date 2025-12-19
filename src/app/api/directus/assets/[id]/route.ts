@@ -34,7 +34,13 @@ async function getAccessToken(): Promise<string> {
     }
 
     const data = await response.json();
-    cachedToken = data.data.access_token;
+    const token = data.data?.access_token;
+    
+    if (!token || typeof token !== 'string') {
+      throw new Error('Directus login response missing access_token');
+    }
+    
+    cachedToken = token;
     // Tokens typically expire in 1 hour, cache for 55 minutes
     tokenExpiry = Date.now() + (55 * 60 * 1000);
     
