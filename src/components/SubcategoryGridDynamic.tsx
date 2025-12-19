@@ -94,10 +94,10 @@ function SubcategoryCard({ title, slug, categorySlug, products, productCount, is
   // Get current image URL
   const getCurrentImageUrl = useCallback(() => {
     if (products.length === 0) {
-      return '/placeholders/product-placeholder.png';
+      return getProductPlaceholderUrl();
     }
     const product = products[currentImageIndex];
-    return fileUrl(product?.image || product?.image_url) || '/placeholders/product-placeholder.png';
+    return fileUrl(product?.image || product?.image_url) || getProductPlaceholderUrl();
   }, [products, currentImageIndex]);
 
   const imageUrl = getCurrentImageUrl();

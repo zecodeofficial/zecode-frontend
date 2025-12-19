@@ -1,5 +1,5 @@
 import ProductDetailContent from '@/components/ProductDetailContent';
-import { fetchProductBySlug, fileUrl, type Product } from '@/lib/directus';
+import { fetchProductBySlug, fileUrl, getProductPlaceholderUrl, type Product } from '@/lib/directus';
 import { notFound } from 'next/navigation';
 
 // Revalidate product pages every 10 seconds for faster updates during debugging
@@ -380,11 +380,11 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
 
             // Determine main display image (first in gallery or fallback)
             // If gallery is empty, try to use mainImage, otherwise use placeholder
-            const displayImage = uniqueGallery[0] || mainImage || '/placeholders/product-placeholder.png';
+            const displayImage = uniqueGallery[0] || mainImage || getProductPlaceholderUrl();
 
             // If displayImage is a local path that might not exist, try to convert it
             // but if conversion fails or returns null, use placeholder
-            const displayImageUrl = displayImage ? (fileUrl(displayImage) || displayImage) : '/placeholders/product-placeholder.png';
+            const displayImageUrl = displayImage ? (fileUrl(displayImage) || displayImage) : getProductPlaceholderUrl();
 
             // Convert gallery URLs (handle both UUIDs and already-converted URLs)
             // Note: Direct Cloudinary URLs from _url fields are already full URLs and should not be modified

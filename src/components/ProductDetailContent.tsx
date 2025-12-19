@@ -6,7 +6,7 @@ import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import Breadcrumb from './Breadcrumb';
 import { detectGarmentType, isGarmentTypeSupported } from '@/types/virtual-try-on';
-import { isProxyRoute } from '@/lib/directus';
+import { isProxyRoute, getProductPlaceholderUrl } from '@/lib/directus';
 
 // Dynamically import VirtualTryOn to avoid SSR issues with MediaPipe
 const VirtualTryOn = dynamic(() => import('./VirtualTryOn'), {
@@ -232,7 +232,7 @@ export default function ProductDetailContent({ product }: { product: ProductDeta
                         {/* Main Image */}
                         <div className="relative bg-gray-50 w-full" style={{ height: '500px' }}>
                             <Image
-                                src={selectedImage || '/placeholders/product-placeholder.png'}
+                                src={selectedImage || getProductPlaceholderUrl()}
                                 alt={product.name}
                                 fill
                                 priority
@@ -242,6 +242,7 @@ export default function ProductDetailContent({ product }: { product: ProductDeta
                                 onError={(e) => {
                                     // Log error for debugging
                                     const target = e.target as HTMLImageElement;
+                                    const placeholderUrl = getProductPlaceholderUrl();
                                     console.error(`[ProductDetailContent] Image load error:`, {
                                         attemptedSrc: target.src,
                                         selectedImage: selectedImage,
@@ -249,8 +250,8 @@ export default function ProductDetailContent({ product }: { product: ProductDeta
                                         selectedImageIndex: selectedImageIndex
                                     });
                                     // If image fails to load, try placeholder
-                                    if (target.src !== '/placeholders/product-placeholder.png') {
-                                        target.src = '/placeholders/product-placeholder.png';
+                                    if (target.src !== placeholderUrl) {
+                                        target.src = placeholderUrl;
                                     }
                                 }}
                             />
@@ -275,7 +276,7 @@ export default function ProductDetailContent({ product }: { product: ProductDeta
                                         style={{ width: '60px', height: '75px' }}
                                     >
                                         <Image
-                                            src={imageSrc || '/placeholders/product-placeholder.png'}
+                                            src={imageSrc || getProductPlaceholderUrl()}
                                             alt={`${product.name} view ${index + 1}`}
                                             fill
                                             sizes="60px"
@@ -284,8 +285,9 @@ export default function ProductDetailContent({ product }: { product: ProductDeta
                                             onError={(e) => {
                                                 // If image fails to load, try placeholder
                                                 const target = e.target as HTMLImageElement;
-                                                if (target.src !== '/placeholders/product-placeholder.png') {
-                                                    target.src = '/placeholders/product-placeholder.png';
+                                                const placeholderUrl = getProductPlaceholderUrl();
+                                                if (target.src !== placeholderUrl) {
+                                                    target.src = placeholderUrl;
                                                 }
                                             }}
                                         />

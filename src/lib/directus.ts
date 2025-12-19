@@ -155,6 +155,13 @@ function getCloudinaryUrl(localPath: string): string {
   return `${CLOUDINARY_BASE_URL}/f_auto,q_auto/zecode/${cleanPath}`;
 }
 
+/**
+ * Get Cloudinary URL for product placeholder image
+ */
+export function getProductPlaceholderUrl(): string {
+  return getCloudinaryUrl('/placeholders/product-placeholder.png');
+}
+
 /** 
  * Transform local path to Cloudinary URL
  * /products/image.jpg → https://res.cloudinary.com/ds8llatku/image/upload/f_auto,q_auto/zecode/products/image

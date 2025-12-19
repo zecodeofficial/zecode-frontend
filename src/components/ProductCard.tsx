@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { fileUrl, isProxyRoute, type Product } from "@/lib/directus";
+import { fileUrl, isProxyRoute, getProductPlaceholderUrl, type Product } from "@/lib/directus";
 
 interface ProductCardProps {
     product: Product;
@@ -8,7 +8,7 @@ interface ProductCardProps {
 }
 
 export default function ProductCard({ product, priority = false }: ProductCardProps) {
-    const imageUrl = fileUrl(product.image || product.image_url) || "/placeholders/product-placeholder.png";
+    const imageUrl = fileUrl(product.image || product.image_url) || getProductPlaceholderUrl();
     const needsUnoptimized = isProxyRoute(imageUrl);
     
     const genderPath = product.gender_category ? product.gender_category.toLowerCase() : 'product';
