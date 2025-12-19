@@ -60,6 +60,28 @@ next-env.d.ts
 
 # Resource files (reference only)
 /resources/
+
+# Debug and log files (generated during troubleshooting)
+*-dump.txt
+*-log.txt
+*-check.txt
+*-output.txt
+*-report.json
+*-res.txt
+*.log.txt
+policy-*.txt
+perms-*.txt
+settings-*.txt
+roles.txt
+users-list.txt
+collections-list.txt
+working-products.txt
+junction-check.txt
+me-check.txt
+login.json
+
+# Temporary migration scripts (not for production)
+force-public-role.mjs
 /ZECODE - Your New Fashion Code*
 *.zip
 *.bak
