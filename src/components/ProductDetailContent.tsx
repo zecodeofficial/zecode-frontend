@@ -319,7 +319,7 @@ export default function ProductDetailContent({ product }: { product: ProductDeta
                     {/* Right Column - Product Summary */}
                     <div className="space-y-5">
                         {/* Product Title */}
-                        <h1 className="text-3xl md:text-4xl font-bold text-gray-900 uppercase tracking-wide">
+                        <h1 className="text-xl md:text-2xl font-bold text-gray-900 uppercase tracking-wide">
                             {product.name}
                         </h1>
 
