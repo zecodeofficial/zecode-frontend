@@ -266,9 +266,13 @@ export default async function WomenSubcategoryPage({ params }: PageProps) {
     console.error(`[WomenSubcategoryPage] Product ${product.id} - Gallery:`, {
       galleryLength: gallery.length,
       gallery: gallery,
+      galleryItems: gallery.map((url, idx) => ({ index: idx, url, type: typeof url, isEmpty: url === '' })),
       modelImagesLength: modelImages.length,
       modelImages: modelImages,
       productImage: product.image,
+      productImageType: typeof product.image,
+      productImageIsObject: product.image && typeof product.image === 'object',
+      productImageId: product.image?.id || 'no-id',
       productImageUrl: product.image_url,
       modelImage1: product.model_image_1,
       modelImage1Url: product.model_image_1_url
@@ -282,8 +286,9 @@ export default async function WomenSubcategoryPage({ params }: PageProps) {
       price: product.price,
       originalPrice: product.sale_price,
       // Gallery already contains converted URLs from buildMatchingGallery, don't process again
-      image: gallery[0] || '',
-      gallery: gallery.filter((url): url is string => url !== null && url !== ''),
+      // CRITICAL: Ensure we have a valid image URL, not an empty string
+      image: (gallery.length > 0 && gallery[0]) ? gallery[0] : '',
+      gallery: gallery.filter((url): url is string => url !== null && url !== '' && typeof url === 'string'),
       modelImages: modelImages, // Pass model images explicitly
       description: product.description || '',
       sizes: product.sizes || [],
@@ -293,8 +298,11 @@ export default async function WomenSubcategoryPage({ params }: PageProps) {
 
     console.error(`[WomenSubcategoryPage] ProductDetail for ${product.id}:`, {
       image: productDetail.image,
+      imageType: typeof productDetail.image,
+      imageIsEmpty: productDetail.image === '',
       galleryLength: productDetail.gallery.length,
       gallery: productDetail.gallery,
+      galleryItems: productDetail.gallery.map((url, idx) => ({ index: idx, url, type: typeof url, isEmpty: url === '' })),
       modelImagesLength: productDetail.modelImages.length,
       modelImages: productDetail.modelImages
     });

@@ -105,7 +105,20 @@ export default function ProductDetailContent({ product }: { product: ProductDeta
     const combinedGallery = useMemo(() => {
         const mainImages = (product.gallery && product.gallery.length > 0 ? product.gallery : [product.image]);
         const modelImgs = product.modelImages || [];
-        return [...mainImages, ...modelImgs].filter(Boolean);
+        // Filter out empty strings and null values - ensure all items are valid non-empty strings
+        const combined = [...mainImages, ...modelImgs].filter((url): url is string => 
+            url !== null && url !== undefined && url !== '' && typeof url === 'string'
+        );
+        console.error(`[ProductDetailContent] Combined gallery construction:`, {
+            productGallery: product.gallery,
+            productImage: product.image,
+            productModelImages: product.modelImages,
+            mainImages,
+            modelImgs,
+            combined,
+            combinedLength: combined.length
+        });
+        return combined;
     }, [product.gallery, product.image, product.modelImages]);
 
     const [selectedImageIndex, setSelectedImageIndex] = useState(0);
@@ -115,6 +128,20 @@ export default function ProductDetailContent({ product }: { product: ProductDeta
     // Debug logging - always log to help diagnose production issues
     useEffect(() => {
         if (typeof window !== 'undefined') {
+            console.error(`[ProductDetailContent] Product ${product.id} - Image data:`, {
+                productImage: product.image,
+                productImageType: typeof product.image,
+                productImageIsEmpty: product.image === '',
+                galleryLength: product.gallery?.length || 0,
+                gallery: product.gallery,
+                modelImagesLength: product.modelImages?.length || 0,
+                modelImages: product.modelImages,
+                combinedGalleryLength: combinedGallery.length,
+                combinedGallery: combinedGallery,
+                selectedImage: selectedImage,
+                selectedImageType: typeof selectedImage,
+                selectedImageIsEmpty: selectedImage === ''
+            });
             console.log(`[ProductDetailContent] ✅ Images loaded: Combined Gallery (${combinedGallery.length})`);
         }
     }, [product, combinedGallery, selectedImage, selectedImageIndex]);
