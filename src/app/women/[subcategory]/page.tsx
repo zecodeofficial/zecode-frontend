@@ -311,17 +311,18 @@ export default async function WomenSubcategoryPage({ params }: PageProps) {
     });
 
     // CRITICAL: Ensure gallery is never empty if we have a valid image
-    // If gallery is empty but we have a main image, add it to the gallery
+    // Filter gallery to remove nulls and empty strings
     const filteredGallery = gallery.filter((url): url is string => url !== null && url !== '' && typeof url === 'string');
     const finalImage = (filteredGallery.length > 0 && filteredGallery[0]) ? filteredGallery[0] : '';
     
-    // If we have a main image but gallery is empty, something went wrong - log it
-    if (mainImage && filteredGallery.length === 0) {
-      console.error(`[WomenSubcategoryPage] ⚠️⚠️⚠️ CRITICAL: Gallery is empty but mainImage exists!`, {
+    // If gallery is empty but we have product image data, something went wrong - log it
+    if (filteredGallery.length === 0 && (product.image || product.image_url || product.main_image)) {
+      console.error(`[WomenSubcategoryPage] ⚠️⚠️⚠️ CRITICAL: Gallery is empty but product has image data!`, {
         productId: product.id,
-        mainImage,
-        mainImageUrl,
-        gallery,
+        productImage: product.image,
+        productImageUrl: product.image_url,
+        productMainImage: product.main_image,
+        originalGallery: gallery,
         filteredGallery
       });
     }
