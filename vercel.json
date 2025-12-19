@@ -5,5 +5,11 @@
   "regions": ["bom1"],
   "env": {
     "NODE_TLS_REJECT_UNAUTHORIZED": "1"
+  },
+  "git": {
+    "deploymentEnabled": {
+      "main": true,
+      "beta": true
+    }
   }
 }
