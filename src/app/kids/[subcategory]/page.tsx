@@ -10,45 +10,75 @@ import DescriptionText from "@/components/DescriptionText";
 // Force dynamic rendering to prevent build-time API calls
 export const dynamic = 'force-dynamic';
 
-// Helper to extract photo session ID (e.g., DSC1234) from image path
+// Helper to extract photo session ID from image path
 function getSessionId(imagePath: string | null | undefined): string | null {
   if (!imagePath || typeof imagePath !== 'string') return null;
-  // Match patterns like __DSC1234 or _DSC1234 in the filename
-  const match = imagePath.match(/_?_?(DSC\d+)/i);
-  return match ? match[1] : null;
+  
+  const filename = imagePath.split('/').pop() || imagePath;
+  
+  const patterns = [
+    /(SONY_ILCE[-_]7RM5[-_]\d+x\d*)/i,
+    /(_DSC\d+)/i,
+    /(file_\d+x\d+_\d+)/i
+  ];
+  
+  for (const pattern of patterns) {
+    const match = filename.match(pattern);
+    if (match) {
+      return match[1].toUpperCase().replace(/-/g, '_');
+    }
+  }
+  return null;
 }
 
-// Build gallery with model images - include AI-generated images from Cloudinary
-function buildMatchingGallery(product: any): string[] {
-  const mainImage = product.image || product.image_url;
-  // Convert main image to URL - fileUrl handles strings, objects, and null
-  const mainImageUrl = mainImage ? fileUrl(mainImage) : null;
-  const mainSessionId = getSessionId(mainImageUrl);
+// Check if two session IDs are from the same photo session
+function isSameSession(sessionId1: string | null, sessionId2: string | null): boolean {
+  if (!sessionId1 || !sessionId2) return false;
+  
+  const norm1 = sessionId1.toUpperCase().replace(/-/g, '_');
+  const norm2 = sessionId2.toUpperCase().replace(/-/g, '_');
+  
+  if (norm1 === norm2) return true;
+  
+  if (norm1.length > 10 && norm2.length > 10) {
+    const base = norm1.substring(0, Math.min(15, norm1.length));
+    if (norm2.includes(base) || norm1.includes(norm2.substring(0, Math.min(15, norm2.length)))) {
+      return true;
+    }
+  }
+  
+  return false;
+}
 
-  // Start with just the main product image (as URL)
+// Build gallery with ONLY matching model images from the same photo session
+// Limits to max 4 images total (1 main + up to 3 model images)
+function buildMatchingGallery(product: any): string[] {
+  const MAX_IMAGES = 4;
+  
+  const mainImage = product.image || product.image_url;
+  const mainImageUrl = mainImage ? fileUrl(mainImage) : null;
+  const mainSessionId = getSessionId(mainImage);
+
   const gallery: string[] = mainImageUrl ? [mainImageUrl] : [];
 
-  // Add model images - check both _url fields (from Directus) and direct relation fields
-  // Either matching session ID or AI-generated (Cloudinary URLs)
-  const modelImages = [
+  const allModelImages = [
     product.model_image_1_url || product.model_image_1,
     product.model_image_2_url || product.model_image_2,
     product.model_image_3_url || product.model_image_3,
   ].filter(Boolean);
 
-  for (const modelImg of modelImages) {
-    // Always pass through fileUrl - it will handle Directus URLs and convert them to proxy
-    // CRITICAL: Don't fall back to Directus URLs - fileUrl must convert them
-    const modelImgUrl = modelImg ? fileUrl(modelImg) : null;
-    if (!modelImgUrl || typeof modelImgUrl !== 'string') continue;
-
-    const modelSessionId = getSessionId(modelImgUrl);
-    // Include if: session IDs match OR it's an AI-generated image (Cloudinary URL)
-    const isCloudinaryImage = modelImgUrl.includes('cloudinary.com');
-    const isMatchingSession = mainSessionId && modelSessionId && mainSessionId === modelSessionId;
-
-    if (isCloudinaryImage || isMatchingSession) {
-      gallery.push(modelImgUrl);
+  for (const modelImg of allModelImages) {
+    if (gallery.length >= MAX_IMAGES) break;
+    
+    const modelSessionId = getSessionId(modelImg);
+    const isCloudinaryImage = typeof modelImg === 'string' && modelImg.includes('cloudinary.com');
+    const matches = isSameSession(mainSessionId, modelSessionId);
+    
+    if (matches || isCloudinaryImage) {
+      const url = fileUrl(modelImg);
+      if (url && !gallery.includes(url)) {
+        gallery.push(url);
+      }
     }
   }
 

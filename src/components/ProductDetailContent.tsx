@@ -101,25 +101,31 @@ const TryOnIcon = () => (
 );
 
 export default function ProductDetailContent({ product }: { product: ProductDetail }) {
-    // Combine main gallery with model images
+    const MAX_GALLERY_IMAGES = 4; // Maximum images to show in gallery
+    
+    // Use gallery directly (already filtered by buildMatchingGallery on server)
+    // Don't add modelImages separately to avoid duplicates
     const combinedGallery = useMemo(() => {
-        const mainImages = (product.gallery && product.gallery.length > 0 ? product.gallery : [product.image]);
-        const modelImgs = product.modelImages || [];
-        // Filter out empty strings and null values - ensure all items are valid non-empty strings
-        const combined = [...mainImages, ...modelImgs].filter((url): url is string => 
-            url !== null && url !== undefined && url !== '' && typeof url === 'string'
-        );
-        console.error(`[ProductDetailContent] Combined gallery construction:`, {
-            productGallery: product.gallery,
-            productImage: product.image,
-            productModelImages: product.modelImages,
-            mainImages,
-            modelImgs,
-            combined,
-            combinedLength: combined.length
+        // Gallery should already contain main image + matching model images (max 4)
+        const galleryImages = product.gallery && product.gallery.length > 0 
+            ? product.gallery 
+            : [product.image].filter(Boolean);
+        
+        // Deduplicate and limit to max images
+        const uniqueImages = Array.from(new Set(galleryImages))
+            .filter((url): url is string => 
+                url !== null && url !== undefined && url !== '' && typeof url === 'string'
+            )
+            .slice(0, MAX_GALLERY_IMAGES);
+        
+        console.error(`[ProductDetailContent] Gallery (max ${MAX_GALLERY_IMAGES}):`, {
+            inputGalleryLength: product.gallery?.length || 0,
+            outputLength: uniqueImages.length,
+            images: uniqueImages
         });
-        return combined;
-    }, [product.gallery, product.image, product.modelImages]);
+        
+        return uniqueImages;
+    }, [product.gallery, product.image]);
 
     const [selectedImageIndex, setSelectedImageIndex] = useState(0);
     // CRITICAL: Use useMemo to ensure selectedImage updates when combinedGallery changes

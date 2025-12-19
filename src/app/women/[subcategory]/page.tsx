@@ -11,89 +11,119 @@ import DescriptionText from "@/components/DescriptionText";
 export const dynamic = 'force-dynamic';
 
 /**
- * Extract photo session ID from image path (e.g., "__DSC4648_Large" from the filename)
- * This helps match model images with the correct product
+ * Extract photo session ID from image path
+ * Matches patterns like: SONY_ILCE-7RM5_6304x4180_000006, _DSC4648_Large, file_1616x1080_00132
  */
 function getSessionId(imagePath: string | null | undefined): string | null {
   if (!imagePath || typeof imagePath !== 'string') return null;
-  // Match patterns like __DSC1234 or _DSC1234
-  const match = imagePath.match(/_?_?(DSC\d+)/i);
-  return match ? match[1] : null;
+  
+  // Get just the filename
+  const filename = imagePath.split('/').pop() || imagePath;
+  
+  // Match various patterns
+  const patterns = [
+    /(SONY_ILCE[-_]7RM5[-_]\d+x\d*)/i,  // SONY_ILCE-7RM5_6304x4180
+    /(_DSC\d+)/i,                         // _DSC4648
+    /(file_\d+x\d+_\d+)/i                 // file_1616x1080_00132
+  ];
+  
+  for (const pattern of patterns) {
+    const match = filename.match(pattern);
+    if (match) {
+      return match[1].toUpperCase().replace(/-/g, '_');
+    }
+  }
+  return null;
 }
 
 /**
- * Build gallery with model images
- * Simply includes all available images for the product
+ * Check if two session IDs are from the same photo session
+ */
+function isSameSession(sessionId1: string | null, sessionId2: string | null): boolean {
+  if (!sessionId1 || !sessionId2) return false;
+  
+  // Normalize for comparison
+  const norm1 = sessionId1.toUpperCase().replace(/-/g, '_');
+  const norm2 = sessionId2.toUpperCase().replace(/-/g, '_');
+  
+  // Direct match
+  if (norm1 === norm2) return true;
+  
+  // Check if they share the same base (e.g., SONY_ILCE_7RM5_6304X matches SONY_ILCE_7RM5_6304X4180_000006)
+  if (norm1.length > 10 && norm2.length > 10) {
+    const base = norm1.substring(0, Math.min(15, norm1.length));
+    if (norm2.includes(base) || norm1.includes(norm2.substring(0, Math.min(15, norm2.length)))) {
+      return true;
+    }
+  }
+  
+  return false;
+}
+
+/**
+ * Build gallery with ONLY matching model images from the same photo session
+ * Limits to max 4 images total (1 main + up to 3 model images)
  */
 function buildMatchingGallery(product: any): string[] {
+  const MAX_IMAGES = 4; // 1 main + 3 model images max
+  
   // Check all possible main image fields
   const mainImage = product.image || product.image_url || product.main_image;
-  // Convert to URLs - fileUrl handles strings, objects, and null
   const mainImageUrl = mainImage ? fileUrl(mainImage) : null;
+  const mainSessionId = getSessionId(mainImage);
 
   console.error(`[buildMatchingGallery] Product ${product.id}:`, {
-    mainImage: mainImage,
-    mainImageType: typeof mainImage,
-    mainImageIsObject: mainImage && typeof mainImage === 'object',
-    mainImageId: mainImage?.id || 'no-id',
-    mainImageUrl: mainImageUrl,
-    mainImageUrlType: typeof mainImageUrl,
-    mainImageUrlIsEmpty: mainImageUrl === '',
-    model_image_1: product.model_image_1,
-    model_image_1_url: product.model_image_1_url,
-    model_image_2: product.model_image_2,
-    model_image_2_url: product.model_image_2_url,
-    model_image_3: product.model_image_3,
-    model_image_3_url: product.model_image_3_url
+    mainImage,
+    mainImageUrl,
+    mainSessionId
   });
-  
-  // CRITICAL: If fileUrl returned null for mainImage, log a warning
-  if (mainImage && !mainImageUrl) {
-    console.error(`[buildMatchingGallery] ⚠️ CRITICAL: fileUrl returned null for mainImage!`, {
-      mainImage,
-      mainImageType: typeof mainImage,
-      mainImageId: mainImage?.id,
-      mainImageData: mainImage?.data
-    });
-  }
 
-  // Check both _url fields (from Directus) and direct relation fields
-  const modelImages = [
+  // Get all model images
+  const allModelImages = [
     product.model_image_1_url || product.model_image_1,
     product.model_image_2_url || product.model_image_2,
     product.model_image_3_url || product.model_image_3,
-  ]
-    .filter(Boolean)
-    .map(img => {
-      // Always pass through fileUrl - it will handle Directus URLs and convert them to proxy
-      // fileUrl also handles Cloudinary URLs, local paths, and Directus IDs
-      // CRITICAL: Don't fall back to Directus URLs - fileUrl must convert them
-      const url = fileUrl(img);
-      console.error(`[buildMatchingGallery] Converting image:`, { input: img, output: url });
-      return url;
-    })
-    .filter((url): url is string => url !== null && url !== '');
+  ].filter(Boolean);
 
-  const gallery: string[] = mainImageUrl ? [mainImageUrl, ...modelImages] : modelImages;
+  // Filter to only include model images from the SAME photo session
+  const matchingModelImages: string[] = [];
+  
+  for (const modelImg of allModelImages) {
+    const modelSessionId = getSessionId(modelImg);
+    const matches = isSameSession(mainSessionId, modelSessionId);
+    
+    console.error(`[buildMatchingGallery] Model image check:`, {
+      modelImg,
+      modelSessionId,
+      mainSessionId,
+      matches
+    });
+    
+    if (matches) {
+      const url = fileUrl(modelImg);
+      if (url && url !== '') {
+        matchingModelImages.push(url);
+      }
+    }
+  }
+
+  // Build gallery: main image + matching model images only (max 4 total)
+  const gallery: string[] = mainImageUrl ? [mainImageUrl] : [];
+  
+  // Add matching model images up to the limit
+  for (const modelUrl of matchingModelImages) {
+    if (gallery.length >= MAX_IMAGES) break;
+    if (!gallery.includes(modelUrl)) {
+      gallery.push(modelUrl);
+    }
+  }
 
   console.error(`[buildMatchingGallery] Final gallery for product ${product.id}:`, {
     gallery,
     galleryLength: gallery.length,
-    galleryItems: gallery.map((url, idx) => ({ index: idx, url, type: typeof url, isEmpty: url === '' })),
-    mainImageUrl,
-    modelImagesLength: modelImages.length,
-    modelImages
+    matchingModelImagesCount: matchingModelImages.length,
+    totalModelImagesCount: allModelImages.length
   });
-  
-  // CRITICAL: If gallery is empty, log a severe warning
-  if (gallery.length === 0) {
-    console.error(`[buildMatchingGallery] ⚠️⚠️⚠️ CRITICAL: Gallery is EMPTY for product ${product.id}!`, {
-      product,
-      mainImage,
-      mainImageUrl,
-      modelImages
-    });
-  }
 
   return gallery;
 }
