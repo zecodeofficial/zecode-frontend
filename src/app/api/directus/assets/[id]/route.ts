@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 const DIRECTUS_URL = process.env.NEXT_PUBLIC_DIRECTUS_URL || 'http://localhost:8055';
-const DIRECTUS_EMAIL = process.env.DIRECTUS_ADMIN_EMAIL || 'zecode@siyaram.com';
-const DIRECTUS_PASSWORD = process.env.DIRECTUS_ADMIN_PASSWORD || "S!Y@rAM's";
+const DIRECTUS_EMAIL = process.env.DIRECTUS_ADMIN_EMAIL;
+const DIRECTUS_PASSWORD = process.env.DIRECTUS_ADMIN_PASSWORD;
 
 // Cache for access token to avoid logging in on every request
 // Note: In serverless environments, this cache may not persist across instances
@@ -11,6 +11,11 @@ let cachedToken: string | null = null;
 let tokenExpiry: number = 0;
 
 async function getAccessToken(): Promise<string> {
+  // Check if credentials are configured
+  if (!DIRECTUS_EMAIL || !DIRECTUS_PASSWORD) {
+    throw new Error('Directus credentials not configured. Set DIRECTUS_ADMIN_EMAIL and DIRECTUS_ADMIN_PASSWORD environment variables.');
+  }
+
   // Return cached token if still valid (with 5 minute buffer)
   if (cachedToken && Date.now() < tokenExpiry - 300000) {
     return cachedToken;

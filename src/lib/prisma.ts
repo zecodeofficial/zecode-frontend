@@ -3,7 +3,12 @@ import { PrismaClient } from '@/generated/prisma';
 import { PrismaPg } from '@prisma/adapter-pg';
 import pg from 'pg';
 
-const connectionString = process.env.DATABASE_URL || 'postgresql://directus:directuspassword@localhost:5432/zecode';
+// DATABASE_URL must be set in environment variables
+const connectionString = process.env.DATABASE_URL;
+
+if (!connectionString) {
+  throw new Error('DATABASE_URL environment variable is not set');
+}
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;

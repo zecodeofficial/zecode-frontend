@@ -80,8 +80,18 @@ junction-check.txt
 me-check.txt
 login.json
 
-# Temporary migration scripts (not for production)
+# Temporary migration/debug scripts (not for production)
 force-public-role.mjs
+scripts/debug-*.js
+scripts/debug-*.mjs
+scripts/inspect-*.mjs
+scripts/check-*.mjs
+scripts/dump-*.mjs
+scripts/fix-admin-*.mjs
+scripts/patch-*.mjs
+scripts/list-users.mjs
+scripts/migrate-main-image.mjs
+
 /ZECODE - Your New Fashion Code*
 *.zip
 *.bak
