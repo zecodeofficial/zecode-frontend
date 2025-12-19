@@ -105,6 +105,17 @@ const nextConfig: NextConfig = {
         hostname: "res.cloudinary.com",
         pathname: "/ds8llatku/**",
       },
+      // Allow our own domain for proxy routes (needed for Directus asset proxy)
+      {
+        protocol: "https",
+        hostname: "zecode-frontend.vercel.app",
+        pathname: "/api/directus/assets/**",
+      },
+      {
+        protocol: "https",
+        hostname: "*.vercel.app",
+        pathname: "/api/directus/assets/**",
+      },
     ],
   },
 
