@@ -53,129 +53,61 @@ async function getAccessToken(): Promise<string> {
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const searchParams = request.nextUrl.searchParams;
   
-  // Extract all query parameters to pass through to Directus
-  const directusParams = new URLSearchParams();
-  searchParams.forEach((value, key) => {
-    directusParams.set(key, value);
-  });
-
   try {
     // Get authenticated token
     const token = await getAccessToken();
 
-    // Build asset URL with all query parameters
-    let assetUrl = `${DIRECTUS_URL}/assets/${id}`;
-    if (directusParams.toString()) {
-      assetUrl += `?${directusParams.toString()}`;
-    }
-
-    // Fetch asset with authentication
-    const response = await fetch(assetUrl, {
+    // WORKAROUND: Directus /assets/ endpoint has a bug where it returns JSON (file metadata)
+    // instead of the actual image, even with authentication. Skip it and use /files/{id}?download directly.
+    // Get file metadata first to get the correct content type
+    const fileResponse = await fetch(`${DIRECTUS_URL}/files/${id}`, {
       headers: {
         'Authorization': `Bearer ${token}`
       },
-      // Don't cache the fetch, let Next.js handle caching
       cache: 'no-store'
     });
-
-    // CRITICAL: Check if response is actually an image
-    // Directus /assets/ endpoint sometimes returns JSON (file metadata) even with 200 status
-    // Even when Content-Type says "image/png", the body might be JSON
-    // We need to peek at the response body to detect JSON
-    const contentType = response.headers.get('content-type') || '';
-    const isImageContentType = contentType.startsWith('image/');
     
-    // Peek at the response body to check if it's actually JSON
-    // Clone the response so we can read it without consuming the stream
-    const responseClone = response.clone();
-    const text = await responseClone.text();
-    const isJSON = text.trim().startsWith('{') || text.trim().startsWith('[');
-    const isActuallyImage = isImageContentType && !isJSON;
-    
-    // If not ok OR if it's not actually an image (JSON detected), use fallback
-    if (!response.ok || !isActuallyImage) {
-      // Try alternative approach: use /files/{id}?download endpoint
-      try {
-        // Get file metadata first to get the correct content type
-        const fileResponse = await fetch(`${DIRECTUS_URL}/files/${id}`, {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        });
-        
-        if (fileResponse.ok) {
-          const fileData = await fileResponse.json();
-          const file = fileData.data;
-          
-          if (file) {
-            // Use the files endpoint with download parameter
-            const downloadResponse = await fetch(`${DIRECTUS_URL}/files/${id}?download`, {
-              headers: {
-                'Authorization': `Bearer ${token}`
-              },
-              cache: 'no-store'
-            });
-            
-            if (downloadResponse.ok) {
-              const blob = await downloadResponse.blob();
-              const headers = new Headers();
-              headers.set('Content-Type', file.type || 'application/octet-stream');
-              const contentLength = downloadResponse.headers.get('content-length');
-              if (contentLength) headers.set('Content-Length', contentLength);
-              headers.set('Cache-Control', 'public, max-age=86400, stale-while-revalidate=172800');
-              
-              return new NextResponse(blob, {
-                status: 200,
-                headers,
-              });
-            }
-            
-            // If download also fails, log the issue
-            console.error(`Asset access blocked for file ${id} (exists: ${!!file}, storage: ${file.storage}, downloadStatus: ${downloadResponse.status})`);
-          }
-        }
-      } catch (e) {
-        console.error('Fallback asset fetch failed:', e);
-      }
-      
-      // If we get here, both methods failed
+    if (!fileResponse.ok) {
       return new NextResponse(
-        `Asset access error: ${response.status} ${response.statusText} (content-type: ${contentType}, isJSON: ${isJSON})`,
-        { status: response.status || 500 }
+        `File not found: ${fileResponse.status} ${fileResponse.statusText}`,
+        { status: fileResponse.status }
       );
     }
-
-    // Response is ok and is actually an image - return it
-    // Use the text we already read, but convert it to blob if it's not JSON
-    // Actually, we already consumed the stream, so we need to fetch again or use the text
-    // Better approach: if we detected JSON, we should have used fallback above
-    // So if we're here, it's actually an image - but we consumed the stream
-    // Let's fetch again since we know it's an image now
-    const imageResponse = await fetch(assetUrl, {
+    
+    const fileData = await fileResponse.json();
+    const file = fileData.data;
+    
+    if (!file) {
+      return new NextResponse(
+        `File metadata not found for ID: ${id}`,
+        { status: 404 }
+      );
+    }
+    
+    // Use the files endpoint with download parameter to get the actual image
+    const downloadResponse = await fetch(`${DIRECTUS_URL}/files/${id}?download`, {
       headers: {
         'Authorization': `Bearer ${token}`
       },
       cache: 'no-store'
     });
     
-    const blob = await imageResponse.blob();
-    const headers = new Headers();
-
-    // Copy important headers from Directus response
-    if (contentType) {
-      headers.set('Content-Type', contentType);
+    if (!downloadResponse.ok) {
+      console.error(`Failed to download file ${id}: ${downloadResponse.status} ${downloadResponse.statusText}`);
+      return new NextResponse(
+        `Failed to download file: ${downloadResponse.status} ${downloadResponse.statusText}`,
+        { status: downloadResponse.status }
+      );
     }
     
-    const contentLength = response.headers.get('content-length');
-    if (contentLength) {
-      headers.set('Content-Length', contentLength);
-    }
-
-    // Set cache headers for images (24 hours)
+    const blob = await downloadResponse.blob();
+    const headers = new Headers();
+    headers.set('Content-Type', file.type || 'application/octet-stream');
+    const contentLength = downloadResponse.headers.get('content-length');
+    if (contentLength) headers.set('Content-Length', contentLength);
     headers.set('Cache-Control', 'public, max-age=86400, stale-while-revalidate=172800');
-
+    
     return new NextResponse(blob, {
       status: 200,
       headers,
