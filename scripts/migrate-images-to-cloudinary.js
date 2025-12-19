@@ -12,6 +12,9 @@
  * Usage: node scripts/migrate-images-to-cloudinary.js
  */
 
+// Load environment variables from .env.local
+require('dotenv').config({ path: require('path').join(__dirname, '..', '.env.local') });
+
 // Disable SSL certificate verification (needed for some environments)
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
