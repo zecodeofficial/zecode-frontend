@@ -22,18 +22,24 @@ function getSessionId(imagePath: string | null | undefined): string | null {
 function buildMatchingGallery(product: any): string[] {
   const mainImage = product.image || product.image_url;
   // Convert main image to URL - fileUrl handles strings, objects, and null
-  const mainImageUrl = mainImage ? (fileUrl(mainImage) || (typeof mainImage === 'string' && mainImage.startsWith('http') ? mainImage : null)) : null;
+  const mainImageUrl = mainImage ? fileUrl(mainImage) : null;
   const mainSessionId = getSessionId(mainImageUrl);
 
   // Start with just the main product image (as URL)
   const gallery: string[] = mainImageUrl ? [mainImageUrl] : [];
 
-  // Add model images - either matching session ID or AI-generated (Cloudinary URLs)
-  const modelImages = [product.model_image_1, product.model_image_2, product.model_image_3].filter(Boolean);
+  // Add model images - check both _url fields (from Directus) and direct relation fields
+  // Either matching session ID or AI-generated (Cloudinary URLs)
+  const modelImages = [
+    product.model_image_1_url || product.model_image_1,
+    product.model_image_2_url || product.model_image_2,
+    product.model_image_3_url || product.model_image_3,
+  ].filter(Boolean);
 
   for (const modelImg of modelImages) {
-    // Convert UUID/object to URL - fileUrl handles strings, objects, and null
-    const modelImgUrl = modelImg ? (fileUrl(modelImg) || (typeof modelImg === 'string' && modelImg.startsWith('http') ? modelImg : null)) : null;
+    // Always pass through fileUrl - it will handle Directus URLs and convert them to proxy
+    // CRITICAL: Don't fall back to Directus URLs - fileUrl must convert them
+    const modelImgUrl = modelImg ? fileUrl(modelImg) : null;
     if (!modelImgUrl || typeof modelImgUrl !== 'string') continue;
 
     const modelSessionId = getSessionId(modelImgUrl);

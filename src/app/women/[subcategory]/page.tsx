@@ -28,21 +28,22 @@ function getSessionId(imagePath: string | null | undefined): string | null {
 function buildMatchingGallery(product: any): string[] {
   const mainImage = product.image || product.image_url;
   // Convert to URLs - fileUrl handles strings, objects, and null
-  const mainImageUrl = mainImage ? (fileUrl(mainImage) || (typeof mainImage === 'string' ? mainImage : null)) : null;
+  const mainImageUrl = mainImage ? fileUrl(mainImage) : null;
 
+  // Check both _url fields (from Directus) and direct relation fields
   const modelImages = [
-    product.model_image_1,
-    product.model_image_2,
-    product.model_image_3,
+    product.model_image_1_url || product.model_image_1,
+    product.model_image_2_url || product.model_image_2,
+    product.model_image_3_url || product.model_image_3,
   ]
     .filter(Boolean)
     .map(img => {
-      // fileUrl handles strings, objects (with id field), and null
-      const url = fileUrl(img);
-      // If fileUrl returns null, try using the value directly if it's a string URL
-      return url || (typeof img === 'string' && img.startsWith('http') ? img : null);
+      // Always pass through fileUrl - it will handle Directus URLs and convert them to proxy
+      // fileUrl also handles Cloudinary URLs, local paths, and Directus IDs
+      // CRITICAL: Don't fall back to Directus URLs - fileUrl must convert them
+      return fileUrl(img);
     })
-    .filter((url): url is string => url !== null);
+    .filter((url): url is string => url !== null && url !== '');
 
   const gallery: string[] = mainImageUrl ? [mainImageUrl, ...modelImages] : modelImages;
 
@@ -252,8 +253,9 @@ export default async function WomenSubcategoryPage({ params }: PageProps) {
       categoryLabel: subcategoryTitle,        // Display title like "Dresses"
       price: product.price,
       originalPrice: product.sale_price,
-      image: fileUrl(gallery[0]) || '',
-      gallery: gallery.map(img => fileUrl(img) || ''),
+      // Gallery already contains converted URLs from buildMatchingGallery, don't process again
+      image: gallery[0] || '',
+      gallery: gallery.filter((url): url is string => url !== null && url !== ''),
       modelImages: modelImages, // Pass model images explicitly
       description: product.description || '',
       sizes: product.sizes || [],
