@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { fileUrl, fetchProductCounts } from '@/lib/directus';
+import { fileUrl, fetchProductCounts, getProductPlaceholderUrl } from '@/lib/directus';
 
 // Map from URL slug to CMS subcategory values
 const SUBCATEGORY_TO_CMS: Record<string, string> = {
