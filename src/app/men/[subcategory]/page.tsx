@@ -210,11 +210,8 @@ export default async function MenSubcategoryPage({ params }: PageProps) {
     ]
       .filter(Boolean)
       .map(img => {
-        // If it's already a URL string (from _url field), use it directly
-        // Otherwise pass to fileUrl to handle Directus ID/Object
-        if (typeof img === 'string' && (img.startsWith('http') || img.startsWith('/'))) {
-          return img;
-        }
+        // Always pass through fileUrl - it will handle Directus URLs and convert them to proxy
+        // fileUrl also handles Cloudinary URLs, local paths, and Directus IDs
         return fileUrl(img);
       })
       .filter((url): url is string => url !== null);

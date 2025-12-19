@@ -167,8 +167,21 @@ export function fileUrl(file: any) {
   const id = typeof file === "string" ? file : (file?.id ?? file?.data?.id);
   if (!id) return null;
 
-  // If it's already a full URL (http/https), return as is
+  // If it's already a full URL (http/https), check if it's a Directus URL
   if (typeof id === 'string' && id.startsWith('http')) {
+    // Check if it's a Directus files/assets URL - extract the file ID and use proxy
+    const directusFilesMatch = id.match(/\/files\/([a-f0-9-]{36})/i);
+    const directusAssetsMatch = id.match(/\/assets\/([a-f0-9-]{36})/i);
+    
+    if (directusFilesMatch || directusAssetsMatch) {
+      const fileId = directusFilesMatch?.[1] || directusAssetsMatch?.[1];
+      if (fileId) {
+        // Convert Directus URL to use our proxy
+        return `/api/directus/assets/${fileId}`;
+      }
+    }
+    
+    // If it's not a Directus URL (e.g., Cloudinary), return as is
     return id;
   }
 
@@ -191,14 +204,10 @@ export function fileUrl(file: any) {
   }
 
   // Otherwise treat as Directus asset ID (UUID)
-  // Use Cloudinary Fetch to proxy and optimize Directus images
-  // Format: https://res.cloudinary.com/<cloud_name>/image/fetch/<options>/<remote_url>
-  // Add a cache buster or version to force Cloudinary to re-fetch after permission fix
-  const directusUrl = `${DIRECTUS}/files/${id}`;
-  // TEMPORARY FIX: Bypass Cloudinary entirely because it is failing to fetch from Directus (403/Timeout)
-  // Return the direct Directus URL which is confirmed working (200 OK)
-  return directusUrl;
-  // return `${CLOUDINARY_BASE_URL.replace('/upload', '/fetch')}/f_auto,q_auto/${directusUrl}`;
+  // WORKAROUND: Use Next.js API proxy to bypass Directus assets endpoint 403 bug
+  // The proxy authenticates server-side and fetches the asset
+  // Always use relative path - Next.js will resolve it correctly
+  return `/api/directus/assets/${id}`;
 }
 
 /**
@@ -377,6 +386,7 @@ export type Product = {
   sale_price?: number;
   image?: string;
   image_url?: string;
+  main_image?: string;
   model_image_1?: string;
   model_image_2?: string;
   model_image_3?: string;
@@ -461,6 +471,7 @@ async function _fetchProductsByCategory(categorySlug: string): Promise<Product[]
         sort: "sort,name",
         "filter[category][_eq]": categorySlug,
         "filter[status][_eq]": "published",
+        fields: "*,main_image",
         limit: -1,
       },
       timeout: TIMEOUT_DEFAULT,
@@ -493,6 +504,7 @@ async function _fetchProductsByGender(gender: string): Promise<Product[] | null>
         sort: "sort,name",
         "filter[gender_category][_istarts_with]": gender, // Matches "Women", "Women's", etc.
         "filter[status][_eq]": "published",
+        fields: "*,main_image",
         limit: -1,
       },
       timeout: TIMEOUT_DEFAULT,
@@ -555,6 +567,7 @@ async function _fetchProductsByGenderAndSubcategory(gender: string | null, subca
       params: {
         sort: "sort,name",
         filter: JSON.stringify(filter),
+        fields: "*,main_image",
       },
       timeout: TIMEOUT_DEFAULT,
     });
@@ -605,7 +618,7 @@ async function _fetchProductBySlug(slug: string): Promise<Product | null> {
     const res = await axios.get(url, {
       params: {
         "filter[slug][_eq]": slug,
-        fields: "*,*.*,model_image_1_url,model_image_2_url,model_image_3_url", // Fetch relations deep + URL fields explicitly
+        fields: "*,*.*,main_image,model_image_1_url,model_image_2_url,model_image_3_url", // Fetch relations deep + URL fields explicitly
         limit: 1,
         _t: cacheBuster // Cache buster
       },
