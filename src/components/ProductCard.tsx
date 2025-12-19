@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { fileUrl, type Product } from "@/lib/directus";
+import { fileUrl, isProxyRoute, type Product } from "@/lib/directus";
 
 interface ProductCardProps {
     product: Product;
@@ -9,6 +9,7 @@ interface ProductCardProps {
 
 export default function ProductCard({ product, priority = false }: ProductCardProps) {
     const imageUrl = fileUrl(product.image || product.image_url) || "/placeholders/product-placeholder.png";
+    const needsUnoptimized = isProxyRoute(imageUrl);
     
     const genderPath = product.gender_category ? product.gender_category.toLowerCase() : 'product';
     
@@ -25,6 +26,7 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
                     className="transition-opacity duration-300 group-hover:opacity-90"
                     priority={priority}
                     loading={priority ? "eager" : "lazy"}
+                    unoptimized={needsUnoptimized}
                 />
                 {/* Hover overlay */}
                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300"></div>

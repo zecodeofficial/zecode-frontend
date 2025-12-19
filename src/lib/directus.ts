@@ -162,18 +162,11 @@ function getCloudinaryUrl(localPath: string): string {
 
 
 /**
- * Get the base URL for the current environment
- * Returns absolute URL for proxy routes (needed for Next.js Image optimization)
+ * Check if a URL is a proxy route (needs unoptimized prop in Next.js Image)
  */
-function getBaseUrl(): string {
-  // Server-side: use environment variable or default
-  if (typeof window === 'undefined') {
-    return process.env.NEXT_PUBLIC_VERCEL_URL 
-      ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}`
-      : process.env.NEXT_PUBLIC_SITE_URL || 'https://zecode-frontend.vercel.app';
-  }
-  // Client-side: use current origin
-  return window.location.origin;
+export function isProxyRoute(url: string | null): boolean {
+  if (!url) return false;
+  return typeof url === 'string' && url.startsWith('/api/directus/assets/');
 }
 
 /** fileUrl helper */
@@ -191,9 +184,10 @@ export function fileUrl(file: any) {
     if (directusFilesMatch || directusAssetsMatch) {
       const fileId = directusFilesMatch?.[1] || directusAssetsMatch?.[1];
       if (fileId) {
-        // Convert Directus URL to use our proxy with absolute URL
-        // Next.js Image optimization requires absolute URLs for same-origin requests
-        return `${getBaseUrl()}/api/directus/assets/${fileId}`;
+        // Convert Directus URL to use our proxy with relative path
+        // Next.js Image optimization doesn't support same-origin API routes,
+        // so we'll use unoptimized prop for these images
+        return `/api/directus/assets/${fileId}`;
       }
     }
     
@@ -222,8 +216,8 @@ export function fileUrl(file: any) {
   // Otherwise treat as Directus asset ID (UUID)
   // WORKAROUND: Use Next.js API proxy to bypass Directus assets endpoint 403 bug
   // The proxy authenticates server-side and fetches the asset
-  // Use absolute URL for Next.js Image optimization compatibility
-  return `${getBaseUrl()}/api/directus/assets/${id}`;
+  // Use relative path - Next.js Image will need unoptimized prop for these
+  return `/api/directus/assets/${id}`;
 }
 
 /**

@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { fileUrl } from "@/lib/directus"; // use absolute alias from src/
+import { fileUrl, isProxyRoute } from "@/lib/directus"; // use absolute alias from src/
 
 export default function SiteImage({
   file,
@@ -19,6 +19,7 @@ export default function SiteImage({
   // ensure src is a string URL (Image requires a string or static import)
   const computed = file ? fileUrl(file) : null;
   const src = computed || placeholder;
+  const needsUnoptimized = isProxyRoute(src);
 
   return (
     <Image
@@ -28,6 +29,7 @@ export default function SiteImage({
       height={height}
       className="object-cover w-full"
       priority={false}
+      unoptimized={needsUnoptimized}
     />
   );
 }

@@ -6,6 +6,7 @@ import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import Breadcrumb from './Breadcrumb';
 import { detectGarmentType, isGarmentTypeSupported } from '@/types/virtual-try-on';
+import { isProxyRoute } from '@/lib/directus';
 
 // Dynamically import VirtualTryOn to avoid SSR issues with MediaPipe
 const VirtualTryOn = dynamic(() => import('./VirtualTryOn'), {
@@ -197,6 +198,7 @@ export default function ProductDetailContent({ product }: { product: ProductDeta
                                 priority
                                 sizes="(max-width: 1024px) 100vw, 500px"
                                 className="object-contain"
+                                unoptimized={isProxyRoute(selectedImage)}
                                 onError={(e) => {
                                     // If image fails to load, try placeholder
                                     const target = e.target as HTMLImageElement;
@@ -231,6 +233,7 @@ export default function ProductDetailContent({ product }: { product: ProductDeta
                                             fill
                                             sizes="60px"
                                             className="object-cover"
+                                            unoptimized={isProxyRoute(imageSrc)}
                                             onError={(e) => {
                                                 // If image fails to load, try placeholder
                                                 const target = e.target as HTMLImageElement;
