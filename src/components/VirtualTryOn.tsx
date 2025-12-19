@@ -99,6 +99,11 @@ export default function VirtualTryOn({
   const [aiProcessing, setAiProcessing] = useState<boolean>(false);
   const [aiResultImage, setAiResultImage] = useState<string | null>(null);
   const [aiError, setAiError] = useState<string | null>(null);
+  
+  // Progress tracking for AI processing
+  const [aiProgress, setAiProgress] = useState<number>(0);
+  const [aiStage, setAiStage] = useState<string>('');
+  const aiProgressIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const [state, setState] = useState<VTOState>({
     mode: 'webcam',
@@ -365,12 +370,69 @@ export default function VirtualTryOn({
   // Store captured selfie image for processing
   const capturedSelfieRef = useRef<HTMLImageElement | null>(null);
 
+  // Start progress animation for AI processing
+  const startProgressAnimation = useCallback(() => {
+    setAiProgress(0);
+    setAiStage('Analyzing your photo...');
+    
+    const stages = [
+      { progress: 15, stage: 'Analyzing your photo...', time: 1500 },
+      { progress: 30, stage: 'Detecting body pose...', time: 3000 },
+      { progress: 45, stage: 'Preparing garment overlay...', time: 5000 },
+      { progress: 60, stage: 'AI is fitting the garment...', time: 8000 },
+      { progress: 75, stage: 'Rendering try-on result...', time: 12000 },
+      { progress: 85, stage: 'Finalizing image...', time: 18000 },
+      { progress: 92, stage: 'Almost there...', time: 25000 },
+    ];
+    
+    let currentIndex = 0;
+    const startTime = Date.now();
+    
+    aiProgressIntervalRef.current = setInterval(() => {
+      const elapsed = Date.now() - startTime;
+      
+      // Find the appropriate stage based on elapsed time
+      while (currentIndex < stages.length && elapsed >= stages[currentIndex].time) {
+        currentIndex++;
+      }
+      
+      if (currentIndex < stages.length) {
+        const current = stages[currentIndex];
+        const prev = currentIndex > 0 ? stages[currentIndex - 1] : { progress: 0, time: 0 };
+        
+        // Interpolate progress between stages
+        const stageProgress = (elapsed - prev.time) / (current.time - prev.time);
+        const interpolatedProgress = prev.progress + (current.progress - prev.progress) * Math.min(stageProgress, 1);
+        
+        setAiProgress(Math.round(interpolatedProgress));
+        setAiStage(current.stage);
+      } else {
+        // Beyond all stages, slowly approach 95%
+        setAiProgress(prev => Math.min(prev + 0.5, 95));
+        setAiStage('Almost there...');
+      }
+    }, 200);
+  }, []);
+
+  // Stop progress animation
+  const stopProgressAnimation = useCallback((success: boolean) => {
+    if (aiProgressIntervalRef.current) {
+      clearInterval(aiProgressIntervalRef.current);
+      aiProgressIntervalRef.current = null;
+    }
+    if (success) {
+      setAiProgress(100);
+      setAiStage('Complete!');
+    }
+  }, []);
+
   // Process image with Gemini AI
   const processWithGeminiAI = useCallback(async (userImageDataUrl: string) => {
     console.log('[VTO Gemini] Starting AI try-on processing...');
     setAiProcessing(true);
     setAiError(null);
     setAiResultImage(null);
+    startProgressAnimation();
 
     try {
       // Resize user image to reduce API payload
@@ -399,15 +461,18 @@ export default function VirtualTryOn({
 
       if (result.success && result.image) {
         console.log('[VTO Gemini] Success! Generated image received');
+        stopProgressAnimation(true);
         setAiResultImage(result.image);
         setState(s => ({ ...s, status: 'ready' }));
       } else {
         console.error('[VTO Gemini] API returned error:', result.error);
+        stopProgressAnimation(false);
         setAiError(result.error || 'Failed to generate try-on image');
         setState(s => ({ ...s, status: 'error', errorMessage: result.error || 'AI processing failed' }));
       }
     } catch (error) {
       console.error('[VTO Gemini] Error:', error);
+      stopProgressAnimation(false);
       setAiError(String(error));
       setState(s => ({ ...s, status: 'error', errorMessage: 'AI processing failed. Please try again.' }));
     } finally {
@@ -1060,13 +1125,37 @@ export default function VirtualTryOn({
             {/* AI Processing Indicator */}
             {aiProcessing && (
               <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/80 z-40">
-                <div className="px-8 py-6 rounded-xl backdrop-blur-sm bg-black/70 text-center">
-                  <div className="flex justify-center mb-4">
-                    <SpinnerIcon />
+                <div className="px-8 py-8 rounded-xl backdrop-blur-sm bg-black/70 text-center min-w-[320px]">
+                  {/* Animated scanning effect */}
+                  <div className="relative w-24 h-24 mx-auto mb-6">
+                    <div className="absolute inset-0 rounded-full border-4 border-purple-500/30"></div>
+                    <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-purple-500 animate-spin"></div>
+                    <div className="absolute inset-2 rounded-full border-4 border-transparent border-t-blue-500 animate-spin" style={{ animationDuration: '1.5s', animationDirection: 'reverse' }}></div>
+                    <div className="absolute inset-4 rounded-full border-4 border-transparent border-t-cyan-500 animate-spin" style={{ animationDuration: '2s' }}></div>
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <span className="text-2xl">✨</span>
+                    </div>
                   </div>
-                  <p className="text-white font-medium text-lg">✨ AI Try-On in Progress</p>
-                  <p className="mt-2 text-gray-300 text-sm">Gemini is generating your try-on image...</p>
-                  <p className="mt-1 text-gray-400 text-xs">This may take 10-30 seconds</p>
+                  
+                  <p className="text-white font-semibold text-lg mb-1">AI Virtual Try-On</p>
+                  <p className="text-purple-300 text-sm mb-4">{aiStage}</p>
+                  
+                  {/* Progress bar */}
+                  <div className="w-full bg-gray-700 rounded-full h-3 mb-2 overflow-hidden">
+                    <div 
+                      className="h-full rounded-full bg-gradient-to-r from-purple-500 via-blue-500 to-cyan-500 transition-all duration-300 ease-out"
+                      style={{ width: `${aiProgress}%` }}
+                    >
+                      <div className="w-full h-full bg-gradient-to-r from-transparent via-white/30 to-transparent animate-pulse"></div>
+                    </div>
+                  </div>
+                  
+                  <div className="flex justify-between text-xs text-gray-400 mb-4">
+                    <span>{aiProgress}%</span>
+                    <span>~{Math.max(5, Math.round((100 - aiProgress) / 4))}s remaining</span>
+                  </div>
+                  
+                  <p className="text-gray-500 text-xs">Powered by Gemini AI</p>
                 </div>
               </div>
             )}
