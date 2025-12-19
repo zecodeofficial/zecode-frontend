@@ -295,16 +295,17 @@ export default async function WomenSubcategoryPage({ params }: PageProps) {
     const subcategoryTitle = getSubcategoryTitle(product.subcategory);
 
     // Debug logging to diagnose image issues
+    const productImage = product.image as any; // Type assertion needed because Product type has image as string, but Directus returns object
     console.error(`[WomenSubcategoryPage] Product ${product.id} - Gallery:`, {
       galleryLength: gallery.length,
       gallery: gallery,
       galleryItems: gallery.map((url, idx) => ({ index: idx, url, type: typeof url, isEmpty: url === '' })),
       modelImagesLength: modelImages.length,
       modelImages: modelImages,
-      productImage: product.image,
-      productImageType: typeof product.image,
-      productImageIsObject: product.image && typeof product.image === 'object',
-      productImageId: product.image?.id || 'no-id',
+      productImage: productImage,
+      productImageType: typeof productImage,
+      productImageIsObject: productImage && typeof productImage === 'object',
+      productImageId: (productImage && typeof productImage === 'object' ? productImage.id : null) || 'no-id',
       productImageUrl: product.image_url,
       modelImage1: product.model_image_1,
       modelImage1Url: product.model_image_1_url
