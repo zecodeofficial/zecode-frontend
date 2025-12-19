@@ -82,11 +82,20 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
     // CRITICAL: Check if response is actually an image
     // Directus /assets/ endpoint sometimes returns JSON (file metadata) even with 200 status
+    // Even when Content-Type says "image/png", the body might be JSON
+    // We need to peek at the response body to detect JSON
     const contentType = response.headers.get('content-type') || '';
-    const isImage = contentType.startsWith('image/');
+    const isImageContentType = contentType.startsWith('image/');
     
-    // If not ok OR if it's not an image (likely JSON metadata), use fallback
-    if (!response.ok || !isImage) {
+    // Peek at the response body to check if it's actually JSON
+    // Clone the response so we can read it without consuming the stream
+    const responseClone = response.clone();
+    const text = await responseClone.text();
+    const isJSON = text.trim().startsWith('{') || text.trim().startsWith('[');
+    const isActuallyImage = isImageContentType && !isJSON;
+    
+    // If not ok OR if it's not actually an image (JSON detected), use fallback
+    if (!response.ok || !isActuallyImage) {
       // Try alternative approach: use /files/{id}?download endpoint
       try {
         // Get file metadata first to get the correct content type
@@ -133,13 +142,25 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       
       // If we get here, both methods failed
       return new NextResponse(
-        `Asset access error: ${response.status} ${response.statusText} (content-type: ${contentType})`,
+        `Asset access error: ${response.status} ${response.statusText} (content-type: ${contentType}, isJSON: ${isJSON})`,
         { status: response.status || 500 }
       );
     }
 
-    // Response is ok and is an image - return it
-    const blob = await response.blob();
+    // Response is ok and is actually an image - return it
+    // Use the text we already read, but convert it to blob if it's not JSON
+    // Actually, we already consumed the stream, so we need to fetch again or use the text
+    // Better approach: if we detected JSON, we should have used fallback above
+    // So if we're here, it's actually an image - but we consumed the stream
+    // Let's fetch again since we know it's an image now
+    const imageResponse = await fetch(assetUrl, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      },
+      cache: 'no-store'
+    });
+    
+    const blob = await imageResponse.blob();
     const headers = new Headers();
 
     // Copy important headers from Directus response
