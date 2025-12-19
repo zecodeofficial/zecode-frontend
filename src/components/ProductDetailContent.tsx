@@ -238,10 +238,17 @@ export default function ProductDetailContent({ product }: { product: ProductDeta
                                 priority
                                 sizes="(max-width: 1024px) 100vw, 500px"
                                 className="object-contain"
-                                unoptimized={isProxyRoute(selectedImage)}
+                                unoptimized={isProxyRoute(selectedImage || '')}
                                 onError={(e) => {
-                                    // If image fails to load, try placeholder
+                                    // Log error for debugging
                                     const target = e.target as HTMLImageElement;
+                                    console.error(`[ProductDetailContent] Image load error:`, {
+                                        attemptedSrc: target.src,
+                                        selectedImage: selectedImage,
+                                        combinedGallery: combinedGallery,
+                                        selectedImageIndex: selectedImageIndex
+                                    });
+                                    // If image fails to load, try placeholder
                                     if (target.src !== '/placeholders/product-placeholder.png') {
                                         target.src = '/placeholders/product-placeholder.png';
                                     }
