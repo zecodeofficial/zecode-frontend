@@ -310,6 +310,22 @@ export default async function WomenSubcategoryPage({ params }: PageProps) {
       modelImage1Url: product.model_image_1_url
     });
 
+    // CRITICAL: Ensure gallery is never empty if we have a valid image
+    // If gallery is empty but we have a main image, add it to the gallery
+    const filteredGallery = gallery.filter((url): url is string => url !== null && url !== '' && typeof url === 'string');
+    const finalImage = (filteredGallery.length > 0 && filteredGallery[0]) ? filteredGallery[0] : '';
+    
+    // If we have a main image but gallery is empty, something went wrong - log it
+    if (mainImage && filteredGallery.length === 0) {
+      console.error(`[WomenSubcategoryPage] ⚠️⚠️⚠️ CRITICAL: Gallery is empty but mainImage exists!`, {
+        productId: product.id,
+        mainImage,
+        mainImageUrl,
+        gallery,
+        filteredGallery
+      });
+    }
+
     const productDetail = {
       id: product.id,
       name: product.name,
@@ -319,8 +335,8 @@ export default async function WomenSubcategoryPage({ params }: PageProps) {
       originalPrice: product.sale_price,
       // Gallery already contains converted URLs from buildMatchingGallery, don't process again
       // CRITICAL: Ensure we have a valid image URL, not an empty string
-      image: (gallery.length > 0 && gallery[0]) ? gallery[0] : '',
-      gallery: gallery.filter((url): url is string => url !== null && url !== '' && typeof url === 'string'),
+      image: finalImage,
+      gallery: filteredGallery.length > 0 ? filteredGallery : (finalImage ? [finalImage] : []),
       modelImages: modelImages, // Pass model images explicitly
       description: product.description || '',
       sizes: product.sizes || [],
