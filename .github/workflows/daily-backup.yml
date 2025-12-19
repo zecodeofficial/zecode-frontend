@@ -1,0 +1,46 @@
+name: Daily Product Backup
+
+on:
+  schedule:
+    # Run daily at 2:00 AM IST (8:30 PM UTC previous day)
+    - cron: '30 20 * * *'
+  workflow_dispatch:
+    # Allow manual trigger
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Create backup
+        env:
+          NODE_TLS_REJECT_UNAUTHORIZED: '0'
+        run: node scripts/backup-products.js
+
+      - name: Check for changes
+        id: check_changes
+        run: |
+          git add data/
+          if git diff --cached --quiet; then
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+          else
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Commit and push backup
+        if: steps.check_changes.outputs.has_changes == 'true'
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git commit -m "📦 Daily product backup - $(date +'%Y-%m-%d')"
+          git push
