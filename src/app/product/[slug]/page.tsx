@@ -171,8 +171,13 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             }
 
             if (modelUrlsFromFields.length > 0) {
-                console.error(`[Product ${p.id}] ⚠️⚠️⚠️ DIRECT ADD: Found ${modelUrlsFromFields.length} model image URLs, adding directly to gallery`);
-                galleryRaw.push(...modelUrlsFromFields);
+                console.error(`[Product ${p.id}] ⚠️⚠️⚠️ DIRECT ADD: Found ${modelUrlsFromFields.length} model image URLs, converting through fileUrl() before adding to gallery`);
+                // CRITICAL: Pass all URLs through fileUrl() to convert Directus URLs to proxy routes
+                const convertedUrls = modelUrlsFromFields
+                    .map(url => fileUrl(url))
+                    .filter((url): url is string => typeof url === 'string' && url !== null);
+                console.error(`[Product ${p.id}] ⚠️ Converted ${convertedUrls.length} URLs (from ${modelUrlsFromFields.length} original)`);
+                galleryRaw.push(...convertedUrls);
             } else {
                 console.error(`[Product ${p.id}] ⚠️⚠️⚠️ WARNING: No model image URLs found in _url fields!`);
             }
@@ -465,9 +470,13 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
                     ].filter((url): url is string => typeof url === 'string' && url.length > 0);
 
                     if (modelUrls.length > 0) {
-                        console.error(`[Product ${p.id}] ⚠️⚠️⚠️ Found ${modelUrls.length} model image URLs in _url fields, rebuilding gallery...`);
-                        finalGalleryArray = [finalImage, ...modelUrls].filter(Boolean);
-                        console.error(`[Product ${p.id}] ⚠️⚠️⚠️ Rebuilt gallery now has ${finalGalleryArray.length} images`);
+                        console.error(`[Product ${p.id}] ⚠️⚠️⚠️ Found ${modelUrls.length} model image URLs in _url fields, converting and rebuilding gallery...`);
+                        // CRITICAL: Convert Directus URLs to proxy routes before adding to gallery
+                        const convertedModelUrls = modelUrls
+                            .map(url => fileUrl(url))
+                            .filter((url): url is string => typeof url === 'string' && url !== null);
+                        finalGalleryArray = [finalImage, ...convertedModelUrls].filter(Boolean);
+                        console.error(`[Product ${p.id}] ⚠️⚠️⚠️ Rebuilt gallery now has ${finalGalleryArray.length} images (converted ${convertedModelUrls.length} from ${modelUrls.length} original)`);
                     } else {
                         console.error(`[Product ${p.id}] ⚠️⚠️⚠️ No model images found in modelImageFields or _url fields!`);
                         console.error(`[Product ${p.id}] ⚠️⚠️⚠️ modelImageFields:`, modelImageFields);
@@ -617,11 +626,17 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
                     console.error(`[Product ${p.id}] ⚠️⚠️⚠️ Missing URLs:`, JSON.stringify(missingModelImages, null, 2));
                     console.error(`[Product ${p.id}] ⚠️⚠️⚠️ Current gallery:`, JSON.stringify(normalizedProduct.gallery, null, 2));
 
+                    // CRITICAL: Convert Directus URLs to proxy routes before adding to gallery
+                    const convertedMissingImages = missingModelImages
+                        .map(url => fileUrl(url))
+                        .filter((url): url is string => typeof url === 'string' && url !== null);
+                    console.error(`[Product ${p.id}] ⚠️ Converted ${convertedMissingImages.length} missing URLs (from ${missingModelImages.length} original)`);
+
                     // Add missing model images to gallery
                     normalizedProduct.gallery = [
                         normalizedProduct.image,
                         ...normalizedProduct.gallery.filter(url => url !== normalizedProduct.image), // Keep existing images except main
-                        ...missingModelImages // Add missing model images
+                        ...convertedMissingImages // Add converted missing model images
                     ].filter(Boolean);
 
                     // Deduplicate
@@ -648,9 +663,13 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
                     ].filter((url): url is string => typeof url === 'string' && url.length > 0);
 
                 if (forceModelUrls.length > 0) {
-                    console.error(`[Product ${p.id}] ⚠️⚠️⚠️ FORCE REBUILD: Using ${forceModelUrls.length} model image URLs`);
-                    normalizedProduct.gallery = [normalizedProduct.image, ...forceModelUrls].filter(Boolean);
-                    console.error(`[Product ${p.id}] ⚠️⚠️⚠️ Force-rebuilt gallery now has ${normalizedProduct.gallery.length} images`);
+                    console.error(`[Product ${p.id}] ⚠️⚠️⚠️ FORCE REBUILD: Using ${forceModelUrls.length} model image URLs, converting through fileUrl()...`);
+                    // CRITICAL: Convert Directus URLs to proxy routes before adding to gallery
+                    const convertedForceUrls = forceModelUrls
+                        .map(url => fileUrl(url))
+                        .filter((url): url is string => typeof url === 'string' && url !== null);
+                    normalizedProduct.gallery = [normalizedProduct.image, ...convertedForceUrls].filter(Boolean);
+                    console.error(`[Product ${p.id}] ⚠️⚠️⚠️ Force-rebuilt gallery now has ${normalizedProduct.gallery.length} images (converted ${convertedForceUrls.length} from ${forceModelUrls.length} original)`);
                     console.error(`[Product ${p.id}] ⚠️⚠️⚠️ Force-rebuilt gallery:`, JSON.stringify(normalizedProduct.gallery, null, 2));
                 } else {
                     console.error(`[Product ${p.id}] ⚠️⚠️⚠️ ERROR: No model image URLs available for force rebuild!`);
@@ -674,9 +693,15 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
                     console.error(`[Product ${p.id}] ⚠️ Current gallery: ${currentGallery.length} images`);
                     console.error(`[Product ${p.id}] ⚠️ Missing URLs: ${missingUrls.length}`);
 
+                    // CRITICAL: Convert Directus URLs to proxy routes before adding to gallery
+                    const convertedFinalUrls = finalModelUrls
+                        .map(url => fileUrl(url))
+                        .filter((url): url is string => typeof url === 'string' && url !== null);
+                    console.error(`[Product ${p.id}] ⚠️ Converted ${convertedFinalUrls.length} final URLs (from ${finalModelUrls.length} original)`);
+
                     normalizedProduct.gallery = [
                         normalizedProduct.image,
-                        ...finalModelUrls
+                        ...convertedFinalUrls
                     ].filter(Boolean);
 
                     console.error(`[Product ${p.id}] ⚠️⚠️⚠️ ABSOLUTE FINAL FIX - Gallery now has ${normalizedProduct.gallery.length} images`);
@@ -701,12 +726,16 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
     ].filter((url): url is string => typeof url === 'string' && url.length > 0 && url.startsWith('http'));
 
     if (modelUrlsAfterNormalization.length > 0 && (normalized.gallery?.length || 0) <= 1) {
-        console.error(`[ProductPage] ⚠️⚠️⚠️ FINAL FIX AFTER NORMALIZATION - Gallery only has ${normalized.gallery?.length || 0} images, adding model images!`);
+        console.error(`[ProductPage] ⚠️⚠️⚠️ FINAL FIX AFTER NORMALIZATION - Gallery only has ${normalized.gallery?.length || 0} images, converting and adding model images!`);
+        // CRITICAL: Convert Directus URLs to proxy routes before adding to gallery
+        const convertedAfterNormalization = modelUrlsAfterNormalization
+            .map(url => fileUrl(url))
+            .filter((url): url is string => typeof url === 'string' && url !== null);
         normalized.gallery = [
             normalized.image,
-            ...modelUrlsAfterNormalization
+            ...convertedAfterNormalization
         ].filter(Boolean);
-        console.error(`[ProductPage] ⚠️⚠️⚠️ Final fix applied - Gallery now has ${normalized.gallery.length} images`);
+        console.error(`[ProductPage] ⚠️⚠️⚠️ Final fix applied - Gallery now has ${normalized.gallery.length} images (converted ${convertedAfterNormalization.length} from ${modelUrlsAfterNormalization.length} original)`);
     }
 
     console.error(`[ProductPage] ⚠️ NORMALIZED PRODUCT RECEIVED - Gallery has ${normalized.gallery?.length || 0} images`);
@@ -740,11 +769,17 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             console.error(`[ProductPage] ⚠️⚠️⚠️ Missing URLs:`, JSON.stringify(missingModelImages, null, 2));
             console.error(`[ProductPage] ⚠️⚠️⚠️ Current gallery:`, JSON.stringify(normalized.gallery, null, 2));
 
+            // CRITICAL: Convert Directus URLs to proxy routes before adding to gallery
+            const convertedMissingImages = missingModelImages
+                .map(url => fileUrl(url))
+                .filter((url): url is string => typeof url === 'string' && url !== null);
+            console.error(`[ProductPage] ⚠️ Converted ${convertedMissingImages.length} missing URLs (from ${missingModelImages.length} original)`);
+
             // Force add missing model images
             normalized.gallery = [
                 normalized.image,
                 ...(normalized.gallery || []).filter((url: string) => url !== normalized.image),
-                ...missingModelImages
+                ...convertedMissingImages
             ].filter(Boolean);
 
             // Deduplicate
