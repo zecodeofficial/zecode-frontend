@@ -628,7 +628,8 @@ async function _fetchProductBySlug(slug: string): Promise<Product | null> {
     const res = await axios.get(url, {
       params: {
         "filter[slug][_eq]": slug,
-        fields: "*,*.*,main_image,model_image_1_url,model_image_2_url,model_image_3_url", // Fetch relations deep + URL fields explicitly
+        // Request all image fields explicitly to ensure they're included
+        fields: "*,*.*,main_image,image,image_url,model_image_1,model_image_2,model_image_3,model_image_1_url,model_image_2_url,model_image_3_url",
         limit: 1,
         _t: cacheBuster // Cache buster
       },
@@ -638,7 +639,13 @@ async function _fetchProductBySlug(slug: string): Promise<Product | null> {
     const product = res?.data?.data?.[0] ?? null;
 
     if (product) {
-      console.log(`[Directus] Product ${product.id} fetched:`, {
+      console.error(`[Directus] Product ${product.id} fetched - Image fields:`, {
+        hasImage: !!product.image,
+        hasImageUrl: !!product.image_url,
+        hasMainImage: !!(product as any).main_image,
+        image: product.image || 'null',
+        image_url: product.image_url || 'null',
+        main_image: (product as any).main_image || 'null',
         hasModelImage1: !!product.model_image_1,
         hasModelImage2: !!product.model_image_2,
         hasModelImage3: !!product.model_image_3,
@@ -649,7 +656,10 @@ async function _fetchProductBySlug(slug: string): Promise<Product | null> {
         hasModelImage3Url: !!(product as any).model_image_3_url,
         modelImage1Url: (product as any).model_image_1_url || 'null',
         modelImage2Url: (product as any).model_image_2_url || 'null',
-        modelImage3Url: (product as any).model_image_3_url || 'null'
+        modelImage3Url: (product as any).model_image_3_url || 'null',
+        // Log first 100 chars of URLs to see what they contain
+        imageUrlPreview: product.image_url ? (product.image_url as string).substring(0, 100) : 'null',
+        modelImage1UrlPreview: (product as any).model_image_1_url ? ((product as any).model_image_1_url as string).substring(0, 100) : 'null'
       });
     }
 

@@ -26,7 +26,8 @@ function getSessionId(imagePath: string | null | undefined): string | null {
  * Simply includes all available images for the product
  */
 function buildMatchingGallery(product: any): string[] {
-  const mainImage = product.image || product.image_url;
+  // Check all possible main image fields
+  const mainImage = product.image || product.image_url || product.main_image;
   // Convert to URLs - fileUrl handles strings, objects, and null
   const mainImageUrl = mainImage ? fileUrl(mainImage) : null;
 
