@@ -2417,7 +2417,7 @@
     "age_group": "Adults",
     "price": null,
     "original_price": null,
-    "image_url": "/products/extracted/model3_female_blue_sleeveless_top__DSC4597_Large_7.png",
+    "image_url": "https://res.cloudinary.com/ds8llatku/image/upload/f_auto,q_auto/zecode/products/extracted-products/male_black_t_shirt_graphic__DSC4773_2",
     "description": "This black graphic T-shirt features a bold front print showcasing the text “NEW YORK CITY” in striking orange and white typography, framed within a rectangular border for a clean, modern look. Crafted from soft, breathable cotton, it offers all-day comfort and a classic crew neckline with short sleeves for versatile wear. The vibrant urban-inspired print adds character, making this T-shirt ideal for streetwear styling, casual outings, or layering under jackets and hoodies.",
     "sizes": null,
     "colors": null,
@@ -2436,9 +2436,9 @@
     "model_image_1": null,
     "model_image_2": null,
     "model_image_3": null,
-    "model_image_1_url": "https://res.cloudinary.com/ds8llatku/image/upload/f_auto,q_auto/zecode/products/model-poses/model3_female_casual_front_standing__DSC4597_Large",
-    "model_image_2_url": "https://res.cloudinary.com/ds8llatku/image/upload/f_auto,q_auto/zecode/products/model-poses/model3_female_casual_three_quarter__DSC4597_Large",
-    "model_image_3_url": "https://res.cloudinary.com/ds8llatku/image/upload/f_auto,q_auto/zecode/products/model-poses/model3_female_casual_casual_lifestyle__DSC4597_Large",
+    "model_image_1_url": "https://res.cloudinary.com/ds8llatku/image/upload/f_auto,q_auto/zecode/products/model-poses/male_streetwear_front_standing__DSC4773",
+    "model_image_2_url": "https://res.cloudinary.com/ds8llatku/image/upload/f_auto,q_auto/zecode/products/model-poses/male_streetwear_three_quarter__DSC4773",
+    "model_image_3_url": "https://res.cloudinary.com/ds8llatku/image/upload/f_auto,q_auto/zecode/products/model-poses/male_streetwear_casual_lifestyle__DSC4773",
     "main_image": null
   },
   {
