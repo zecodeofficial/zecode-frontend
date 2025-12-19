@@ -33,7 +33,12 @@ function buildMatchingGallery(product: any): string[] {
 
   console.error(`[buildMatchingGallery] Product ${product.id}:`, {
     mainImage: mainImage,
+    mainImageType: typeof mainImage,
+    mainImageIsObject: mainImage && typeof mainImage === 'object',
+    mainImageId: mainImage?.id || 'no-id',
     mainImageUrl: mainImageUrl,
+    mainImageUrlType: typeof mainImageUrl,
+    mainImageUrlIsEmpty: mainImageUrl === '',
     model_image_1: product.model_image_1,
     model_image_1_url: product.model_image_1_url,
     model_image_2: product.model_image_2,
@@ -41,6 +46,16 @@ function buildMatchingGallery(product: any): string[] {
     model_image_3: product.model_image_3,
     model_image_3_url: product.model_image_3_url
   });
+  
+  // CRITICAL: If fileUrl returned null for mainImage, log a warning
+  if (mainImage && !mainImageUrl) {
+    console.error(`[buildMatchingGallery] ⚠️ CRITICAL: fileUrl returned null for mainImage!`, {
+      mainImage,
+      mainImageType: typeof mainImage,
+      mainImageId: mainImage?.id,
+      mainImageData: mainImage?.data
+    });
+  }
 
   // Check both _url fields (from Directus) and direct relation fields
   const modelImages = [
@@ -61,7 +76,24 @@ function buildMatchingGallery(product: any): string[] {
 
   const gallery: string[] = mainImageUrl ? [mainImageUrl, ...modelImages] : modelImages;
 
-  console.error(`[buildMatchingGallery] Final gallery for product ${product.id}:`, gallery);
+  console.error(`[buildMatchingGallery] Final gallery for product ${product.id}:`, {
+    gallery,
+    galleryLength: gallery.length,
+    galleryItems: gallery.map((url, idx) => ({ index: idx, url, type: typeof url, isEmpty: url === '' })),
+    mainImageUrl,
+    modelImagesLength: modelImages.length,
+    modelImages
+  });
+  
+  // CRITICAL: If gallery is empty, log a severe warning
+  if (gallery.length === 0) {
+    console.error(`[buildMatchingGallery] ⚠️⚠️⚠️ CRITICAL: Gallery is EMPTY for product ${product.id}!`, {
+      product,
+      mainImage,
+      mainImageUrl,
+      modelImages
+    });
+  }
 
   return gallery;
 }
