@@ -25,6 +25,9 @@ jobs:
       - name: Create backup
         env:
           NODE_TLS_REJECT_UNAUTHORIZED: '0'
+          DIRECTUS_URL: ${{ secrets.DIRECTUS_URL }}
+          DIRECTUS_EMAIL: ${{ secrets.DIRECTUS_EMAIL }}
+          DIRECTUS_PASSWORD: ${{ secrets.DIRECTUS_PASSWORD }}
         run: node scripts/backup-products.js
 
       - name: Check for changes

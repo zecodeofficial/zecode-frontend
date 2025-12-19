@@ -18,9 +18,15 @@ process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 const fs = require('fs');
 const path = require('path');
 
-const DIRECTUS_URL = 'https://zecode-directus.onrender.com';
-const DIRECTUS_EMAIL = 'zecode@siyaram.com';
-const DIRECTUS_PASSWORD = "S!Y@rAM's";
+const DIRECTUS_URL = process.env.DIRECTUS_URL || 'https://zecode-directus.onrender.com';
+const DIRECTUS_EMAIL = process.env.DIRECTUS_EMAIL;
+const DIRECTUS_PASSWORD = process.env.DIRECTUS_PASSWORD;
+
+if (!DIRECTUS_EMAIL || !DIRECTUS_PASSWORD) {
+  console.error('❌ Missing required environment variables: DIRECTUS_EMAIL and DIRECTUS_PASSWORD');
+  console.error('   Set them in .env file or export them before running this script.');
+  process.exit(1);
+}
 
 const BACKUP_DIR = path.join(__dirname, '..', 'data', 'backups');
 const LATEST_BACKUP = path.join(__dirname, '..', 'data', 'product_catalogue_latest.csv');
