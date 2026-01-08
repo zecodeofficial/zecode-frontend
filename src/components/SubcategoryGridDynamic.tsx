@@ -193,18 +193,26 @@ interface SubcategoryGridDynamicProps {
   showDivider?: boolean; // Show decorative divider above section
   forcedGender?: 'Men' | 'Women' | 'Kids'; // Explicitly override gender filtering
   /** Pre-fetched product data from server - skips client-side fetch if provided */
-  initialData?: Map<string, { products: any[]; count: number }>;
+  initialData?: Record<string, { products: any[]; count: number }>;
 }
 
 export default function SubcategoryGridDynamic({ title, categorySlug, subcategories, variant = 'default', showDivider = false, forcedGender, initialData }: SubcategoryGridDynamicProps) {
   // Map of subcategory slug -> { products, count }
   // Use initialData if provided, otherwise start with empty Map
   const [subcategoryData, setSubcategoryData] = useState<Map<string, { products: any[]; count: number }>>(
-    initialData || new Map()
+    new Map(Object.entries(initialData || {}))
   );
   const [isLoading, setIsLoading] = useState(!initialData); // Skip loading if data provided
   const [error, setError] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
+
+  // Sync state with initialData PROP updates (e.g. when color filter changes in parent)
+  useEffect(() => {
+    if (initialData) {
+      setSubcategoryData(new Map(Object.entries(initialData)));
+      setIsLoading(false);
+    }
+  }, [initialData]);
 
   useEffect(() => {
     // Skip client-side fetch if data was prefetched server-side

@@ -73,7 +73,9 @@ export default async function CollectionPage({
                     title={`${activeColorLabel} COLLECTION`}
                     categorySlug="collection"
                     subcategories={subcategories}
-                    initialData={new Map(Array.from(grouped.entries()).map(([k, v]) => [k.toLowerCase(), v]))}
+                    initialData={Object.fromEntries(
+                        Array.from(grouped.entries()).map(([k, v]) => [k.toLowerCase(), v])
+                    )}
                     variant="section"
                 />
 
