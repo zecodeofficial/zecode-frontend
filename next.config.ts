@@ -1,0 +1,142 @@
+import type { NextConfig } from "next";
+
+const nextConfig: NextConfig = {
+  reactCompiler: true,
+
+  // Security headers
+  async headers() {
+    return [
+      {
+        source: "/:path*",
+        headers: [
+          {
+            key: "X-DNS-Prefetch-Control",
+            value: "on",
+          },
+          {
+            key: "Strict-Transport-Security",
+            value: "max-age=63072000; includeSubDomains; preload",
+          },
+          {
+            key: "X-Content-Type-Options",
+            value: "nosniff",
+          },
+          {
+            key: "X-Frame-Options",
+            value: "SAMEORIGIN",
+          },
+          {
+            key: "X-XSS-Protection",
+            value: "1; mode=block",
+          },
+          {
+            key: "Referrer-Policy",
+            value: "origin-when-cross-origin",
+          },
+          {
+            key: "Permissions-Policy",
+            value: "camera=(self), microphone=(), geolocation=(self)",
+          },
+          {
+            key: "Content-Security-Policy",
+            value: [
+              "default-src 'self'",
+              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://docs.opencv.org https://storage.googleapis.com",
+              "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+              "font-src 'self' https://fonts.gstatic.com",
+              "img-src 'self' data: blob: https: http:",
+              "media-src 'self' blob:",
+              "connect-src 'self' https: wss: blob: data:",
+              "worker-src 'self' blob:",
+              "frame-src 'self' https://www.google.com https://maps.google.com",
+            ].join("; "),
+          },
+        ],
+      },
+      // Cache static assets
+      {
+        source: "/fonts/:path*",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=31536000, immutable",
+          },
+        ],
+      },
+      {
+        source: "/images/:path*",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=86400, stale-while-revalidate=31536000",
+          },
+        ],
+      },
+    ];
+  },
+
+  images: {
+    // Enable modern image formats
+    formats: ["image/avif", "image/webp"],
+    // Device sizes for responsive images
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048],
+    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
+    // Increase cache TTL for better performance
+    minimumCacheTTL: 60 * 60 * 24 * 365, // 1 year
+    remotePatterns: [
+      {
+        protocol: "http",
+        hostname: "localhost",
+        port: "8055",
+        pathname: "/assets/**",
+      },
+      {
+        protocol: "https",
+        hostname: "zecode-directus.onrender.com",
+        pathname: "/**", // Allow all paths (assets and files)
+      },
+      {
+        protocol: "https",
+        hostname: "maps.googleapis.com",
+        pathname: "/maps/api/place/photo/**",
+      },
+      {
+        protocol: "https",
+        hostname: "res.cloudinary.com",
+        pathname: "/ds8llatku/**",
+      },
+      // Allow our own domain for proxy routes (needed for Directus asset proxy)
+      {
+        protocol: "https",
+        hostname: "zecode-frontend.vercel.app",
+        pathname: "/api/directus/assets/**",
+      },
+      {
+        protocol: "https",
+        hostname: "*.vercel.app",
+        pathname: "/api/directus/assets/**",
+      },
+    ],
+  },
+
+  // Enable compression
+  compress: true,
+
+  // Optimize production builds
+  productionBrowserSourceMaps: false,
+
+  // Compiler optimizations
+  compiler: {
+    // Keep console logs for debugging (temporarily)
+    removeConsole: false,
+  },
+
+  // Experimental features for performance
+  experimental: {
+    optimizeCss: true,
+    // Tree-shake react-icons to reduce bundle size
+    optimizePackageImports: ["react-icons"],
+  },
+};
+
+export default nextConfig;
