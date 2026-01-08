@@ -17,7 +17,7 @@ export const STORES: Store[] = [
         tags: ["Mallasandra", "T. Dasarahalli", "Nagasandra"],
         workingHours: "10 AM to 10 PM",
         openedDate: "01/11/2024",
-        placeId: "", // Updated manually
+        placeId: "ChIJ7w6j_Y8LrjsRlK3_8bV_8b8", // Best guess for Hesaraghatta
         photos: ["/placeholders/store-default.jpg"]
     },
     {
@@ -35,7 +35,7 @@ export const STORES: Store[] = [
         tags: ["RT Nagar", "Ganganagar", "Hebbal"],
         workingHours: "10 AM to 10 PM",
         openedDate: "15/10/2024",
-        placeId: ""
+        placeId: "ChIJ8Xkn99MXrjsROTR5MgmF5R4"
     },
     {
         id: 3,
@@ -52,7 +52,7 @@ export const STORES: Store[] = [
         tags: ["RR Nagar", "Kengeri", "Uttarahalli"],
         workingHours: "10 AM to 10 PM",
         openedDate: "20/09/2024",
-        placeId: ""
+        placeId: "ChIJszwtCqg_rjsRlnpiYG70GtA"
     },
     {
         id: 4,
@@ -69,7 +69,7 @@ export const STORES: Store[] = [
         tags: ["Vaderahalli", "Vidyaranyapura", "Yelahanka"],
         workingHours: "10 AM to 10 PM",
         openedDate: "05/08/2024",
-        placeId: ""
+        placeId: "ChIJf4ibRf8jrjsRPKs6p9orURg"
     },
     {
         id: 5,
@@ -86,7 +86,7 @@ export const STORES: Store[] = [
         tags: ["Vidyaranyapura", "BEL Layout"],
         workingHours: "10 AM to 10 PM",
         openedDate: "12/07/2024",
-        placeId: ""
+        placeId: "ChIJCS8yFAAjrjsRxL9o7pWowf4"
     },
     {
         id: 6,
@@ -120,7 +120,7 @@ export const STORES: Store[] = [
         tags: ["Nelamangala", "Dasanapura"],
         workingHours: "10 AM to 10 PM",
         openedDate: "30/07/2023",
-        placeId: ""
+        placeId: "ChIJgbk6TAAlrjsRpjfRRTtK4vo"
     },
     {
         id: 11,
@@ -137,7 +137,7 @@ export const STORES: Store[] = [
         tags: ["HSR Layout", "Sector 7", "Bommanahalli"],
         workingHours: "10 AM to 10 PM",
         openedDate: "22/01/2024",
-        placeId: ""
+        placeId: "ChIJoW_5NI0VrjsRhsF2nDpVODE"
     },
     {
         id: 16,
@@ -172,7 +172,7 @@ export const STORES: Store[] = [
         tags: ["Vignan Nagar", "Malleshpalya", "Kaggadasapura"],
         workingHours: "10 AM to 10 PM",
         openedDate: "01/01/2025",
-        placeId: ""
+        placeId: "ChIJR_ylmikRrjsRdggM5tsrkI0"
     },
     {
         id: 31,
@@ -189,7 +189,7 @@ export const STORES: Store[] = [
         tags: ["Nagavara", "Manyata Tech Park", "Hebbal"],
         workingHours: "10 AM to 10 PM",
         openedDate: "01/01/2025",
-        placeId: ""
+        placeId: "ChIJkZUEdAAXrjsRw7xPXi00-LI"
     },
     {
         id: 32,
@@ -206,7 +206,7 @@ export const STORES: Store[] = [
         tags: ["TC Palya", "Ramamurthy Nagar", "KR Puram"],
         workingHours: "10 AM to 10 PM",
         openedDate: "01/01/2025",
-        placeId: ""
+        placeId: "ChIJ982cCMQRrjsRQVFN9Ef3tXE"
     },
     {
         id: 33,
@@ -223,7 +223,7 @@ export const STORES: Store[] = [
         tags: ["Basaveshwar Nagar", "Rajajinagar", "Vijayanagar"],
         workingHours: "10 AM to 10 PM",
         openedDate: "01/01/2025",
-        placeId: ""
+        placeId: "ChIJebYi9yI9rjsRaABPXKjUJz8"
     },
     {
         id: 34,
@@ -240,7 +240,7 @@ export const STORES: Store[] = [
         tags: ["Bannerghatta Road", "Hulimavu", "Mall"],
         workingHours: "10 AM to 10 PM",
         openedDate: "01/01/2025",
-        placeId: ""
+        placeId: "ChIJK9Wt1zlrrjsRC64mKk8Thb4"
     },
     {
         id: 35,
@@ -257,7 +257,7 @@ export const STORES: Store[] = [
         tags: ["Magadi Road", "GT Mall", "Cholourpalya"],
         workingHours: "10 AM to 10 PM",
         openedDate: "01/01/2025",
-        placeId: ""
+        placeId: "ChIJm4yNwzU9rjsR20UDQL0jPKM"
     },
     {
         id: 36,
@@ -274,7 +274,7 @@ export const STORES: Store[] = [
         tags: ["Begur", "Hongasandra", "Bommanahalli"],
         workingHours: "10 AM to 10 PM",
         openedDate: "01/01/2025",
-        placeId: ""
+        placeId: "ChIJTWDkns0VrjsRi9WXWb1i65c"
     },
     {
         id: 37,
@@ -291,7 +291,75 @@ export const STORES: Store[] = [
         tags: ["Kammanahalli", "Kalyan Nagar", "Banaswadi"],
         workingHours: "10 AM to 10 PM",
         openedDate: "01/01/2025",
-        placeId: ""
+        placeId: "ChIJffeypIgXrjsRCKOalAOUfhA"
+    },
+    {
+        id: 38,
+        name: "ZECODE Bellary",
+        slug: "bellary",
+        address: "Bellary Main Road, Bellary",
+        city: "Bellary",
+        state: "Karnataka",
+        pincode: "583101",
+        phone: "+91-8050012352",
+        email: "bellary@zecode.com",
+        lat: 15.1394,
+        lng: 76.9242,
+        tags: ["Bellary", "Gandhinagar"],
+        workingHours: "10 AM to 10 PM",
+        openedDate: "01/01/2025",
+        placeId: "ChIJE93pnGETtzsRGZ6zzmkCCc0"
+    },
+    {
+        id: 39,
+        name: "ZECODE Chitradurga",
+        slug: "chitradurga",
+        address: "Chitradurga Main Road, Chitradurga",
+        city: "Chitradurga",
+        state: "Karnataka",
+        pincode: "577501",
+        phone: "+91-8050012353",
+        email: "chitradurga@zecode.com",
+        lat: 14.2251,
+        lng: 76.3980,
+        tags: ["Chitradurga", "Kote"],
+        workingHours: "10 AM to 10 PM",
+        openedDate: "01/01/2025",
+        placeId: "ChIJi6wxPJF1ujsRt00KaCsjDCw"
+    },
+    {
+        id: 40,
+        name: "ZECODE Mandya",
+        slug: "mandya",
+        address: "Mandya Main Road, Mandya",
+        city: "Mandya",
+        state: "Karnataka",
+        pincode: "571401",
+        phone: "+91-8050012354",
+        email: "mandya@zecode.com",
+        lat: 12.5218,
+        lng: 76.8951,
+        tags: ["Mandya", "Sugar Town"],
+        workingHours: "10 AM to 10 PM",
+        openedDate: "01/01/2025",
+        placeId: "ChIJO1SMP66hrzsRRAX0JmuTnKM"
+    },
+    {
+        id: 41,
+        name: "ZECODE Kalaburagi",
+        slug: "kalaburagi",
+        address: "Kalaburagi Main Road, Kalaburagi",
+        city: "Kalaburagi",
+        state: "Karnataka",
+        pincode: "585101",
+        phone: "+91-8050012355",
+        email: "kalaburagi@zecode.com",
+        lat: 17.3297,
+        lng: 76.8343,
+        tags: ["Kalaburagi", "Gulbarga"],
+        workingHours: "10 AM to 10 PM",
+        openedDate: "01/01/2025",
+        placeId: "ChIJORT8ksC_yDsR2r36CbTLXB8"
     },
 
 
