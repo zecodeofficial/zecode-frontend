@@ -1,6 +1,6 @@
 import { fetchProducts, hasColor, type Product } from "@/lib/directus";
-import ProductCard from "@/components/ProductCard";
 import Breadcrumb from "@/components/Breadcrumb";
+import SubcategoryGridDynamic from "@/components/SubcategoryGridDynamic";
 
 export default async function CollectionPage({
     searchParams
@@ -25,6 +25,36 @@ export default async function CollectionPage({
 
     const activeColorLabel = color ? color.charAt(0).toUpperCase() + color.slice(1) : "All";
 
+    // Group products by subcategory for the dynamic grid
+    const grouped = new Map<string, { products: Product[], count: number }>();
+    filteredProducts.forEach(p => {
+        const sub = p.subcategory || 'Other';
+        if (!grouped.has(sub)) {
+            grouped.set(sub, { products: [], count: 0 });
+        }
+        const entry = grouped.get(sub)!;
+        entry.count++;
+        if (entry.products.length < 10) {
+            entry.products.push(p);
+        }
+    });
+
+    // Create subcategory list for the grid component
+    // Sort by count descending
+    const subcategories = Array.from(grouped.entries())
+        .sort((a, b) => b[1].count - a[1].count)
+        .map(([name, data]) => {
+            const slug = name.toLowerCase().replace(/\s+/g, '-');
+            const sampleProduct = data.products[0];
+            const category = sampleProduct?.category?.toLowerCase() || 'collection';
+
+            return {
+                title: name,
+                slug: name.toLowerCase(),
+                href: `/${category}/${slug}?color=${color || ''}`
+            };
+        });
+
     return (
         <main className="min-h-screen bg-white">
             {/* Breadcrumb Section */}
@@ -38,27 +68,22 @@ export default async function CollectionPage({
                 />
             </div>
 
-            <div className="container mx-auto px-4 pt-10 pb-20">
-                <div className="text-center mb-16">
-                    <h1 className="font-din text-6xl font-bold uppercase tracking-tighter mb-4">
-                        {activeColorLabel} COLLECTION
-                    </h1>
-                    <p className="text-gray-500 uppercase tracking-widest text-sm">
-                        Showing {filteredProducts.length} items
-                    </p>
-                </div>
+            <div className="pb-20">
+                <SubcategoryGridDynamic
+                    title={`${activeColorLabel} COLLECTION`}
+                    categorySlug="collection"
+                    subcategories={subcategories}
+                    initialData={new Map(Array.from(grouped.entries()).map(([k, v]) => [k.toLowerCase(), v]))}
+                    variant="section"
+                />
 
-                {filteredProducts.length > 0 ? (
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-10">
-                        {filteredProducts.map((product) => (
-                            <ProductCard key={product.id} product={product} />
-                        ))}
-                    </div>
-                ) : (
-                    <div className="text-center py-40 border-2 border-dashed border-gray-100 rounded-3xl">
-                        <p className="font-din text-4xl text-gray-300 uppercase italic">
-                            No items found in this category.
-                        </p>
+                {filteredProducts.length === 0 && (
+                    <div className="container mx-auto px-4">
+                        <div className="text-center py-40 border-2 border-dashed border-gray-100 rounded-3xl">
+                            <p className="font-din text-4xl text-gray-300 uppercase italic">
+                                No items found in this color.
+                            </p>
+                        </div>
                     </div>
                 )}
             </div>
