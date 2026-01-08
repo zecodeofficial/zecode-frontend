@@ -116,6 +116,7 @@ const DEFAULT_CATEGORIES: Category[] = [
 
 const DEFAULT_QUICK_LINKS: QuickLink[] = [
   { href: "/lit-zone", label: "LIT ZONE", icon: "🔥", highlight: true },
+  { href: "/#shop-by-color", label: "COLORS", icon: "🎨" },
   { href: "/store-locator-map", label: "STORES", icon: "📍" },
   { href: "/about", label: "ABOUT", icon: "ℹ️" },
 ];
