@@ -14,9 +14,10 @@ declare global {
 }
 
 export default function StoreLocatorMapClient() {
+    const [scriptLoaded, setScriptLoaded] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedStore, setSelectedStore] = useState<Store | null>(null);
-    const [stores] = useState<Store[]>(STORES); // Use local data permanently
+    const [stores] = useState<Store[]>(STORES); // Use updated local data
     const mapRef = useRef<HTMLDivElement>(null);
     const mapInstanceRef = useRef<any>(null);
     const markersRef = useRef<any[]>([]);
@@ -28,9 +29,8 @@ export default function StoreLocatorMapClient() {
         (store.tags && store.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase())))
     );
 
-    useEffect(() => {
-        const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
-        if (!apiKey || !window.google) return;
+    const initMap = () => {
+        if (!window.google || !mapRef.current) return;
 
         // Initialize map
         const mapOptions = {
@@ -75,7 +75,13 @@ export default function StoreLocatorMapClient() {
             });
             mapInstanceRef.current.fitBounds(bounds);
         }
-    }, [stores]);
+    };
+
+    useEffect(() => {
+        if (scriptLoaded) {
+            initMap();
+        }
+    }, [scriptLoaded, stores]);
 
     useEffect(() => {
         // Update selected marker
@@ -113,10 +119,11 @@ export default function StoreLocatorMapClient() {
             backgroundColor: '#f5f5f5',
             fontFamily: 'var(--font-din-condensed), sans-serif'
         }}>
-            {/* Load Google Maps API non-blocking */}
+            {/* Load Google Maps API */}
             <Script
                 src={`https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&libraries=places`}
-                strategy="lazyOnload"
+                strategy="afterInteractive"
+                onLoad={() => setScriptLoaded(true)}
             />
 
             {/* Header Section */}
