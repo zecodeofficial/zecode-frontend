@@ -110,7 +110,8 @@ const DEFAULT_CATEGORIES: Category[] = [
           { label: "SNEAKERS", href: "/footwear/sneakers/women" },
         ]
       }
-    },
+    ],
+  },
   {
     href: "/#shop-by-color",
     label: "COLORS",
