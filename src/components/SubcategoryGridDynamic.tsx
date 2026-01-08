@@ -132,7 +132,7 @@ function SubcategoryCard({ title, slug, categorySlug, href, products, productCou
             src={imageUrl}
             alt={title}
             fill
-            className="object-cover object-center transition-opacity duration-500"
+            className="object-cover object-center transition-opacity duration-500 opacity-100"
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
             priority={priority}
             loading={priority ? 'eager' : 'lazy'}
@@ -356,7 +356,9 @@ export default function SubcategoryGridDynamic({ title, categorySlug, subcategor
 
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
           {subcategories.map((subcategory, index) => {
-            const data = subcategoryData.get(subcategory.slug) || { products: [], count: 0 };
+            const data = subcategoryData.get(subcategory.slug) ||
+              subcategoryData.get(subcategory.slug.toLowerCase().trim().replace(/\s+/g, '-')) ||
+              { products: [], count: 0 };
 
             // Show loading skeletons or hide if no products (but only if no error)
             if (!isLoading && data.count === 0 && !error) return null;

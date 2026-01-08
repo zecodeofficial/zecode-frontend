@@ -39,18 +39,21 @@ export default async function CollectionPage({
         }
     });
 
+    // Standardize slug normalization helper
+    const toSlug = (s: string) => s.toLowerCase().trim().replace(/\s+/g, '-');
+
     // Create subcategory list for the grid component
     // Sort by count descending
     const subcategories = Array.from(grouped.entries())
         .sort((a, b) => b[1].count - a[1].count)
         .map(([name, data]) => {
-            const slug = name.toLowerCase().replace(/\s+/g, '-');
+            const slug = toSlug(name);
             const sampleProduct = data.products[0];
             const category = sampleProduct?.category?.toLowerCase() || 'collection';
 
             return {
                 title: name,
-                slug: name.toLowerCase(),
+                slug: slug,
                 href: `/${category}/${slug}?color=${color || ''}`
             };
         });
@@ -74,7 +77,7 @@ export default async function CollectionPage({
                     categorySlug="collection"
                     subcategories={subcategories}
                     initialData={Object.fromEntries(
-                        Array.from(grouped.entries()).map(([k, v]) => [k.toLowerCase(), v])
+                        Array.from(grouped.entries()).map(([k, v]) => [toSlug(k), v])
                     )}
                     variant="section"
                 />
