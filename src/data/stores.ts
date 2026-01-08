@@ -1,10 +1,9 @@
 import { Store } from '@/types/store';
 
 export const STORES: Store[] = [
-    // --- VERIFIED STORES ---
     {
         id: 1,
-        name: "ZECODE Hesaraghatta",
+        name: "ZECODE Hesaraghatta Road",
         slug: "hesaraghatta-bengaluru",
         address: "01, Bagalakunte, 1st cross, Hesarghatta Road, MEI Layout, Opposite BBMP Office",
         city: "Bengaluru",
@@ -17,7 +16,7 @@ export const STORES: Store[] = [
         tags: ["Mallasandra", "T. Dasarahalli", "Nagasandra"],
         workingHours: "10 AM to 10 PM",
         openedDate: "01/11/2024",
-        placeId: "ChIJ7w6j_Y8LrjsRlK3_8bV_8b8", // Best guess for Hesaraghatta
+        placeId: "ChIJMZMHeHcjrjsR1vSRgUCbrbc",
         photos: ["/placeholders/store-default.jpg"]
     },
     {
@@ -41,7 +40,7 @@ export const STORES: Store[] = [
         id: 3,
         name: "ZECODE RR Nagar",
         slug: "rr-nagar-bengaluru",
-        address: "34/4A, Uttarahalli Main Road, Near RNS college, Next to Prince Royal Hotel, Channasandra",
+        address: "34/4A, Logic Arcade, Uttarahalli Main Road, Next to Prince Royal Hotel, Channasandra",
         city: "Bengaluru",
         state: "Karnataka",
         pincode: "560098",
@@ -103,7 +102,7 @@ export const STORES: Store[] = [
         tags: ["Yelahanka", "Satellite Town", "Kogilu"],
         workingHours: "10 AM to 10 PM",
         openedDate: "18/06/2024",
-        placeId: ""
+        placeId: "ChIJAxMXhD4ZrjsRqL3ZgO4KcxM"
     },
     {
         id: 7,
@@ -123,7 +122,7 @@ export const STORES: Store[] = [
         placeId: "ChIJgbk6TAAlrjsRpjfRRTtK4vo"
     },
     {
-        id: 11,
+        id: 8,
         name: "ZECODE HSR Layout",
         slug: "hsr-layout-bengaluru",
         address: "1667/A, 14th Main Rd, Sector 7, HSR Layout",
@@ -140,25 +139,7 @@ export const STORES: Store[] = [
         placeId: "ChIJoW_5NI0VrjsRhsF2nDpVODE"
     },
     {
-        id: 16,
-        name: "ZECODE Indiranagar",
-        slug: "indiranagar-bengaluru",
-        address: "CMH Road, Indiranagar (Near Metro Station)",
-        city: "Bengaluru",
-        state: "Karnataka",
-        pincode: "560038",
-        phone: "+91-8657039316",
-        email: "indiranagar@zecode.com",
-        lat: 12.9784,
-        lng: 77.6408,
-        tags: ["Indiranagar", "CMH Road", "Ulsoor"],
-        workingHours: "10 AM to 10 PM",
-        openedDate: "13/08/2023",
-        placeId: ""
-    },
-    // --- NEW VERIFIED STORES ---
-    {
-        id: 30,
+        id: 9,
         name: "ZECODE Vignan Nagar",
         slug: "vignan-nagar-bengaluru",
         address: "No 1 & 2, Malleshpalya Main Rd, next to Zudio, Vignan Nagar, Doddanekkundi",
@@ -175,7 +156,7 @@ export const STORES: Store[] = [
         placeId: "ChIJR_ylmikRrjsRdggM5tsrkI0"
     },
     {
-        id: 31,
+        id: 10,
         name: "ZECODE Nagavara",
         slug: "nagavara-bengaluru",
         address: "14th Cross Rd, beside IBIS, opposite Manyata Tech Park Road, Chanyakya Layout, Nagavara",
@@ -192,7 +173,7 @@ export const STORES: Store[] = [
         placeId: "ChIJkZUEdAAXrjsRw7xPXi00-LI"
     },
     {
-        id: 32,
+        id: 11,
         name: "ZECODE TC Palya Road",
         slug: "tc-palya-road-bengaluru",
         address: "No.19 & 20, Thambu Chetty Palya Main Rd, Akshaya Nagar 2nd Block, Ramamurthy Nagar",
@@ -209,7 +190,7 @@ export const STORES: Store[] = [
         placeId: "ChIJ982cCMQRrjsRQVFN9Ef3tXE"
     },
     {
-        id: 33,
+        id: 12,
         name: "ZECODE Basaveshwar Nagar",
         slug: "basaveshwar-nagar-bengaluru",
         address: "1st Block, 457, Chord Rd, next to Cadambi College, 3rd Stage, Basaveshwar Nagar",
@@ -226,7 +207,7 @@ export const STORES: Store[] = [
         placeId: "ChIJebYi9yI9rjsRaABPXKjUJz8"
     },
     {
-        id: 34,
+        id: 13,
         name: "ZECODE Royal Meenakshi Mall",
         slug: "royal-meenakshi-mall-bengaluru",
         address: "Royal Meenakshi Mall, Hulimavu, Bannerghatta Main Road",
@@ -243,7 +224,7 @@ export const STORES: Store[] = [
         placeId: "ChIJK9Wt1zlrrjsRC64mKk8Thb4"
     },
     {
-        id: 35,
+        id: 14,
         name: "ZECODE GT World Mall",
         slug: "gt-world-mall-bengaluru",
         address: "GT World Mall, Magadi Main Rd, next to Prasanna Theatre",
@@ -260,7 +241,7 @@ export const STORES: Store[] = [
         placeId: "ChIJm4yNwzU9rjsR20UDQL0jPKM"
     },
     {
-        id: 36,
+        id: 15,
         name: "ZECODE Begur",
         slug: "begur-bengaluru",
         address: "Begur Road, Opposite Seva Health Care Center, Hongasandra",
@@ -277,7 +258,7 @@ export const STORES: Store[] = [
         placeId: "ChIJTWDkns0VrjsRi9WXWb1i65c"
     },
     {
-        id: 37,
+        id: 16,
         name: "ZECODE Kammanahalli",
         slug: "kammanahalli-bengaluru",
         address: "Kammanahalli Main Road, Kammanahalli",
@@ -294,7 +275,7 @@ export const STORES: Store[] = [
         placeId: "ChIJffeypIgXrjsRCKOalAOUfhA"
     },
     {
-        id: 38,
+        id: 17,
         name: "ZECODE Bellary",
         slug: "bellary",
         address: "Bellary Main Road, Bellary",
@@ -311,7 +292,7 @@ export const STORES: Store[] = [
         placeId: "ChIJE93pnGETtzsRGZ6zzmkCCc0"
     },
     {
-        id: 39,
+        id: 18,
         name: "ZECODE Chitradurga",
         slug: "chitradurga",
         address: "Chitradurga Main Road, Chitradurga",
@@ -328,7 +309,7 @@ export const STORES: Store[] = [
         placeId: "ChIJi6wxPJF1ujsRt00KaCsjDCw"
     },
     {
-        id: 40,
+        id: 19,
         name: "ZECODE Mandya",
         slug: "mandya",
         address: "Mandya Main Road, Mandya",
@@ -345,7 +326,7 @@ export const STORES: Store[] = [
         placeId: "ChIJO1SMP66hrzsRRAX0JmuTnKM"
     },
     {
-        id: 41,
+        id: 20,
         name: "ZECODE Kalaburagi",
         slug: "kalaburagi",
         address: "Kalaburagi Main Road, Kalaburagi",
@@ -361,11 +342,9 @@ export const STORES: Store[] = [
         openedDate: "01/01/2025",
         placeId: "ChIJORT8ksC_yDsR2r36CbTLXB8"
     },
-
-
     {
-        id: 18,
-        name: "ZECODE Davanagere",
+        id: 21,
+        name: "ZECODE Davangere",
         slug: "davanagere",
         address: "Near Bapuji College, P.J. Extension",
         city: "Davanagere",
@@ -381,24 +360,7 @@ export const STORES: Store[] = [
         placeId: "ChIJDcKYBaglujsRDVX5cbdQLAI"
     },
     {
-        id: 19,
-        name: "ZECODE Chikkaballapur",
-        slug: "chikkaballapur",
-        address: "Main Road, Near Bus Stand",
-        city: "Chikkaballapur",
-        state: "Karnataka",
-        pincode: "562101",
-        phone: "+91-8657039319",
-        email: "chikkaballapur@zecode.com",
-        lat: 13.4355,
-        lng: 77.7315,
-        tags: ["Chikkaballapur", "Gauribidanur", "Bagepalli"],
-        workingHours: "10 AM to 10 PM",
-        openedDate: "03/05/2023",
-        placeId: "ChIJMZMHeHcjrjsR1vSRgUCbrbc"
-    },
-    {
-        id: 20,
+        id: 22,
         name: "ZECODE Hassan",
         slug: "hassan",
         address: "B.M. Road, Near City Bus Stand",
@@ -415,7 +377,7 @@ export const STORES: Store[] = [
         placeId: "ChIJe1lqW-9JpTsRcsuL_SJ5sA4"
     },
     {
-        id: 21,
+        id: 23,
         name: "ZECODE Hubballi",
         slug: "hubballi",
         address: "Station Road, Near BRTS Bus Stand",
@@ -432,8 +394,8 @@ export const STORES: Store[] = [
         placeId: "ChIJ5Ti6JwDXuDsRkux5rkTfRDc"
     },
     {
-        id: 22,
-        name: "ZECODE Mysuru",
+        id: 24,
+        name: "ZECODE Mysore",
         slug: "mysuru",
         address: "Saraswathipuram, Mysore Road",
         city: "Mysuru",
@@ -449,7 +411,7 @@ export const STORES: Store[] = [
         placeId: "ChIJp4gpziNxrzsRRhdUxvJaInA"
     },
     {
-        id: 23,
+        id: 25,
         name: "ZECODE Mangaluru",
         slug: "mangaluru",
         address: "Hampankatta, Near City Centre Mall",
@@ -466,7 +428,7 @@ export const STORES: Store[] = [
         placeId: "ChIJzdjPsV1bozsR6VbJqnCY_Sc"
     },
     {
-        id: 24,
+        id: 26,
         name: "ZECODE Tumkur",
         slug: "tumkur",
         address: "Ashok Nagar, B.H. Road",
@@ -481,41 +443,7 @@ export const STORES: Store[] = [
         workingHours: "10 AM to 10 PM",
         openedDate: "25/12/2022",
         placeId: "ChIJRampfcItsDsRLkqizxFA4YU"
-    },
-    {
-        id: 25,
-        name: "ZECODE Whitefield",
-        slug: "whitefield-bengaluru",
-        address: "ITPL Main Road, Near Forum Shantiniketan Mall",
-        city: "Bengaluru",
-        state: "Karnataka",
-        pincode: "560066",
-        phone: "+91-8657039325",
-        email: "whitefield@zecode.com",
-        lat: 12.9698,
-        lng: 77.7499,
-        tags: ["Whitefield", "ITPL", "Marathahalli", "Varthur"],
-        workingHours: "10 AM to 10 PM",
-        openedDate: "11/11/2022",
-        placeId: "ChIJ6XuQaucRrjsR6lkUv5mJWtc"
-    },
-    {
-        id: 26,
-        name: "ZECODE Rajajinagar",
-        slug: "rajajinagar-bengaluru",
-        address: "9th Block, Prakash Nagar, Near Metro Station",
-        city: "Bengaluru",
-        state: "Karnataka",
-        pincode: "560021",
-        phone: "+91-8657039326",
-        email: "rajajinagar@zecode.com",
-        lat: 12.9916,
-        lng: 77.5555,
-        tags: ["Rajajinagar", "Prakash Nagar", "Mahalaxmi Layout", "Vijayanagar"],
-        workingHours: "10 AM to 10 PM",
-        openedDate: "28/10/2022"
     }
-    // ------------------------------------
 ];
 
 // Helper function to get store by slug
