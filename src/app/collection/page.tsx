@@ -25,14 +25,23 @@ export default async function CollectionPage({
 
     const activeColorLabel = color ? color.charAt(0).toUpperCase() + color.slice(1) : "All";
 
-    // Group products by subcategory for the dynamic grid
-    const grouped = new Map<string, { products: Product[], count: number }>();
-    filteredProducts.forEach(p => {
+    // Group products by Main Category + Subcategory for the dynamic grid
+    const grouped = new Map<string, { products: Product[], count: number, main: string, sub: string }>();
+    filteredProducts.forEach((p: Product) => {
+        // Determine "Main" category: Footwear and Kids take precedence over Gender
+        let main = p.gender_category || 'Other';
+        if (p.category === 'Footwear') main = 'Footwear';
+        else if (p.category === 'Kids') main = 'Kids';
+
         const sub = p.subcategory || 'Other';
-        if (!grouped.has(sub)) {
-            grouped.set(sub, { products: [], count: 0 });
+
+        // Final key for grouping and display
+        const key = `${main} - ${sub}`;
+
+        if (!grouped.has(key)) {
+            grouped.set(key, { products: [], count: 0, main, sub });
         }
-        const entry = grouped.get(sub)!;
+        const entry = grouped.get(key)!;
         entry.count++;
         if (entry.products.length < 10) {
             entry.products.push(p);
@@ -43,18 +52,27 @@ export default async function CollectionPage({
     const toSlug = (s: string) => s.toLowerCase().trim().replace(/\s+/g, '-');
 
     // Create subcategory list for the grid component
-    // Sort by count descending
+    // Sort logically: Men, Women, Kids, Footwear
+    const orderMap: Record<string, number> = { 'Men': 1, 'Women': 2, 'Kids': 3, 'Footwear': 4 };
+
     const subcategories = Array.from(grouped.entries())
-        .sort((a, b) => b[1].count - a[1].count)
+        .sort((a, b) => {
+            const orderA = orderMap[a[1].main] || 99;
+            const orderB = orderMap[b[1].main] || 99;
+            if (orderA !== orderB) return orderA - orderB;
+            return b[1].count - a[1].count;
+        })
         .map(([name, data]) => {
-            const slug = toSlug(name);
-            const sampleProduct = data.products[0];
-            const category = sampleProduct?.category?.toLowerCase() || 'collection';
+            const mainSlug = toSlug(data.main);
+            const subSlug = toSlug(data.sub);
+
+            // Map main category to the correct base URL path
+            const basePath = mainSlug === 'footwear' ? 'footwear' : (mainSlug === 'kids' ? 'kids' : mainSlug);
 
             return {
-                title: name,
-                slug: slug,
-                href: `/${category}/${slug}?color=${color || ''}`
+                title: name, // e.g., "Men - Trousers" or "Footwear - Sandals"
+                slug: `${mainSlug}-${subSlug}`,
+                href: `/${basePath}/${subSlug}?color=${color || ''}`
             };
         });
 
@@ -77,7 +95,7 @@ export default async function CollectionPage({
                     categorySlug="collection"
                     subcategories={subcategories}
                     initialData={Object.fromEntries(
-                        Array.from(grouped.entries()).map(([k, v]) => [toSlug(k), v])
+                        Array.from(grouped.values()).map(v => [`${toSlug(v.main)}-${toSlug(v.sub)}`, v])
                     )}
                     variant="section"
                 />

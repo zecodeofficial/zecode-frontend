@@ -145,7 +145,7 @@ function SubcategoryCard({ title, slug, categorySlug, href, products, productCou
 
       {/* Content */}
       <div className="absolute bottom-0 left-0 right-0 p-4 text-white">
-        <h3 className="text-lg font-semibold mb-1 group-hover:text-yellow-400 transition-colors">
+        <h3 className="text-lg font-semibold mb-1 text-white group-hover:text-yellow-400 transition-colors">
           {title}
         </h3>
         {productCount > 0 && (
