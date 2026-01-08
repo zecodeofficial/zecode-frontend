@@ -110,13 +110,29 @@ const DEFAULT_CATEGORIES: Category[] = [
           { label: "SNEAKERS", href: "/footwear/sneakers/women" },
         ]
       }
+    },
+  {
+    href: "/#shop-by-color",
+    label: "COLORS",
+    subcategories: [
+      { label: "BLACK", href: "/collection?color=black" },
+      { label: "WHITE", href: "/collection?color=white" },
+      { label: "NAVY", href: "/collection?color=navy" },
+      { label: "BLUE", href: "/collection?color=blue" },
+      { label: "RED", href: "/collection?color=red" },
+      { label: "GREEN", href: "/collection?color=green" },
+      { label: "YELLOW", href: "/collection?color=yellow" },
+      { label: "PINK", href: "/collection?color=pink" },
+      { label: "PURPLE", href: "/collection?color=purple" },
+      { label: "BEIGE", href: "/collection?color=beige" },
+      { label: "BROWN", href: "/collection?color=brown" },
+      { label: "GREY", href: "/collection?color=grey" },
     ],
   },
 ];
 
 const DEFAULT_QUICK_LINKS: QuickLink[] = [
   { href: "/lit-zone", label: "LIT ZONE", icon: "🔥", highlight: true },
-  { href: "/#shop-by-color", label: "COLORS", icon: "🎨" },
   { href: "/store-locator-map", label: "STORES", icon: "📍" },
   { href: "/about", label: "ABOUT", icon: "ℹ️" },
 ];
@@ -179,7 +195,7 @@ export default function Header({ initialCategories, initialQuickLinks }: HeaderP
       return {
         ...cmsCat,
         subcategories: cmsCat.subcategories.map(sub => {
-          const isSection = ["WESTERN WEAR", "ETHNIC FUSION", "ACTIVEWEAR", "SHOES", "MEN'S FOOTWEAR", "WOMEN'S FOOTWEAR"].includes(sub.label.toUpperCase());
+          const isSection = ["WESTERN WEAR", "ETHNIC FUSION", "ACTIVEWEAR", "SHOES", "MEN'S FOOTWEAR", "WOMEN'S FOOTWEAR", "COLORS"].includes(sub.label.toUpperCase());
           if (isSection && !sub.type) {
             return { ...sub, type: 'section' as const };
           }
@@ -196,7 +212,7 @@ export default function Header({ initialCategories, initialQuickLinks }: HeaderP
         return {
           ...cat,
           subcategories: cat.subcategories.map(sub => {
-            const isSection = ["WESTERN WEAR", "ETHNIC FUSION", "ACTIVEWEAR", "SHOES", "MEN'S FOOTWEAR", "WOMEN'S FOOTWEAR"].includes(sub.label.toUpperCase());
+            const isSection = ["WESTERN WEAR", "ETHNIC FUSION", "ACTIVEWEAR", "SHOES", "MEN'S FOOTWEAR", "WOMEN'S FOOTWEAR", "COLORS"].includes(sub.label.toUpperCase());
             if (isSection && !sub.type) {
               return { ...sub, type: 'section' as const };
             }
