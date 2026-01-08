@@ -10,6 +10,14 @@ export default async function CollectionPage({
     const { color } = await searchParams;
     const products = await fetchProducts();
 
+    if (!products) {
+        return (
+            <main className="min-h-screen bg-white flex items-center justify-center">
+                <p className="text-gray-500">Failed to load collection. Please try again later.</p>
+            </main>
+        );
+    }
+
     const filteredProducts = products.filter(product => {
         if (!color) return true;
         if (!product.colors) return false;
