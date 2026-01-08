@@ -148,11 +148,9 @@ const CLOUDINARY_BASE_URL = `https://res.cloudinary.com/${CLOUDINARY_CLOUD_NAME}
  * /products/image.jpg → https://res.cloudinary.com/ds8llatku/image/upload/f_auto,q_auto/zecode/products/image
  */
 function getCloudinaryUrl(localPath: string): string {
-  // Remove leading slash but KEEP file extension (Cloudinary needs it for proper format detection)
+  // Remove leading slash. Cloudinary works fine without extensions when using f_auto.
   const cleanPath = localPath.replace(/^\//, '');
   // Add auto format and quality optimization
-  // Note: We keep the extension because Cloudinary uses it for format detection
-  // and some images might not work without it
   return `${CLOUDINARY_BASE_URL}/f_auto,q_auto/zecode/${cleanPath}`;
 }
 
