@@ -216,7 +216,7 @@ export default function SubcategoryGridDynamic({ title, categorySlug, subcategor
 
   useEffect(() => {
     // Skip client-side fetch if data was prefetched server-side
-    if (initialData && initialData.size > 0) {
+    if (initialData && Object.keys(initialData).length > 0) {
       return;
     }
 
