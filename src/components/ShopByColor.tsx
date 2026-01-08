@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { type Product } from "@/lib/directus";
+import { type Product, hasColor } from "@/lib/directus";
 import ProductCard from "./ProductCard";
 
 interface ColorOption {
@@ -34,12 +34,7 @@ export default function ShopByColor({ products }: ShopByColorProps) {
 
     const filteredProducts = useMemo(() => {
         return products.filter((product) => {
-            if (!product.colors) return false;
-            const productColors = Array.isArray(product.colors)
-                ? product.colors.map(c => c.toLowerCase())
-                : (typeof product.colors === 'string' ? (product.colors as string).split(',').map(c => c.trim().toLowerCase()) : []);
-
-            return productColors.some(c => c.includes(selectedColor) || selectedColor.includes(c));
+            return hasColor(product, selectedColor);
         }).slice(0, 8); // Show top 8 for each color on homepage
     }, [products, selectedColor]);
 

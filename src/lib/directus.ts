@@ -337,6 +337,7 @@ export const fetchCategoryBySlug = typeof window === 'undefined'
 export type Store = {
   id: number;
   name: string;
+  slug: string;
   address: string;
   city: string;
   state: string;
@@ -345,7 +346,12 @@ export type Store = {
   email?: string;
   latitude?: number;
   longitude?: number;
-  hours?: string;
+  opening_hours?: string;
+  opened_date?: string;
+  place_id?: string;
+  tags?: string[] | string;
+  photos?: string[] | string;
+  description?: string;
   image?: string;
   status?: string;
   sort?: number;
@@ -361,6 +367,7 @@ async function _fetchStores(): Promise<Store[] | null> {
       params: {
         sort: "sort,name",
         "filter[status][_eq]": "published",
+        fields: "*", // Get all fields including new ones
         _t: new Date().getTime(), // Cache buster
       },
       timeout: TIMEOUT_DEFAULT,
@@ -416,7 +423,8 @@ export type Product = {
   subcategory?: string;
   gender_category?: string;
   sizes?: string[];
-  colors?: string[];
+  colors?: string[] | string;
+  color?: string;
   status?: string;
   featured?: boolean;
   sort?: number;
@@ -477,6 +485,51 @@ async function _fetchProducts(): Promise<Product[] | null> {
 export const fetchProducts = typeof window === 'undefined'
   ? unstable_cache(_fetchProducts, ['products-v3'], { revalidate: CACHE_PRODUCTS, tags: ['products'] })
   : _fetchProducts;
+
+/**
+ * Robust color matcher that checks both 'color' and 'colors' fields
+ */
+export function hasColor(product: Product, targetColor: string): boolean {
+  if (!targetColor) return true;
+  const target = targetColor.toLowerCase();
+
+  // Check 'color' field (string)
+  if (product.color && product.color.toLowerCase().includes(target)) return true;
+
+  // Check 'colors' field (array or comma string)
+  if (product.colors) {
+    const productColors = Array.isArray(product.colors)
+      ? product.colors.map(c => c.toLowerCase())
+      : (typeof product.colors === 'string' ? product.colors.split(',').map(c => c.trim().toLowerCase()) : []);
+
+    return productColors.some(c => c.includes(target) || target.includes(c));
+  }
+
+  return false;
+}
+
+/**
+ * fetchActiveColors - Extracts all unique colors from published products
+ */
+export async function fetchActiveColors(): Promise<string[]> {
+  const products = await fetchProducts();
+  if (!products) return [];
+
+  const colorSet = new Set<string>();
+  products.forEach((p: Product) => {
+    if (p.color) colorSet.add(p.color.trim().toUpperCase());
+    if (p.colors) {
+      const colors = Array.isArray(p.colors)
+        ? p.colors
+        : (typeof p.colors === 'string' ? p.colors.split(',') : []);
+      colors.forEach((c: string) => {
+        if (c && typeof c === 'string') colorSet.add(c.trim().toUpperCase());
+      });
+    }
+  });
+
+  return Array.from(colorSet).sort();
+}
 
 /**
  * fetchProductsByCategory - fetch products by category slug (cached)
@@ -619,7 +672,7 @@ export const fetchProductsByGenderAndSubcategory = typeof window === 'undefined'
       },
       [cacheKey],
       { revalidate: CACHE_PRODUCTS, tags: ['products'] }
-    )().catch(err => {
+    )().catch((err: any) => {
       console.error("Cached fetch wrapper error:", err);
       return null;
     });

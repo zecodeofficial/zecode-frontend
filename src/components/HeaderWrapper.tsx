@@ -1,11 +1,13 @@
-import { fetchDirectusNavigation } from "@/lib/directus";
+import { fetchDirectusNavigation, fetchActiveColors } from "@/lib/directus";
 import Header from "./Header";
 import { processNavigation, Category, QuickLink } from "@/lib/navigation";
 
 export default async function HeaderWrapper() {
     try {
-        // Fetch navigation data from Directus (cached)
-        const navItems = await fetchDirectusNavigation();
+        const [navItems, activeColors] = await Promise.all([
+            fetchDirectusNavigation(),
+            fetchActiveColors()
+        ]);
 
         let categories: Category[] | undefined = undefined;
         let quickLinks: QuickLink[] | undefined = undefined;
@@ -15,9 +17,18 @@ export default async function HeaderWrapper() {
                 const processed = processNavigation(navItems);
                 categories = processed.categories;
                 quickLinks = processed.quickLinks;
+
+                // Inject dynamic colors into the COLORS category
+                const colorCategory = categories.find(c => c.label === "COLORS");
+                if (colorCategory && activeColors && activeColors.length > 0) {
+                    colorCategory.subcategories = activeColors.map((color: string) => ({
+                        label: color.toUpperCase(),
+                        href: `/collection?color=${color.toLowerCase()}`,
+                        type: 'link'
+                    }));
+                }
             } catch (error) {
                 console.error("Error processing navigation:", error);
-                // Fall back to defaults (undefined will use defaults in Header)
             }
         }
 

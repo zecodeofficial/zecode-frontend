@@ -1,4 +1,4 @@
-import { fetchProducts } from "@/lib/directus";
+import { fetchProducts, hasColor, type Product } from "@/lib/directus";
 import ProductCard from "@/components/ProductCard";
 import Breadcrumb from "@/components/Breadcrumb";
 
@@ -18,15 +18,9 @@ export default async function CollectionPage({
         );
     }
 
-    const filteredProducts = products.filter(product => {
+    const filteredProducts = products.filter((product: Product) => {
         if (!color) return true;
-        if (!product.colors) return false;
-
-        const productColors = Array.isArray(product.colors)
-            ? product.colors.map(c => c.toLowerCase())
-            : (typeof product.colors === 'string' ? (product.colors as string).split(',').map(c => c.trim().toLowerCase()) : []);
-
-        return productColors.some(c => c.includes(color.toLowerCase()) || color.toLowerCase().includes(c));
+        return hasColor(product, color);
     });
 
     const activeColorLabel = color ? color.charAt(0).toUpperCase() + color.slice(1) : "All";
