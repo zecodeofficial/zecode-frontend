@@ -1,4 +1,4 @@
-import { fetchProducts, fetchProductBySlug, fileUrl, fetchProductsByGenderAndSubcategory } from "@/lib/directus";
+import { fetchProducts, fetchProductBySlug, fileUrl, fetchProductsByGenderAndSubcategory, hasColor } from "@/lib/directus";
 import ProductCard from "@/components/ProductCard";
 import ProductDetailContent from "@/components/ProductDetailContent";
 import Link from "next/link";
@@ -16,17 +16,17 @@ export const dynamic = 'force-dynamic';
  */
 function getSessionId(imagePath: string | null | undefined): string | null {
   if (!imagePath || typeof imagePath !== 'string') return null;
-  
+
   // Get just the filename
   const filename = imagePath.split('/').pop() || imagePath;
-  
+
   // Match various patterns
   const patterns = [
     /(SONY_ILCE[-_]7RM5[-_]\d+x\d*)/i,  // SONY_ILCE-7RM5_6304x4180
     /(_DSC\d+)/i,                         // _DSC4648
     /(file_\d+x\d+_\d+)/i                 // file_1616x1080_00132
   ];
-  
+
   for (const pattern of patterns) {
     const match = filename.match(pattern);
     if (match) {
@@ -41,14 +41,14 @@ function getSessionId(imagePath: string | null | undefined): string | null {
  */
 function isSameSession(sessionId1: string | null, sessionId2: string | null): boolean {
   if (!sessionId1 || !sessionId2) return false;
-  
+
   // Normalize for comparison
   const norm1 = sessionId1.toUpperCase().replace(/-/g, '_');
   const norm2 = sessionId2.toUpperCase().replace(/-/g, '_');
-  
+
   // Direct match
   if (norm1 === norm2) return true;
-  
+
   // Check if they share the same base (e.g., SONY_ILCE_7RM5_6304X matches SONY_ILCE_7RM5_6304X4180_000006)
   if (norm1.length > 10 && norm2.length > 10) {
     const base = norm1.substring(0, Math.min(15, norm1.length));
@@ -56,7 +56,7 @@ function isSameSession(sessionId1: string | null, sessionId2: string | null): bo
       return true;
     }
   }
-  
+
   return false;
 }
 
@@ -66,7 +66,7 @@ function isSameSession(sessionId1: string | null, sessionId2: string | null): bo
  */
 function buildMatchingGallery(product: any): string[] {
   const MAX_IMAGES = 4; // 1 main + 3 model images max
-  
+
   // Check all possible main image fields
   const mainImage = product.image || product.image_url || product.main_image;
   const mainImageUrl = mainImage ? fileUrl(mainImage) : null;
@@ -87,18 +87,18 @@ function buildMatchingGallery(product: any): string[] {
 
   // Filter to only include model images from the SAME photo session
   const matchingModelImages: string[] = [];
-  
+
   for (const modelImg of allModelImages) {
     const modelSessionId = getSessionId(modelImg);
     const matches = isSameSession(mainSessionId, modelSessionId);
-    
+
     console.error(`[buildMatchingGallery] Model image check:`, {
       modelImg,
       modelSessionId,
       mainSessionId,
       matches
     });
-    
+
     if (matches) {
       const url = fileUrl(modelImg);
       if (url && url !== '') {
@@ -109,7 +109,7 @@ function buildMatchingGallery(product: any): string[] {
 
   // Build gallery: main image + matching model images only (max 4 total)
   const gallery: string[] = mainImageUrl ? [mainImageUrl] : [];
-  
+
   // Add matching model images up to the limit
   for (const modelUrl of matchingModelImages) {
     if (gallery.length >= MAX_IMAGES) break;
@@ -216,6 +216,7 @@ function getSubcategoryTitle(cmsSubcategory: string | null | undefined): string 
 
 interface PageProps {
   params: Promise<{ subcategory: string }>;
+  searchParams: Promise<{ color?: string }>;
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
@@ -233,8 +234,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   };
 }
 
-export default async function WomenSubcategoryPage({ params }: PageProps) {
+export default async function WomenSubcategoryPage({ params, searchParams }: PageProps) {
   const { subcategory } = await params;
+  const { color } = await searchParams;
 
   // 1. Check if it's a known subcategory
   if (SUBCATEGORY_MAP[subcategory]) {
@@ -247,7 +249,8 @@ export default async function WomenSubcategoryPage({ params }: PageProps) {
       // This prevents fetching ALL products and filtering in memory
       const fetchedProducts = await fetchProductsByGenderAndSubcategory("women", cmsSubcategory);
       if (fetchedProducts) {
-        products = fetchedProducts;
+        // Apply color filter locally
+        products = fetchedProducts.filter(p => !color || hasColor(p, color));
       }
     } catch (error) {
       console.error("Error fetching products:", error);
@@ -269,7 +272,9 @@ export default async function WomenSubcategoryPage({ params }: PageProps) {
 
         <div className="py-8 bg-gradient-to-r from-pink-900 to-pink-700">
           <div className="max-w-7xl mx-auto px-4 text-center">
-            <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">Women&apos;s {displayTitle}</h1>
+            <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">
+              Women&apos;s {displayTitle} {color && <span className="text-pink-200">- {color.charAt(0).toUpperCase() + color.slice(1)}</span>}
+            </h1>
             <p className="text-pink-200">{products.length} products found</p>
           </div>
         </div>
@@ -345,7 +350,7 @@ export default async function WomenSubcategoryPage({ params }: PageProps) {
     // Filter gallery to remove nulls and empty strings
     const filteredGallery = gallery.filter((url): url is string => url !== null && url !== '' && typeof url === 'string');
     const finalImage = (filteredGallery.length > 0 && filteredGallery[0]) ? filteredGallery[0] : '';
-    
+
     // If gallery is empty but we have product image data, something went wrong - log it
     if (filteredGallery.length === 0 && (product.image || product.image_url || product.main_image)) {
       console.error(`[WomenSubcategoryPage] ⚠️⚠️⚠️ CRITICAL: Gallery is empty but product has image data!`, {

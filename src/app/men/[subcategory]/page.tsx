@@ -1,4 +1,4 @@
-import { fetchProducts, fetchProductBySlug, fileUrl, fetchProductsByGenderAndSubcategory } from "@/lib/directus";
+import { fetchProducts, fetchProductBySlug, fileUrl, fetchProductsByGenderAndSubcategory, hasColor, type Product } from "@/lib/directus";
 import ProductCard from "@/components/ProductCard";
 import ProductDetailContent from "@/components/ProductDetailContent";
 import Link from "next/link";
@@ -142,6 +142,7 @@ function getSubcategoryTitle(cmsSubcategory: string | null | undefined): string 
 
 interface PageProps {
   params: Promise<{ subcategory: string }>;
+  searchParams: Promise<{ color?: string }>;
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
@@ -159,8 +160,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   };
 }
 
-export default async function MenSubcategoryPage({ params }: PageProps) {
+export default async function MenSubcategoryPage({ params, searchParams }: PageProps) {
   const { subcategory } = await params;
+  const { color } = await searchParams;
 
   // 1. Check if it's a known subcategory
   if (SUBCATEGORY_MAP[subcategory]) {
@@ -173,7 +175,8 @@ export default async function MenSubcategoryPage({ params }: PageProps) {
       // This prevents fetching ALL products and filtering in memory
       const fetchedProducts = await fetchProductsByGenderAndSubcategory("men", cmsSubcategory);
       if (fetchedProducts) {
-        products = fetchedProducts;
+        // Apply color filter locally
+        products = fetchedProducts.filter((p: Product) => !color || hasColor(p, color));
       }
     } catch (error) {
       console.error("Error fetching products:", error);
@@ -202,7 +205,9 @@ export default async function MenSubcategoryPage({ params }: PageProps) {
 
         <div className="py-8 bg-gradient-to-r from-gray-900 to-gray-700">
           <div className="max-w-7xl mx-auto px-4 text-center">
-            <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">Men&apos;s {displayTitle}</h1>
+            <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">
+              Men&apos;s {displayTitle} {color && <span className="text-yellow-400">- {color.charAt(0).toUpperCase() + color.slice(1)}</span>}
+            </h1>
             <p className="text-gray-300">{products.length} products found</p>
           </div>
         </div>
