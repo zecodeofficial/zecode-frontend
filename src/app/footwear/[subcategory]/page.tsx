@@ -1,0 +1,309 @@
+import { fetchProducts, fetchProductBySlug, fileUrl, fetchProductsByGenderAndSubcategory } from "@/lib/directus";
+import ProductCard from "@/components/ProductCard";
+import ProductDetailContent from "@/components/ProductDetailContent";
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { Metadata } from "next";
+import { SUBCATEGORY_DESCRIPTIONS } from "@/data/subcategory-descriptions";
+import DescriptionText from "@/components/DescriptionText";
+
+// Force dynamic rendering to prevent build-time API calls
+export const dynamic = 'force-dynamic';
+
+// Helper to extract photo session ID from image path
+function getSessionId(imagePath: string | null | undefined): string | null {
+  if (!imagePath || typeof imagePath !== 'string') return null;
+
+  const filename = imagePath.split('/').pop() || imagePath;
+
+  const patterns = [
+    /(SONY_ILCE[-_]7RM5[-_]\d+x\d*)/i,
+    /(_DSC\d+)/i,
+    /(file_\d+x\d+_\d+)/i
+  ];
+
+  for (const pattern of patterns) {
+    const match = filename.match(pattern);
+    if (match) {
+      return match[1].toUpperCase().replace(/-/g, '_');
+    }
+  }
+  return null;
+}
+
+// Check if two session IDs are from the same photo session
+function isSameSession(sessionId1: string | null, sessionId2: string | null): boolean {
+  if (!sessionId1 || !sessionId2) return false;
+
+  const norm1 = sessionId1.toUpperCase().replace(/-/g, '_');
+  const norm2 = sessionId2.toUpperCase().replace(/-/g, '_');
+
+  if (norm1 === norm2) return true;
+
+  if (norm1.length > 10 && norm2.length > 10) {
+    const base = norm1.substring(0, Math.min(15, norm1.length));
+    if (norm2.includes(base) || norm1.includes(norm2.substring(0, Math.min(15, norm2.length)))) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+// Build gallery with ONLY matching model images from the same photo session
+// Limits to max 4 images total (1 main + up to 3 model images)
+function buildMatchingGallery(product: any): string[] {
+  const MAX_IMAGES = 4;
+
+  const mainImage = product.image || product.image_url;
+  const mainImageUrl = mainImage ? fileUrl(mainImage) : null;
+  const mainSessionId = getSessionId(mainImage);
+
+  const gallery: string[] = mainImageUrl ? [mainImageUrl] : [];
+
+  const allModelImages = [
+    product.model_image_1_url || product.model_image_1,
+    product.model_image_2_url || product.model_image_2,
+    product.model_image_3_url || product.model_image_3,
+  ].filter(Boolean);
+
+  for (const modelImg of allModelImages) {
+    if (gallery.length >= MAX_IMAGES) break;
+
+    const modelSessionId = getSessionId(modelImg);
+    const isCloudinaryImage = typeof modelImg === 'string' && modelImg.includes('cloudinary.com');
+    const matches = isSameSession(mainSessionId, modelSessionId);
+
+    if (matches || isCloudinaryImage) {
+      const url = fileUrl(modelImg);
+      if (url && !gallery.includes(url)) {
+        gallery.push(url);
+      }
+    }
+  }
+
+  return gallery;
+}
+
+// Map subcategory slugs to CMS subcategory values for footwear
+const SUBCATEGORY_MAP: Record<string, string | string[]> = {
+  'men': ['Flats', 'Mules', 'Sneakers', 'Boots', 'Loafers', 'Sandals'],
+  'women': ['Flats', 'Mules', 'Heels', 'Sandals', 'Boots', 'Sneakers'],
+  'flats': 'Flats',
+  'mules': 'Mules',
+  'heels': 'Heels',
+  'sandals': 'Sandals',
+  'boots': 'Boots',
+  'sneakers': 'Sneakers',
+  'loafers': 'Loafers',
+  'flip-flops': 'Flip-Flops',
+};
+
+// Map subcategory slugs to gender categories
+const GENDER_MAP: Record<string, string> = {
+  'men': 'Men',
+  'women': 'Women',
+};
+
+const TITLE_MAP: Record<string, string> = {
+  'men': "Men's Footwear",
+  'women': "Women's Footwear",
+  'flats': 'Flats',
+  'mules': 'Mules',
+  'heels': 'Heels',
+  'sandals': 'Sandals',
+  'boots': 'Boots',
+  'sneakers': 'Sneakers',
+  'loafers': 'Loafers',
+  'flip-flops': 'Flip-Flops',
+};
+
+// Reverse mapping from CMS subcategory values to route slugs
+function getSubcategorySlug(cmsSubcategory: string | null | undefined): string {
+  if (!cmsSubcategory) return 'footwear';
+  const lowerSub = cmsSubcategory.toLowerCase();
+  for (const [slug, cmsValues] of Object.entries(SUBCATEGORY_MAP)) {
+    if (Array.isArray(cmsValues)) {
+      if (cmsValues.some(v => v.toLowerCase() === lowerSub)) return slug;
+    } else if (cmsValues.toLowerCase() === lowerSub) {
+      return slug;
+    }
+  }
+  return 'footwear'; // fallback
+}
+
+// Get display title from CMS subcategory
+function getSubcategoryTitle(cmsSubcategory: string | null | undefined): string {
+  const slug = getSubcategorySlug(cmsSubcategory);
+  return TITLE_MAP[slug] || cmsSubcategory || 'Footwear';
+}
+
+interface PageProps {
+  params: Promise<{ subcategory: string }>;
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}
+
+export async function generateMetadata({ params, searchParams }: PageProps): Promise<Metadata> {
+  const { subcategory } = await params;
+  const { gender: genderQuery } = await searchParams;
+
+  let displayTitle = TITLE_MAP[subcategory] || subcategory;
+
+  if (typeof genderQuery === 'string') {
+    const genderLabel = genderQuery.charAt(0).toUpperCase() + genderQuery.slice(1).toLowerCase();
+    displayTitle = `${genderLabel}'s ${displayTitle}`;
+  }
+
+  const description = SUBCATEGORY_DESCRIPTIONS.footwear[subcategory] || '';
+
+  return {
+    title: `${displayTitle} | Zecode`,
+    description: description.substring(0, 160),
+    openGraph: {
+      title: `${displayTitle} | Zecode`,
+      description: description.substring(0, 160),
+    }
+  };
+}
+
+export default async function FootwearSubcategoryPage({ params, searchParams }: PageProps) {
+  const { subcategory } = await params;
+  const { gender: genderQuery } = await searchParams;
+
+  // 1. Check if it's a known subcategory (men or women)
+  if (SUBCATEGORY_MAP[subcategory]) {
+    const cmsSubcategory = SUBCATEGORY_MAP[subcategory];
+    let displayTitle = TITLE_MAP[subcategory] || subcategory;
+    const genderFilter = GENDER_MAP[subcategory] || (typeof genderQuery === 'string' ? genderQuery : null);
+
+    // If gender is specified in query, refine the title (e.g., "Men's Sneakers")
+    if (typeof genderQuery === 'string') {
+      const genderLabel = genderQuery.charAt(0).toUpperCase() + genderQuery.slice(1).toLowerCase();
+      displayTitle = `${genderLabel}'s ${displayTitle}`;
+    }
+
+    let products: any[] = [];
+    try {
+      // Optimized fetch: Filter by subcategory and optional gender at the API level
+      // This prevents fetching ALL products and filtering in memory
+      const gender = genderFilter ? genderFilter.toLowerCase() : null;
+      const fetchedProducts = await fetchProductsByGenderAndSubcategory(gender, cmsSubcategory, 'Footwear');
+
+      if (fetchedProducts) {
+        products = fetchedProducts;
+      }
+    } catch (error) {
+      console.error("Error fetching products:", error);
+    }
+
+    return (
+      <div className="min-h-screen bg-white">
+        <div className="bg-gray-50 py-4">
+          <div className="max-w-7xl mx-auto px-4">
+            <nav className="flex items-center space-x-2 text-sm">
+              <Link href="/" className="text-gray-500 hover:text-gray-700">Home</Link>
+              <span className="text-gray-400">/</span>
+              <Link href="/footwear" className="text-gray-500 hover:text-gray-700">Footwear</Link>
+              <span className="text-gray-400">/</span>
+              <span className="text-gray-900 font-medium">{displayTitle}</span>
+            </nav>
+          </div>
+        </div>
+
+        <div className="py-8 bg-gradient-to-r from-amber-600 to-orange-600">
+          <div className="max-w-7xl mx-auto px-4 text-center">
+            <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">{displayTitle}</h1>
+            <p className="text-amber-200">{products.length} products found</p>
+          </div>
+        </div>
+
+        {/* Description Section */}
+        <DescriptionText text={SUBCATEGORY_DESCRIPTIONS.footwear[subcategory]} />
+
+        <div className="max-w-7xl mx-auto px-4 py-8">
+          {products.length === 0 ? (
+            <div className="text-center py-16">
+              <p className="text-gray-500 text-lg">No products found in this category.</p>
+              <Link href="/footwear" className="text-amber-600 hover:underline mt-4 inline-block">
+                ← Back to Footwear
+              </Link>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+              {products.map((product) => (
+                <ProductCard
+                  key={product.id}
+                  product={{
+                    id: product.id,
+                    name: product.name,
+                    slug: product.slug || product.id.toString(),
+                    price: product.price || 0,
+                    sale_price: product.sale_price,
+                    image: product.image_url || product.image || '/placeholders/product.jpg',
+                    image_url: product.image_url,
+                    category: 'footwear',
+                    subcategory: product.subcategory,
+                    gender_category: product.gender_category,
+                  }}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // 2. If not a known subcategory, try to find a product by slug
+  try {
+    const product = await fetchProductBySlug(subcategory);
+
+    if (product) {
+      // Map Directus product to ProductDetail interface
+      // Build gallery with matching model images from the same photo session
+      const mainImage = product.image || product.image_url;
+      const matchingGallery = buildMatchingGallery(product);
+
+      // Extract model images separately for the dedicated section
+      // Check both standard relation fields and direct URL fields
+      const modelImages = [
+        product.model_image_1_url || product.model_image_1,
+        product.model_image_2_url || product.model_image_2,
+        product.model_image_3_url || product.model_image_3,
+      ]
+        .filter(Boolean)
+        .map(img => {
+          // Always pass through fileUrl - it will handle Directus URLs and convert them to proxy
+          // fileUrl also handles Cloudinary URLs, local paths, and Directus IDs
+          return fileUrl(img);
+        })
+        .filter((url): url is string => url !== null);
+
+      // Get proper subcategory slug and title
+      const subcategorySlug = getSubcategorySlug(product.subcategory);
+      const subcategoryTitle = getSubcategoryTitle(product.subcategory);
+
+      const productDetail = {
+        id: product.id,
+        name: product.name,
+        category: `footwear/${subcategorySlug}`,  // Route path like "footwear/flats"
+        categoryLabel: subcategoryTitle,           // Display title like "Flats"
+        price: product.price,
+        originalPrice: product.sale_price,
+        image: fileUrl(mainImage) || '',
+        gallery: matchingGallery.map(img => fileUrl(img) || ''),
+        modelImages: modelImages, // Pass model images explicitly
+        description: product.description || '',
+        sizes: product.sizes || [],
+        rating: 4.5,
+        reviewCount: 10
+      };
+      return <ProductDetailContent product={productDetail} />;
+    }
+  } catch (error) {
+    console.error("Error fetching product by slug:", error);
+  }
+
+  // 3. Nothing found
+  notFound();
+}
