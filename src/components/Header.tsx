@@ -316,7 +316,7 @@ export default function Header({ initialCategories, initialQuickLinks }: HeaderP
                         className="group/link flex items-center justify-between px-5 py-3.5 text-sm font-bold text-[#C83232] hover:bg-[#C83232] hover:text-white transition-all duration-200 border-b border-white/10"
                       >
                         <span>
-                          {["COLORS", "SHOP BY COLOUR"].includes(category.label.toUpperCase()) ? "" : "VIEW ALL "}
+                          {["COLORS", "SHOP BY COLOUR"].includes(category.label.trim().toUpperCase()) ? "" : "VIEW ALL "}
                           {category.label}
                         </span>
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4 transform group-hover/link:translate-x-1 transition-transform">
@@ -500,7 +500,7 @@ export default function Header({ initialCategories, initialQuickLinks }: HeaderP
                       onClick={() => setMobileMenuOpen(false)}
                       className="flex items-center gap-2 py-2 px-4 text-sm font-bold text-[#C83232] hover:bg-[#C83232] hover:text-white rounded-lg transition-all duration-200"
                     >
-                      {["COLORS", "SHOP BY COLOUR"].includes(category.label.toUpperCase()) ? "" : "VIEW ALL "}
+                      {["COLORS", "SHOP BY COLOUR"].includes(category.label.trim().toUpperCase()) ? "" : "VIEW ALL "}
                       {category.label}
                       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />

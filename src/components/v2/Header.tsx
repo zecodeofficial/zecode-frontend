@@ -126,9 +126,9 @@ export default function Header() {
   return (
     <>
       {/* Announcement Bar */}
-      <div 
+      <div
         className="relative overflow-hidden text-center py-2 text-xs tracking-[0.2em] uppercase"
-        style={{ 
+        style={{
           background: `linear-gradient(90deg, ${V2_COLORS.secondary}, ${V2_COLORS.accent}, ${V2_COLORS.secondary})`,
           color: V2_COLORS.primary
         }}
@@ -139,13 +139,13 @@ export default function Header() {
       {/* Main Header */}
       <header
         className={`sticky top-0 z-50 transition-all duration-500`}
-        style={{ 
+        style={{
           backgroundColor: isScrolled ? 'rgba(26, 39, 68, 0.98)' : V2_COLORS.primary,
           backdropFilter: isScrolled ? 'blur(20px)' : 'none',
           boxShadow: isScrolled ? '0 4px 30px rgba(0, 0, 0, 0.3)' : 'none'
         }}
       >
-        <div 
+        <div
           className="absolute top-0 left-0 right-0 h-[1px]"
           style={{ background: `linear-gradient(90deg, transparent, ${V2_COLORS.secondary}40, transparent)` }}
         />
@@ -158,15 +158,15 @@ export default function Header() {
               className="lg:hidden relative w-10 h-10 flex flex-col justify-center items-center gap-1.5"
               aria-label="Toggle menu"
             >
-              <span 
+              <span
                 className={`w-6 h-0.5 transition-all duration-300 ${isMobileMenuOpen ? 'rotate-45 translate-y-2' : ''}`}
                 style={{ backgroundColor: V2_COLORS.text }}
               />
-              <span 
+              <span
                 className={`w-6 h-0.5 transition-all duration-300 ${isMobileMenuOpen ? 'opacity-0' : ''}`}
                 style={{ backgroundColor: V2_COLORS.text }}
               />
-              <span 
+              <span
                 className={`w-6 h-0.5 transition-all duration-300 ${isMobileMenuOpen ? '-rotate-45 -translate-y-2' : ''}`}
                 style={{ backgroundColor: V2_COLORS.text }}
               />
@@ -184,7 +184,7 @@ export default function Header() {
                   <Link
                     href={category.href}
                     className="group flex items-center gap-1 px-4 py-3 text-sm font-bold tracking-[0.15em] uppercase transition-colors duration-300"
-                    style={{ 
+                    style={{
                       color: pathname?.startsWith(category.href) ? V2_COLORS.secondary : V2_COLORS.textMuted
                     }}
                     onMouseEnter={(e) => e.currentTarget.style.color = V2_COLORS.text}
@@ -197,24 +197,23 @@ export default function Header() {
                   </Link>
 
                   {/* Dropdown */}
-                  <div 
-                    className={`absolute top-full left-0 min-w-[260px] backdrop-blur-xl overflow-hidden transition-all duration-300 ${
-                      activeDropdown === category.label ? 'opacity-100 visible translate-y-0' : 'opacity-0 invisible -translate-y-2'
-                    }`} 
-                    style={{ 
+                  <div
+                    className={`absolute top-full left-0 min-w-[260px] backdrop-blur-xl overflow-hidden transition-all duration-300 ${activeDropdown === category.label ? 'opacity-100 visible translate-y-0' : 'opacity-0 invisible -translate-y-2'
+                      }`}
+                    style={{
                       backgroundColor: 'rgba(26, 39, 68, 0.98)',
                       border: `1px solid ${V2_COLORS.secondary}30`,
-                      boxShadow: '0 20px 60px rgba(0, 0, 0, 0.5)' 
+                      boxShadow: '0 20px 60px rgba(0, 0, 0, 0.5)'
                     }}
                   >
-                    <div 
-                      className="h-1" 
+                    <div
+                      className="h-1"
                       style={{ background: `linear-gradient(90deg, ${V2_COLORS.secondary}, ${V2_COLORS.accent}, ${V2_COLORS.secondary})` }}
                     />
-                    <Link 
-                      href={category.href} 
+                    <Link
+                      href={category.href}
                       className="flex items-center justify-between px-6 py-4 text-sm font-bold transition-all duration-200"
-                      style={{ 
+                      style={{
                         color: V2_COLORS.secondary,
                         borderBottom: `1px solid ${V2_COLORS.secondary}20`
                       }}
@@ -227,16 +226,19 @@ export default function Header() {
                         e.currentTarget.style.color = V2_COLORS.secondary;
                       }}
                     >
-                      <span>VIEW ALL {category.label}</span>
+                      <span>
+                        {["COLORS", "SHOP BY COLOUR"].includes(category.label.trim().toUpperCase()) ? "" : "VIEW ALL "}
+                        {category.label}
+                      </span>
                       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
                       </svg>
                     </Link>
                     <div className="py-2">
                       {category.subcategories.map((sub) => (
-                        <Link 
-                          key={sub.href} 
-                          href={sub.href} 
+                        <Link
+                          key={sub.href}
+                          href={sub.href}
                           className="group/sub flex items-center gap-3 px-6 py-3 text-sm transition-all duration-200"
                           style={{ color: V2_COLORS.textMuted }}
                           onMouseEnter={(e) => {
@@ -248,7 +250,7 @@ export default function Header() {
                             e.currentTarget.style.backgroundColor = 'transparent';
                           }}
                         >
-                          <span 
+                          <span
                             className="w-1.5 h-1.5 rounded-full transition-all duration-200"
                             style={{ backgroundColor: V2_COLORS.textMuted }}
                           />
@@ -263,12 +265,12 @@ export default function Header() {
 
             {/* Center - Logo */}
             <Link href="/v2" className="relative group">
-              <img 
-                src="/brand/logo-full.svg" 
-                alt="ZECODE" 
+              <img
+                src="/brand/logo-full.svg"
+                alt="ZECODE"
                 className="h-8 md:h-10 w-auto brightness-0 invert"
               />
-              <span 
+              <span
                 className="absolute -bottom-1 left-0 w-0 h-0.5 group-hover:w-full transition-all duration-300"
                 style={{ backgroundColor: V2_COLORS.secondary }}
               />
@@ -277,9 +279,9 @@ export default function Header() {
             {/* Right Navigation */}
             <nav className="hidden lg:flex items-center gap-1">
               {navLinks.map((link) => (
-                <Link 
-                  key={link.href} 
-                  href={link.href} 
+                <Link
+                  key={link.href}
+                  href={link.href}
                   className="flex items-center gap-1.5 px-4 py-3 text-sm font-bold tracking-[0.15em] uppercase transition-colors duration-300"
                   style={{ color: pathname === link.href ? V2_COLORS.secondary : V2_COLORS.textMuted }}
                   onMouseEnter={(e) => e.currentTarget.style.color = V2_COLORS.text}
@@ -297,21 +299,21 @@ export default function Header() {
       </header>
 
       {/* Mobile Menu */}
-      <div 
+      <div
         className={`fixed inset-0 z-[60] backdrop-blur-xl transition-all duration-500 lg:hidden ${isMobileMenuOpen ? 'opacity-100 visible' : 'opacity-0 invisible'}`}
         style={{ backgroundColor: 'rgba(26, 39, 68, 0.98)' }}
       >
         <div className="max-w-lg mx-auto px-6 pt-32">
           {categories.map((category, idx) => (
             <div key={category.label} style={{ borderBottom: `1px solid ${V2_COLORS.secondary}20` }}>
-              <Link 
-                href={category.href} 
+              <Link
+                href={category.href}
                 className="flex items-center justify-between py-5 text-xl font-bold tracking-wider uppercase"
-                style={{ 
+                style={{
                   color: V2_COLORS.text,
-                  transform: isMobileMenuOpen ? 'translateY(0)' : 'translateY(20px)', 
-                  opacity: isMobileMenuOpen ? 1 : 0, 
-                  transition: `all 0.5s ease ${idx * 0.1}s` 
+                  transform: isMobileMenuOpen ? 'translateY(0)' : 'translateY(20px)',
+                  opacity: isMobileMenuOpen ? 1 : 0,
+                  transition: `all 0.5s ease ${idx * 0.1}s`
                 }}
               >
                 {category.label}
@@ -323,14 +325,14 @@ export default function Header() {
           ))}
           {navLinks.map((link, idx) => (
             <div key={link.label} style={{ borderBottom: `1px solid ${V2_COLORS.secondary}20` }}>
-              <Link 
-                href={link.href} 
+              <Link
+                href={link.href}
                 className="flex items-center gap-3 py-5 text-xl font-bold tracking-wider uppercase"
-                style={{ 
+                style={{
                   color: V2_COLORS.text,
-                  transform: isMobileMenuOpen ? 'translateY(0)' : 'translateY(20px)', 
-                  opacity: isMobileMenuOpen ? 1 : 0, 
-                  transition: `all 0.5s ease ${(categories.length + idx) * 0.1}s` 
+                  transform: isMobileMenuOpen ? 'translateY(0)' : 'translateY(20px)',
+                  opacity: isMobileMenuOpen ? 1 : 0,
+                  transition: `all 0.5s ease ${(categories.length + idx) * 0.1}s`
                 }}
               >
                 <span>{link.icon}</span>
@@ -339,9 +341,9 @@ export default function Header() {
             </div>
           ))}
         </div>
-        <button 
-          onClick={() => setIsMobileMenuOpen(false)} 
-          className="absolute top-8 right-6 w-12 h-12 flex items-center justify-center" 
+        <button
+          onClick={() => setIsMobileMenuOpen(false)}
+          className="absolute top-8 right-6 w-12 h-12 flex items-center justify-center"
           style={{ color: V2_COLORS.text }}
           aria-label="Close menu"
         >
