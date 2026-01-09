@@ -246,6 +246,7 @@ export default async function ShopByColourPage({ params }: PageProps) {
                         </>
                     }
                     categorySlug="shop-by-colour"
+                    hideSectionLabel={true}
                     subcategories={subcategories}
                     initialData={Object.fromEntries(
                         Array.from(grouped.values()).map(v => [`${toSlug(v.main)}-${toSlug(v.sub)}`, v])

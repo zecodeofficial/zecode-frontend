@@ -192,11 +192,12 @@ interface SubcategoryGridDynamicProps {
   variant?: 'default' | 'section'; // Visual styling variant
   showDivider?: boolean; // Show decorative divider above section
   forcedGender?: 'Men' | 'Women' | 'Kids'; // Explicitly override gender filtering
+  hideSectionLabel?: boolean; // Hide the "Collection" label in section variant
   /** Pre-fetched product data from server - skips client-side fetch if provided */
   initialData?: Record<string, { products: any[]; count: number }>;
 }
 
-export default function SubcategoryGridDynamic({ title, categorySlug, subcategories, variant = 'default', showDivider = false, forcedGender, initialData }: SubcategoryGridDynamicProps) {
+export default function SubcategoryGridDynamic({ title, categorySlug, subcategories, variant = 'default', showDivider = false, forcedGender, initialData, hideSectionLabel = false }: SubcategoryGridDynamicProps) {
   // Map of subcategory slug -> { products, count }
   // Use initialData if provided, otherwise start with empty Map
   const [subcategoryData, setSubcategoryData] = useState<Map<string, { products: any[]; count: number }>>(
@@ -325,7 +326,7 @@ export default function SubcategoryGridDynamic({ title, categorySlug, subcategor
       <div className="max-w-7xl mx-auto">
         {/* Enhanced section header */}
         <div className="text-center mb-10">
-          {variant === 'section' && (
+          {variant === 'section' && !hideSectionLabel && (
             <div className="inline-flex items-center gap-2 mb-3">
               <div className="w-8 h-px bg-[#C83232]"></div>
               <span className="text-xs font-bold tracking-[0.2em] text-[#C83232] uppercase">Collection</span>
