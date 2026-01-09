@@ -46,7 +46,7 @@ const COLOR_MAP: Record<string, string> = {
 import { processNavigation, Category, QuickLink } from "@/lib/navigation";
 
 // Fallback category data
-const DEFAULT_CATEGORIES: Category[] = [
+export const DEFAULT_CATEGORIES: Category[] = [
   {
     href: "/men",
     label: "MEN",
