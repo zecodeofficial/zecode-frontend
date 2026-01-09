@@ -23,7 +23,7 @@ export default async function HeaderWrapper() {
                 if (colorCategory && activeColors && activeColors.length > 0) {
                     colorCategory.subcategories = activeColors.map((color: string) => ({
                         label: color.toUpperCase(),
-                        href: `/collection?color=${color.toLowerCase()}`,
+                        href: `/shop-by-colour/${color.toLowerCase()}`,
                         type: 'link'
                     }));
                 }

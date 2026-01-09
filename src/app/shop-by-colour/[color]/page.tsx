@@ -1,13 +1,31 @@
 import { fetchProducts, hasColor, type Product } from "@/lib/directus";
 import Breadcrumb from "@/components/Breadcrumb";
 import SubcategoryGridDynamic from "@/components/SubcategoryGridDynamic";
+import DescriptionText from "@/components/DescriptionText";
+import { COLOR_DESCRIPTIONS } from "@/data/color-descriptions";
+import { Metadata } from "next";
 
-export default async function CollectionPage({
-    searchParams
-}: {
-    searchParams: Promise<{ color?: string }>
-}) {
-    const { color } = await searchParams;
+interface PageProps {
+    params: Promise<{ color: string }>;
+}
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+    const { color } = await params;
+    const activeColorLabel = color.charAt(0).toUpperCase() + color.slice(1);
+    const description = COLOR_DESCRIPTIONS[color.toLowerCase()] || "";
+
+    return {
+        title: `${activeColorLabel} Collection | Shop By Colour | Zecode`,
+        description: description.substring(0, 160),
+        openGraph: {
+            title: `${activeColorLabel} Collection | Shop By Colour | Zecode`,
+            description: description.substring(0, 160),
+        }
+    };
+}
+
+export default async function ShopByColourPage({ params }: PageProps) {
+    const { color } = await params;
     const products = await fetchProducts();
 
     if (!products) {
@@ -19,11 +37,10 @@ export default async function CollectionPage({
     }
 
     const filteredProducts = products.filter((product: Product) => {
-        if (!color) return true;
         return hasColor(product, color);
     });
 
-    const activeColorLabel = color ? color.charAt(0).toUpperCase() + color.slice(1) : "All";
+    const activeColorLabel = color.charAt(0).toUpperCase() + color.slice(1);
 
     // Replicate canonical slug mappings from category pages
     const MAPPINGS: Record<string, Record<string, string | string[]>> = {
@@ -167,7 +184,8 @@ export default async function CollectionPage({
             return {
                 title: name, // e.g., "Men - Trousers" or "Footwear - Sandals"
                 slug: `${mainSlug}-${subSlug}`,
-                href: `/${basePath}/${subSlug}?color=${color || ''}`
+                // Maintain color parameter even on sub-links for consistency if user wants to browse deeper by color
+                href: `/${basePath}/${subSlug}?color=${color.toLowerCase()}`
             };
         });
 
@@ -178,16 +196,27 @@ export default async function CollectionPage({
                 <Breadcrumb
                     items={[
                         { label: 'Home', href: '/' },
-                        { label: 'Collection', href: '/collection' },
-                        ...(color ? [{ label: activeColorLabel }] : [])
+                        { label: 'Shop By Colour', href: '#' },
+                        { label: activeColorLabel }
                     ]}
                 />
             </div>
 
-            <div className="pb-20">
+            <div className="pb-8">
+                <div className="max-w-7xl mx-auto px-4 py-8">
+                    <h1 className="font-din text-5xl md:text-7xl font-bold uppercase tracking-tighter text-black mb-4">
+                        THE {activeColorLabel} COLLECTION
+                    </h1>
+                    <h2 className="font-sans text-xl md:text-2xl text-gray-500 uppercase tracking-widest mb-8">
+                        Elevate your wardrobe with our curated {color.toLowerCase()} styles
+                    </h2>
+                </div>
+
+                <DescriptionText text={COLOR_DESCRIPTIONS[color.toLowerCase()] || ""} />
+
                 <SubcategoryGridDynamic
-                    title={`${activeColorLabel} COLLECTION`}
-                    categorySlug="collection"
+                    title={`BROWSE ${activeColorLabel} BY CATEGORY`}
+                    categorySlug="shop-by-colour"
                     subcategories={subcategories}
                     initialData={Object.fromEntries(
                         Array.from(grouped.values()).map(v => [`${toSlug(v.main)}-${toSlug(v.sub)}`, v])
@@ -196,10 +225,10 @@ export default async function CollectionPage({
                 />
 
                 {filteredProducts.length === 0 && (
-                    <div className="container mx-auto px-4">
-                        <div className="text-center py-40 border-2 border-dashed border-gray-100 rounded-3xl">
+                    <div className="container mx-auto px-4 mt-12">
+                        <div className="text-center py-40 bg-gray-50 rounded-3xl border-2 border-dashed border-gray-100">
                             <p className="font-din text-4xl text-gray-300 uppercase italic">
-                                No items found in this color.
+                                No items found in {activeColorLabel}.
                             </p>
                         </div>
                     </div>
@@ -207,4 +236,10 @@ export default async function CollectionPage({
             </div>
         </main>
     );
+}
+
+export async function generateStaticParams() {
+    // Basic colors we definitely support
+    const colors = ["black", "white", "navy", "blue", "red", "green", "yellow", "pink", "purple", "beige", "brown", "grey"];
+    return colors.map((color) => ({ color }));
 }

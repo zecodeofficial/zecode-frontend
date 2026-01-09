@@ -99,7 +99,7 @@ export default function ShopByColor({ products }: ShopByColorProps) {
                 {filteredProducts.length > 0 && (
                     <div className="mt-12 text-center">
                         <Link
-                            href={`/collection?color=${selectedColor}`}
+                            href={`/shop-by-colour/${selectedColor}`}
                             className="inline-block border-2 border-black px-8 py-3 font-din font-bold uppercase tracking-widest hover:bg-black hover:text-white transition-all duration-300 transform hover:-translate-y-1"
                         >
                             View All {COLORS.find(c => c.name === selectedColor)?.label} Outfits →
