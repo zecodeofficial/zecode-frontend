@@ -182,7 +182,7 @@ function SubcategoryCard({ title, slug, categorySlug, href, products, productCou
 }
 
 interface SubcategoryGridDynamicProps {
-  title: string;
+  title: string | React.ReactNode;
   categorySlug: string;
   subcategories: Array<{
     title: string;

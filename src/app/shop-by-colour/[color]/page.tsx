@@ -5,6 +5,21 @@ import DescriptionText from "@/components/DescriptionText";
 import { COLOR_DESCRIPTIONS } from "@/data/color-descriptions";
 import { Metadata } from "next";
 
+const COLOR_MAP: Record<string, string> = {
+    "BLACK": "#1A1A1A",
+    "WHITE": "#FFFFFF",
+    "NAVY": "#000080",
+    "BLUE": "#3b82f6",
+    "RED": "#C83232",
+    "GREEN": "#046307",
+    "YELLOW": "#eab308",
+    "PINK": "#ec4899",
+    "PURPLE": "#a855f7",
+    "BEIGE": "#f5f5dc",
+    "BROWN": "#78350f",
+    "GREY": "#6b7280",
+};
+
 interface PageProps {
     params: Promise<{ color: string }>;
 }
@@ -215,7 +230,11 @@ export default async function ShopByColourPage({ params }: PageProps) {
                 <DescriptionText text={COLOR_DESCRIPTIONS[color.toLowerCase()] || ""} />
 
                 <SubcategoryGridDynamic
-                    title={`BROWSE ${activeColorLabel} BY CATEGORY`}
+                    title={
+                        <>
+                            Browse <span style={{ color: COLOR_MAP[color.toUpperCase()] || '#000' }}>{color.toUpperCase()}</span> By Category
+                        </>
+                    }
                     categorySlug="shop-by-colour"
                     subcategories={subcategories}
                     initialData={Object.fromEntries(
