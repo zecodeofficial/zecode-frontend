@@ -19,8 +19,8 @@ const CACHE_STORES = false;      // disabled
 const CACHE_CATEGORIES = 600;    // 10 minutes
 
 // Request timeout - increased for Render cold starts
-const TIMEOUT_DEFAULT = 15000;   // 15 seconds
-const TIMEOUT_PRODUCTS = 30000;  // 30 seconds for products (larger payload)
+const TIMEOUT_DEFAULT = 30000;   // 30 seconds
+const TIMEOUT_PRODUCTS = 60000;  // 60 seconds for products
 
 // Helper to get the correct URL - uses proxy on client-side to avoid CORS
 function getApiUrl(path: string): string {
@@ -454,13 +454,13 @@ async function _fetchProducts(): Promise<Product[] | null> {
         params: {
           sort: "sort,name",
           "filter[status][_eq]": "published",
-          fields: "*.*", // Deep fetch for M2M
+          fields: "*", // Optimized depth (all fields but no M2M nesting)
           limit: -1,  // Get all products
         },
         timeout: TIMEOUT_PRODUCTS,
       });
       const products = res?.data?.data ?? null;
-      if (products && products.length > 0) {
+      if (products && Array.isArray(products)) {
         console.log(`[Directus] Fetched ${products.length} products`);
         return products;
       }
