@@ -66,7 +66,7 @@ export function processNavigation(items: DirectusNavigationItem[]): { categories
             }));
 
           // Check if this child should be a section based on label or if it has grandchildren
-          const isSectionLabel = ["WESTERN WEAR", "ETHNIC FUSION", "ACTIVEWEAR", "SHOES", "MEN'S FOOTWEAR", "WOMEN'S FOOTWEAR"].includes(child.label.toUpperCase());
+          const isSectionLabel = ["WESTERN WEAR", "ETHNIC FUSION", "ACTIVEWEAR", "BOYS", "GIRLS", "SHOES", "MEN'S FOOTWEAR", "WOMEN'S FOOTWEAR"].includes(child.label.toUpperCase());
           const hasGrandChildren = grandChildren.length > 0;
 
           return {
