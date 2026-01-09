@@ -495,7 +495,18 @@ const DATA_CORRECTIONS: Record<string, Partial<Product>> = {
   },
   'womens-purple-zip-up-knit-jacket-dsc4404': { // Derived slug for ID 45
     color: 'Light Blue'
-  }
+  },
+  // Blue collection false positives (identified by ID)
+  '291': { color: 'Green', name: "Men's Green Army Pants" }, // male_dark_green_t_shirt_graphic
+  '292': { color: 'White', name: "Men's White Short Sleeve Shirt" }, // male_white_short_sleeve_shirt
+  '294': { color: 'Green', name: "Men's Olive Green Short Sleeve Shirt" }, // male_olive_green_short_sleeve_shirt
+  '300': { color: 'Grey', name: "Men's Grey Jacket" },  // male_grey_jacket_outer
+  '308': { color: 'Black', name: "Women's Black Pants" }, // model2_female_black_pants
+  '309': { color: 'White', name: "Men's Off-White Button Up Shirt" }, // male_off-white_button_up_shirt
+  '338': { color: 'Grey', name: "Women's Grey Sleeveless Top" },  // female_light_grey_sleeveless_top
+  '341': { color: 'Beige', name: "Women's Beige T-Shirt" }, // female_beige_t_shirt_graphic
+  '342': { color: 'Black', name: "Women's Black Striped Sweater" }, // female_black_sweater_striped
+  '346': { color: 'Black', name: "Women's Black Polo Shirt" }, // female_black_polo_shirt
 };
 
 /**
@@ -510,7 +521,7 @@ const COLOR_MATCH_EXCLUSIONS: Record<string, string[]> = {
     'gold chain', 'gold-chain', 'gold finish', 'gold-finish',
     'rose gold', 'rose-gold'
   ],
-  'blue': ['light blue', 'dark blue', 'navy blue'], // Usually caught by direct match, but avoids over-matching "blue" if specific
+  'blue': [], // Empty for now, blue should include its shades in the shop-by-colour page
   'pink': ['light pink', 'hot pink']
 };
 
@@ -518,8 +529,10 @@ const COLOR_MATCH_EXCLUSIONS: Record<string, string[]> = {
  * getCorrectedProduct - Applies manual overrides to a product's data
  */
 function getCorrectedProduct(product: Product): Product {
-  if (!product.slug) return product;
-  const correction = DATA_CORRECTIONS[product.slug];
+  const slugCorrection = product.slug ? DATA_CORRECTIONS[product.slug] : null;
+  const idCorrection = product.id ? DATA_CORRECTIONS[product.id.toString()] : null;
+
+  const correction = slugCorrection || idCorrection;
   if (correction) {
     return { ...product, ...correction };
   }
