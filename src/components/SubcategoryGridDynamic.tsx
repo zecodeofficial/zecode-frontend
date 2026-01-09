@@ -193,11 +193,12 @@ interface SubcategoryGridDynamicProps {
   showDivider?: boolean; // Show decorative divider above section
   forcedGender?: 'Men' | 'Women' | 'Kids'; // Explicitly override gender filtering
   hideSectionLabel?: boolean; // Hide the "Collection" label in section variant
+  HeadingTag?: 'h1' | 'h2'; // Choose heading tag for SEO/layout
   /** Pre-fetched product data from server - skips client-side fetch if provided */
   initialData?: Record<string, { products: any[]; count: number }>;
 }
 
-export default function SubcategoryGridDynamic({ title, categorySlug, subcategories, variant = 'default', showDivider = false, forcedGender, initialData, hideSectionLabel = false }: SubcategoryGridDynamicProps) {
+export default function SubcategoryGridDynamic({ title, categorySlug, subcategories, variant = 'default', showDivider = false, forcedGender, initialData, hideSectionLabel = false, HeadingTag = 'h2' }: SubcategoryGridDynamicProps) {
   // Map of subcategory slug -> { products, count }
   // Use initialData if provided, otherwise start with empty Map
   const [subcategoryData, setSubcategoryData] = useState<Map<string, { products: any[]; count: number }>>(
@@ -333,9 +334,9 @@ export default function SubcategoryGridDynamic({ title, categorySlug, subcategor
               <div className="w-8 h-px bg-[#C83232]"></div>
             </div>
           )}
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">
+          <HeadingTag className={`${HeadingTag === 'h1' ? 'text-4xl md:text-6xl uppercase tracking-tighter' : 'text-3xl md:text-4xl'} font-bold text-gray-900 mb-2`}>
             {title}
-          </h2>
+          </HeadingTag>
           {variant === 'section' && (
             <div className="w-20 h-1 bg-gradient-to-r from-[#C83232] to-[#e63946] mx-auto rounded-full"></div>
           )}

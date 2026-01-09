@@ -218,14 +218,6 @@ export default async function ShopByColourPage({ params }: PageProps) {
             </div>
 
             <div className="pb-8">
-                <div className="max-w-7xl mx-auto px-4 py-8">
-                    <h1 className="font-din text-5xl md:text-7xl font-bold uppercase tracking-tighter text-black mb-4">
-                        THE {activeColorLabel} COLLECTION
-                    </h1>
-                    <h2 className="font-sans text-xl md:text-2xl text-gray-500 uppercase tracking-widest mb-8">
-                        Elevate your wardrobe with our curated {color.toLowerCase()} styles
-                    </h2>
-                </div>
 
                 <DescriptionText text={COLOR_DESCRIPTIONS[color.toLowerCase()] || ""} />
 
@@ -247,6 +239,7 @@ export default async function ShopByColourPage({ params }: PageProps) {
                     }
                     categorySlug="shop-by-colour"
                     hideSectionLabel={true}
+                    HeadingTag="h1"
                     subcategories={subcategories}
                     initialData={Object.fromEntries(
                         Array.from(grouped.values()).map(v => [`${toSlug(v.main)}-${toSlug(v.sub)}`, v])
