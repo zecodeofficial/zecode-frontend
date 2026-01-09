@@ -232,7 +232,17 @@ export default async function ShopByColourPage({ params }: PageProps) {
                 <SubcategoryGridDynamic
                     title={
                         <>
-                            Browse <span style={{ color: COLOR_MAP[color.toUpperCase()] || '#000' }}>{color.toUpperCase()}</span> By Category
+                            Explore The <span
+                                style={{
+                                    color: COLOR_MAP[color.toUpperCase()] || '#000',
+                                    backgroundColor: color.toLowerCase() === 'white' ? '#1A1A1A' : 'transparent',
+                                    padding: color.toLowerCase() === 'white' ? '2px 12px' : '0',
+                                    borderRadius: '6px',
+                                    border: color.toLowerCase() === 'white' ? '1px solid #ddd' : 'none'
+                                }}
+                            >
+                                {color.toUpperCase()}
+                            </span> Collection By Category
                         </>
                     }
                     categorySlug="shop-by-colour"
