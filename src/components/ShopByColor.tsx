@@ -30,7 +30,15 @@ interface ShopByColorProps {
 }
 
 export default function ShopByColor({ products }: ShopByColorProps) {
-    const [selectedColor, setSelectedColor] = useState<string>("black");
+    const availableColors = useMemo(() => {
+        return COLORS.filter(color =>
+            products.some(p => hasColor(p, color.name))
+        );
+    }, [products]);
+
+    const [selectedColor, setSelectedColor] = useState<string>(() => {
+        return availableColors.length > 0 ? availableColors[0].name : "black";
+    });
 
     const filteredProducts = useMemo(() => {
         return products.filter((product) => {
@@ -52,7 +60,7 @@ export default function ShopByColor({ products }: ShopByColorProps) {
 
                 {/* Color Swatches */}
                 <div className="flex flex-wrap justify-center gap-4 md:gap-8 mb-12">
-                    {COLORS.map((color) => (
+                    {availableColors.map((color) => (
                         <button
                             key={color.name}
                             onClick={() => setSelectedColor(color.name)}

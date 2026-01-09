@@ -453,6 +453,7 @@ async function _fetchProducts(): Promise<Product[] | null> {
       const res = await axios.get(url, {
         params: {
           sort: "sort,name",
+          "filter[status][_eq]": "published",
           fields: "*.*", // Deep fetch for M2M
           limit: -1,  // Get all products
         },
@@ -497,10 +498,13 @@ export function hasColor(product: Product, targetColor: string): boolean {
   // Check 'colors' field (array or comma string)
   if (product.colors) {
     const productColors = Array.isArray(product.colors)
-      ? product.colors.map(c => c.toLowerCase())
-      : (typeof product.colors === 'string' ? product.colors.split(',').map(c => c.trim().toLowerCase()) : []);
+      ? product.colors
+      : (typeof product.colors === 'string' ? product.colors.split(',').map(c => c.trim()) : []);
 
-    return productColors.some(c => c.includes(target) || target.includes(c));
+    return productColors.some((c: string) => {
+      const normalizedC = c.trim().toLowerCase();
+      return normalizedC === target || normalizedC.includes(` ${target}`) || normalizedC.includes(`${target} `);
+    });
   }
 
   return false;
