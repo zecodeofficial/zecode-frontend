@@ -164,7 +164,7 @@ export default function Header({ initialCategories, initialQuickLinks }: HeaderP
       return DEFAULT_CATEGORIES;
     }
 
-    // Merge CMS categories with defaults, preserving section structure from defaults
+    // Merge CMS categories with defaults
     return DEFAULT_CATEGORIES.map(defaultCat => {
       const cmsCat = cmsCategories.find(c => c.href === defaultCat.href);
 
@@ -172,20 +172,11 @@ export default function Header({ initialCategories, initialQuickLinks }: HeaderP
         return defaultCat; // Use default if not in CMS
       }
 
-      // Preserve the section structure from defaults for WOMEN and FOOTWEAR
-      if (defaultCat.label === "WOMEN" || defaultCat.label === "FOOTWEAR") {
-        return {
-          ...defaultCat,
-          // Keep default subcategories structure (with sections)
-          subcategories: defaultCat.subcategories
-        };
-      }
-
-      // For other categories, use CMS data but ensure section types
+      // Use CMS data but ensure section types are preserved
       return {
         ...cmsCat,
         subcategories: cmsCat.subcategories.map(sub => {
-          const isSection = ["WESTERN WEAR", "ETHNIC FUSION", "ACTIVEWEAR", "SHOES", "MEN'S FOOTWEAR", "WOMEN'S FOOTWEAR", "COLORS", "SHOP BY COLOUR"].includes(sub.label.toUpperCase());
+          const isSection = ["WESTERN WEAR", "ETHNIC FUSION", "ACTIVEWEAR", "BOYS", "GIRLS", "MEN'S FOOTWEAR", "WOMEN'S FOOTWEAR", "COLORS", "SHOP BY COLOUR"].includes(sub.label.toUpperCase());
           if (isSection && !sub.type) {
             return { ...sub, type: 'section' as const };
           }
