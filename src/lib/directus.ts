@@ -486,20 +486,46 @@ export const fetchProducts = typeof window === 'undefined'
   : _fetchProducts;
 
 /**
- * Robust color matcher that checks both 'color' and 'colors' fields
+ * Known data errors in the CMS that need overrides
+ */
+const DATA_CORRECTIONS: Record<string, Partial<Product>> = {
+  'womens-pink-tank-top-dsc4404': {
+    color: 'Light Blue',
+    name: "Women's Light Blue Casual Jacket"
+  },
+  'womens-purple-zip-up-knit-jacket-dsc4404': { // Derived slug for ID 45
+    color: 'Light Blue'
+  }
+};
+
+/**
+ * getCorrectedProduct - Applies manual overrides to a product's data
+ */
+function getCorrectedProduct(product: Product): Product {
+  if (!product.slug) return product;
+  const correction = DATA_CORRECTIONS[product.slug];
+  if (correction) {
+    return { ...product, ...correction };
+  }
+  return product;
+}
+
+/**
+ * hasColor - check if a product has a specific color (handles corrections)
  */
 export function hasColor(product: Product, targetColor: string): boolean {
   if (!targetColor) return true;
+  const correctedProduct = getCorrectedProduct(product);
   const target = targetColor.toLowerCase();
 
   // Check 'color' field (string)
-  if (product.color && product.color.toLowerCase().includes(target)) return true;
+  if (correctedProduct.color && correctedProduct.color.toLowerCase().includes(target)) return true;
 
   // Check 'colors' field (array or comma string)
-  if (product.colors) {
-    const productColors = Array.isArray(product.colors)
-      ? product.colors
-      : (typeof product.colors === 'string' ? product.colors.split(',').map(c => c.trim()) : []);
+  if (correctedProduct.colors) {
+    const productColors = Array.isArray(correctedProduct.colors)
+      ? correctedProduct.colors
+      : (typeof correctedProduct.colors === 'string' ? correctedProduct.colors.split(',').map(c => c.trim()) : []);
 
     return productColors.some((c: string) => {
       const normalizedC = c.trim().toLowerCase();
@@ -519,18 +545,17 @@ export async function fetchActiveColors(): Promise<string[]> {
 
   const colorSet = new Set<string>();
   products.forEach((p: Product) => {
-    // Only process products that have at least some color data
-    // fetchProducts already filters by published status, but we'll be safe
-    if (p.color && p.color.trim()) {
-      colorSet.add(p.color.trim().toUpperCase());
+    const corrected = getCorrectedProduct(p);
+    if (corrected.color) {
+      colorSet.add(corrected.color.trim().toUpperCase());
     }
-    if (p.colors) {
-      const colors = Array.isArray(p.colors)
-        ? p.colors
-        : (typeof p.colors === 'string' ? p.colors.split(',') : []);
+    if (corrected.colors) {
+      const colors = Array.isArray(corrected.colors)
+        ? corrected.colors
+        : (typeof corrected.colors === 'string' ? corrected.colors.split(',') : []);
 
-      colors.forEach((c: any) => {
-        if (c && typeof c === 'string' && c.trim()) {
+      colors.forEach(c => {
+        if (typeof c === 'string' && c.trim()) {
           colorSet.add(c.trim().toUpperCase());
         }
       });
