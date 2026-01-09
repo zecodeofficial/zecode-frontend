@@ -507,6 +507,8 @@ const DATA_CORRECTIONS: Record<string, Partial<Product>> = {
   '341': { color: 'Beige', name: "Women's Beige T-Shirt" }, // female_beige_t_shirt_graphic
   '342': { color: 'Black', name: "Women's Black Striped Sweater" }, // female_black_sweater_striped
   '346': { color: 'Black', name: "Women's Black Polo Shirt" }, // female_black_polo_shirt
+  // Red collection fix
+  '265': { color: 'Multi', name: "Boys Red & White Varsity Jacket" }, // boy-kid-red-varsity-outerwear-jacket
 };
 
 /**
@@ -553,6 +555,7 @@ export function hasColor(product: Product, targetColor: string): boolean {
     'blue': ['blue', 'navy', 'azure', 'cobalt'],
     'pink': ['pink', 'rose', 'fuchsia', 'magenta'],
     'green': ['green', 'olive', 'emerald', 'teal'],
+    'red': ['red', 'crimson', 'maroon', 'burgundy', 'scarlet', 'ruby'],
   };
 
   const searchTerms = colorMappings[target] || [target];
