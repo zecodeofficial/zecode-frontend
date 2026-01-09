@@ -499,6 +499,22 @@ const DATA_CORRECTIONS: Record<string, Partial<Product>> = {
 };
 
 /**
+ * Exclusions for name-based color matching to avoid false positives
+ * (e.g. avoiding "Gold Buckle" matching the Yellow collection)
+ */
+const COLOR_MATCH_EXCLUSIONS: Record<string, string[]> = {
+  'yellow': [
+    'gold buckle', 'gold-buckle', 'gold detail', 'gold-detail',
+    'gold accent', 'gold-accent', 'gold trim', 'gold-trim',
+    'gold hardware', 'gold-hardware', 'gold accessory',
+    'gold chain', 'gold-chain', 'gold finish', 'gold-finish',
+    'rose gold', 'rose-gold'
+  ],
+  'blue': ['light blue', 'dark blue', 'navy blue'], // Usually caught by direct match, but avoids over-matching "blue" if specific
+  'pink': ['light pink', 'hot pink']
+};
+
+/**
  * getCorrectedProduct - Applies manual overrides to a product's data
  */
 function getCorrectedProduct(product: Product): Product {
@@ -526,11 +542,7 @@ export function hasColor(product: Product, targetColor: string): boolean {
     'green': ['green', 'olive', 'emerald', 'teal'],
   };
 
-  const getSearchTerms = (color: string) => {
-    return colorMappings[color] || [color];
-  };
-
-  const searchTerms = getSearchTerms(target);
+  const searchTerms = colorMappings[target] || [target];
 
   // 1. Check 'color' field (string)
   if (correctedProduct.color) {
@@ -550,7 +562,16 @@ export function hasColor(product: Product, targetColor: string): boolean {
   // 3. Fallback: Check product name (especially for untagged items like Yellow/Gold)
   if (correctedProduct.name) {
     const pName = correctedProduct.name.toLowerCase();
-    if (searchTerms.some(term => pName.includes(` ${term}`) || pName.includes(`${term} `) || pName.startsWith(`${term} `))) return true;
+
+    // Check for exclusions first (e.g. "Gold Buckle" shouldn't match "Yellow")
+    const exclusions = COLOR_MATCH_EXCLUSIONS[target] || [];
+    if (exclusions.some(ex => pName.includes(ex))) return false;
+
+    // Use regex for whole-word matching to avoid partial matches
+    return searchTerms.some(term => {
+      const regex = new RegExp(`\\b${term}\\b`, 'i');
+      return regex.test(pName);
+    });
   }
 
   return false;
@@ -589,15 +610,29 @@ export async function fetchActiveColors(): Promise<string[]> {
 
     // Fallback for untagged products: check name for core colors
     if (!foundAnyColor && corrected.name) {
-      const name = corrected.name.toUpperCase();
+      const pName = corrected.name.toLowerCase();
+
       CORE_COLORS.forEach(coreColor => {
-        if (name.includes(` ${coreColor}`) || name.includes(`${coreColor} `) || name.startsWith(`${coreColor} `)) {
+        const lowerCore = coreColor.toLowerCase();
+
+        // Check exclusions (e.g. don't add YELLOW for "Gold Buckle")
+        const exclusions = COLOR_MATCH_EXCLUSIONS[lowerCore] || [];
+        if (exclusions.some(ex => pName.includes(ex))) return;
+
+        // Whole word check
+        const regex = new RegExp(`\\b${lowerCore}\\b`, 'i');
+        if (regex.test(pName)) {
           colorSet.add(coreColor);
         }
       });
-      // Special check for GOLD -> YELLOW
-      if (name.includes(' GOLD ') || name.includes('GOLD ') || name.startsWith('GOLD ')) {
-        colorSet.add('YELLOW');
+
+      // Special check for GOLD -> YELLOW (with exclusions)
+      const yellowExclusions = COLOR_MATCH_EXCLUSIONS['yellow'] || [];
+      if (!yellowExclusions.some(ex => pName.includes(ex))) {
+        const goldRegex = /\bgold\b/i;
+        if (goldRegex.test(pName)) {
+          colorSet.add('YELLOW');
+        }
       }
     }
   });
