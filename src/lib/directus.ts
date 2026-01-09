@@ -511,26 +511,46 @@ function getCorrectedProduct(product: Product): Product {
 }
 
 /**
- * hasColor - check if a product has a specific color (handles corrections)
+ * hasColor - check if a product has a specific color (handles corrections and name-based fallback)
  */
 export function hasColor(product: Product, targetColor: string): boolean {
   if (!targetColor) return true;
   const correctedProduct = getCorrectedProduct(product);
   const target = targetColor.toLowerCase();
 
-  // Check 'color' field (string)
-  if (correctedProduct.color && correctedProduct.color.toLowerCase().includes(target)) return true;
+  // Mapping for synonymous or subset colors
+  const colorMappings: Record<string, string[]> = {
+    'yellow': ['yellow', 'gold', 'mustard', 'lemon'],
+    'blue': ['blue', 'navy', 'azure', 'cobalt'],
+    'pink': ['pink', 'rose', 'fuchsia', 'magenta'],
+    'green': ['green', 'olive', 'emerald', 'teal'],
+  };
 
-  // Check 'colors' field (array or comma string)
+  const getSearchTerms = (color: string) => {
+    return colorMappings[color] || [color];
+  };
+
+  const searchTerms = getSearchTerms(target);
+
+  // 1. Check 'color' field (string)
+  if (correctedProduct.color) {
+    const pColor = correctedProduct.color.toLowerCase();
+    if (searchTerms.some(term => pColor.includes(term))) return true;
+  }
+
+  // 2. Check 'colors' field (array or comma string)
   if (correctedProduct.colors) {
     const productColors = Array.isArray(correctedProduct.colors)
       ? correctedProduct.colors
-      : (typeof correctedProduct.colors === 'string' ? correctedProduct.colors.split(',').map(c => c.trim()) : []);
+      : (typeof correctedProduct.colors === 'string' ? correctedProduct.colors.split(',').map(c => c.trim().toLowerCase()) : []);
 
-    return productColors.some((c: string) => {
-      const normalizedC = c.trim().toLowerCase();
-      return normalizedC === target || normalizedC.includes(` ${target}`) || normalizedC.includes(`${target} `);
-    });
+    if (productColors.some((c: string) => searchTerms.some(term => c.includes(term)))) return true;
+  }
+
+  // 3. Fallback: Check product name (especially for untagged items like Yellow/Gold)
+  if (correctedProduct.name) {
+    const pName = correctedProduct.name.toLowerCase();
+    if (searchTerms.some(term => pName.includes(` ${term}`) || pName.includes(`${term} `) || pName.startsWith(`${term} `))) return true;
   }
 
   return false;
@@ -544,10 +564,15 @@ export async function fetchActiveColors(): Promise<string[]> {
   if (!products) return [];
 
   const colorSet = new Set<string>();
+  const CORE_COLORS = ["BLACK", "WHITE", "NAVY", "BLUE", "RED", "GREEN", "YELLOW", "PINK", "PURPLE", "BEIGE", "BROWN", "GREY"];
+
   products.forEach((p: Product) => {
     const corrected = getCorrectedProduct(p);
+    let foundAnyColor = false;
+
     if (corrected.color) {
       colorSet.add(corrected.color.trim().toUpperCase());
+      foundAnyColor = true;
     }
     if (corrected.colors) {
       const colors = Array.isArray(corrected.colors)
@@ -557,8 +582,23 @@ export async function fetchActiveColors(): Promise<string[]> {
       colors.forEach(c => {
         if (typeof c === 'string' && c.trim()) {
           colorSet.add(c.trim().toUpperCase());
+          foundAnyColor = true;
         }
       });
+    }
+
+    // Fallback for untagged products: check name for core colors
+    if (!foundAnyColor && corrected.name) {
+      const name = corrected.name.toUpperCase();
+      CORE_COLORS.forEach(coreColor => {
+        if (name.includes(` ${coreColor}`) || name.includes(`${coreColor} `) || name.startsWith(`${coreColor} `)) {
+          colorSet.add(coreColor);
+        }
+      });
+      // Special check for GOLD -> YELLOW
+      if (name.includes(' GOLD ') || name.includes('GOLD ') || name.startsWith('GOLD ')) {
+        colorSet.add('YELLOW');
+      }
     }
   });
 
