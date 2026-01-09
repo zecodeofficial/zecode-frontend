@@ -18,14 +18,18 @@ export default async function HeaderWrapper() {
                 categories = processed.categories;
                 quickLinks = processed.quickLinks;
 
-                // Inject dynamic colors into the COLORS category
-                const colorCategory = categories.find(c => c.label === "COLORS");
-                if (colorCategory && activeColors && activeColors.length > 0) {
-                    colorCategory.subcategories = activeColors.map((color: string) => ({
-                        label: color.toUpperCase(),
-                        href: `/shop-by-colour/${color.toLowerCase()}`,
-                        type: 'link'
-                    }));
+                // Inject dynamic colors into the COLORS/SHOP BY COLOUR category
+                const colorCategory = categories.find(c => c.label === "COLORS" || c.label === "SHOP BY COLOUR");
+                if (colorCategory) {
+                    colorCategory.label = "SHOP BY COLOUR";
+                    colorCategory.href = "/shop-by-colour/black"; // Default entry point
+                    if (activeColors && activeColors.length > 0) {
+                        colorCategory.subcategories = activeColors.map((color: string) => ({
+                            label: color.toUpperCase(),
+                            href: `/shop-by-colour/${color.toLowerCase()}`,
+                            type: 'link'
+                        }));
+                    }
                 }
             } catch (error) {
                 console.error("Error processing navigation:", error);

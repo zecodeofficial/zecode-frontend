@@ -128,21 +128,21 @@ const DEFAULT_CATEGORIES: Category[] = [
     ],
   },
   {
-    href: "/#shop-by-color",
-    label: "COLORS",
+    href: "/shop-by-colour/black",
+    label: "SHOP BY COLOUR",
     subcategories: [
-      { label: "BLACK", href: "/collection?color=black" },
-      { label: "WHITE", href: "/collection?color=white" },
-      { label: "NAVY", href: "/collection?color=navy" },
-      { label: "BLUE", href: "/collection?color=blue" },
-      { label: "RED", href: "/collection?color=red" },
-      { label: "GREEN", href: "/collection?color=green" },
-      { label: "YELLOW", href: "/collection?color=yellow" },
-      { label: "PINK", href: "/collection?color=pink" },
-      { label: "PURPLE", href: "/collection?color=purple" },
-      { label: "BEIGE", href: "/collection?color=beige" },
-      { label: "BROWN", href: "/collection?color=brown" },
-      { label: "GREY", href: "/collection?color=grey" },
+      { label: "BLACK", href: "/shop-by-colour/black" },
+      { label: "WHITE", href: "/shop-by-colour/white" },
+      { label: "NAVY", href: "/shop-by-colour/navy" },
+      { label: "BLUE", href: "/shop-by-colour/blue" },
+      { label: "RED", href: "/shop-by-colour/red" },
+      { label: "GREEN", href: "/shop-by-colour/green" },
+      { label: "YELLOW", href: "/shop-by-colour/yellow" },
+      { label: "PINK", href: "/shop-by-colour/pink" },
+      { label: "PURPLE", href: "/shop-by-colour/purple" },
+      { label: "BEIGE", href: "/shop-by-colour/beige" },
+      { label: "BROWN", href: "/shop-by-colour/brown" },
+      { label: "GREY", href: "/shop-by-colour/grey" },
     ],
   },
 ];
@@ -211,7 +211,7 @@ export default function Header({ initialCategories, initialQuickLinks }: HeaderP
       return {
         ...cmsCat,
         subcategories: cmsCat.subcategories.map(sub => {
-          const isSection = ["WESTERN WEAR", "ETHNIC FUSION", "ACTIVEWEAR", "SHOES", "MEN'S FOOTWEAR", "WOMEN'S FOOTWEAR", "COLORS"].includes(sub.label.toUpperCase());
+          const isSection = ["WESTERN WEAR", "ETHNIC FUSION", "ACTIVEWEAR", "SHOES", "MEN'S FOOTWEAR", "WOMEN'S FOOTWEAR", "COLORS", "SHOP BY COLOUR"].includes(sub.label.toUpperCase());
           if (isSection && !sub.type) {
             return { ...sub, type: 'section' as const };
           }
@@ -228,7 +228,7 @@ export default function Header({ initialCategories, initialQuickLinks }: HeaderP
         return {
           ...cat,
           subcategories: cat.subcategories.map(sub => {
-            const isSection = ["WESTERN WEAR", "ETHNIC FUSION", "ACTIVEWEAR", "SHOES", "MEN'S FOOTWEAR", "WOMEN'S FOOTWEAR", "COLORS"].includes(sub.label.toUpperCase());
+            const isSection = ["WESTERN WEAR", "ETHNIC FUSION", "ACTIVEWEAR", "SHOES", "MEN'S FOOTWEAR", "WOMEN'S FOOTWEAR", "COLORS", "SHOP BY COLOUR"].includes(sub.label.toUpperCase());
             if (isSection && !sub.type) {
               return { ...sub, type: 'section' as const };
             }
@@ -365,7 +365,7 @@ export default function Header({ initialCategories, initialQuickLinks }: HeaderP
                                   href={item.href}
                                   className="group/sub flex items-center gap-3 px-5 py-2 text-sm text-white/75 hover:text-white hover:bg-white/5 transition-all duration-200"
                                 >
-                                  {category.label === "COLORS" && COLOR_MAP[item.label.toUpperCase()] ? (
+                                  {(category.label === "COLORS" || category.label === "SHOP BY COLOUR") && COLOR_MAP[item.label.toUpperCase()] ? (
                                     <span
                                       className="w-3 h-3 rounded-full border border-white/20 transition-transform duration-200 group-hover/sub:scale-125"
                                       style={{
@@ -387,7 +387,7 @@ export default function Header({ initialCategories, initialQuickLinks }: HeaderP
                               href={sub.href}
                               className="group/sub flex items-center gap-3 px-5 py-2.5 text-sm text-white/75 hover:text-white hover:bg-white/5 transition-all duration-200"
                             >
-                              {category.label === "COLORS" && COLOR_MAP[sub.label.toUpperCase()] ? (
+                              {(category.label === "COLORS" || category.label === "SHOP BY COLOUR") && COLOR_MAP[sub.label.toUpperCase()] ? (
                                 <span
                                   className="w-3 h-3 rounded-full border border-white/20 transition-transform duration-200 group-hover/sub:scale-125"
                                   style={{
@@ -548,7 +548,7 @@ export default function Header({ initialCategories, initialQuickLinks }: HeaderP
                               onClick={() => setMobileMenuOpen(false)}
                               className="flex items-center gap-2 py-2 px-6 text-sm text-white/70 hover:text-white hover:bg-white/5 rounded-lg transition-all duration-200"
                             >
-                              {category.label === "COLORS" && COLOR_MAP[item.label.toUpperCase()] ? (
+                              {(category.label === "COLORS" || category.label === "SHOP BY COLOUR") && COLOR_MAP[item.label.toUpperCase()] ? (
                                 <span
                                   className="w-3 h-3 rounded-full border border-white/20"
                                   style={{
@@ -571,7 +571,7 @@ export default function Header({ initialCategories, initialQuickLinks }: HeaderP
                           onClick={() => setMobileMenuOpen(false)}
                           className="flex items-center gap-2 py-2 px-4 text-sm text-white/70 hover:text-white hover:bg-white/5 rounded-lg transition-all duration-200"
                         >
-                          {category.label === "COLORS" && COLOR_MAP[sub.label.toUpperCase()] ? (
+                          {(category.label === "COLORS" || category.label === "SHOP BY COLOUR") && COLOR_MAP[sub.label.toUpperCase()] ? (
                             <span
                               className="w-3 h-3 rounded-full border border-white/20"
                               style={{
