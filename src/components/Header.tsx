@@ -63,66 +63,41 @@ const DEFAULT_CATEGORIES: Category[] = [
     subcategories: [
       {
         label: "WESTERN WEAR",
-        href: "/women",
+        href: "/women/western-wear",
         type: 'section',
         items: [
-          { label: "TOPS", href: "/women/tops" },
-          { label: "T-SHIRTS", href: "/women/tshirts" },
           { label: "DRESSES", href: "/women/dresses" },
-          { label: "JEANS", href: "/women/jeans" },
+          { label: "TOPS", href: "/women/tops" },
           { label: "SKIRTS", href: "/women/skirts" },
-          { label: "JACKETS", href: "/women/jackets" },
-          { label: "SHORTS", href: "/women/shorts" },
         ]
-      },
-      {
-        label: "ACTIVEWEAR",
-        href: "/women/activewear",
-        type: 'section',
-      },
-      {
-        label: "ETHNIC FUSION",
-        href: "/women/ethnic-wear",
-        type: 'section',
-        // No items - standalone link with section styling
-      },
+      }
     ],
   },
   {
-    href: "/kids",
+    href: "/kids/boys",
     label: "KIDS",
     subcategories: [
-      { label: "BOYS T-SHIRTS", href: "/kids/boys-tshirts" },
-      { label: "GIRLS TOPS", href: "/kids/girls-tops" },
-      { label: "BOYS JEANS", href: "/kids/boys-jeans" },
-      { label: "GIRLS DRESSES", href: "/kids/girls-dresses" },
+      {
+        label: "BOYS",
+        href: "/kids/boys",
+        type: 'section',
+        items: [
+          { label: "TISHIRTS", href: "/kids/boys/tshirts" },
+          { label: "PANTS", href: "/kids/boys/pants" },
+        ]
+      }
     ],
   },
   {
-    href: "/footwear",
+    href: "/footwear/sneakers",
     label: "FOOTWEAR",
     subcategories: [
-      {
-        label: "MEN'S FOOTWEAR",
-        href: "/footwear/men",
-        type: 'section',
-        items: [
-          { label: "SNEAKERS", href: "/footwear/sneakers/men" },
-          { label: "SLIDES", href: "/footwear/slides/men" },
-          { label: "CLOGS", href: "/footwear/clogs/men" },
-          { label: "SANDALS", href: "/footwear/sandals/men" },
-          { label: "FLIP-FLOPS", href: "/footwear/flip-flops/men" },
-        ]
-      },
       {
         label: "WOMEN'S FOOTWEAR",
         href: "/footwear/women",
         type: 'section',
         items: [
           { label: "FLATS", href: "/footwear/flats/women" },
-          { label: "FLIP-FLOPS", href: "/footwear/flip-flops/women" },
-          { label: "HEELS", href: "/footwear/heels/women" },
-          { label: "SNEAKERS", href: "/footwear/sneakers/women" },
         ]
       }
     ],
@@ -133,7 +108,6 @@ const DEFAULT_CATEGORIES: Category[] = [
     subcategories: [
       { label: "BLACK", href: "/shop-by-colour/black" },
       { label: "WHITE", href: "/shop-by-colour/white" },
-      { label: "NAVY", href: "/shop-by-colour/navy" },
       { label: "BLUE", href: "/shop-by-colour/blue" },
       { label: "RED", href: "/shop-by-colour/red" },
       { label: "GREEN", href: "/shop-by-colour/green" },
@@ -147,7 +121,7 @@ const DEFAULT_CATEGORIES: Category[] = [
   },
 ];
 
-const DEFAULT_QUICK_LINKS: QuickLink[] = [
+export const DEFAULT_QUICK_LINKS: QuickLink[] = [
   { href: "/lit-zone", label: "LIT ZONE", icon: "🔥", highlight: true },
   { href: "/store-locator-map", label: "STORES", icon: "📍" },
   { href: "/about", label: "ABOUT", icon: "ℹ️" },
@@ -341,7 +315,10 @@ export default function Header({ initialCategories, initialQuickLinks }: HeaderP
                         href={category.href}
                         className="group/link flex items-center justify-between px-5 py-3.5 text-sm font-bold text-[#C83232] hover:bg-[#C83232] hover:text-white transition-all duration-200 border-b border-white/10"
                       >
-                        <span>VIEW ALL {category.label}</span>
+                        <span>
+                          {["COLORS", "SHOP BY COLOUR"].includes(category.label.toUpperCase()) ? "" : "VIEW ALL "}
+                          {category.label}
+                        </span>
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4 transform group-hover/link:translate-x-1 transition-transform">
                           <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
                         </svg>
@@ -523,7 +500,8 @@ export default function Header({ initialCategories, initialQuickLinks }: HeaderP
                       onClick={() => setMobileMenuOpen(false)}
                       className="flex items-center gap-2 py-2 px-4 text-sm font-bold text-[#C83232] hover:bg-[#C83232] hover:text-white rounded-lg transition-all duration-200"
                     >
-                      VIEW ALL {category.label}
+                      {["COLORS", "SHOP BY COLOUR"].includes(category.label.toUpperCase()) ? "" : "VIEW ALL "}
+                      {category.label}
                       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
                       </svg>

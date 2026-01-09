@@ -519,18 +519,27 @@ export async function fetchActiveColors(): Promise<string[]> {
 
   const colorSet = new Set<string>();
   products.forEach((p: Product) => {
-    if (p.color) colorSet.add(p.color.trim().toUpperCase());
+    // Only process products that have at least some color data
+    // fetchProducts already filters by published status, but we'll be safe
+    if (p.color && p.color.trim()) {
+      colorSet.add(p.color.trim().toUpperCase());
+    }
     if (p.colors) {
       const colors = Array.isArray(p.colors)
         ? p.colors
         : (typeof p.colors === 'string' ? p.colors.split(',') : []);
-      colors.forEach((c: string) => {
-        if (c && typeof c === 'string') colorSet.add(c.trim().toUpperCase());
+
+      colors.forEach((c: any) => {
+        if (c && typeof c === 'string' && c.trim()) {
+          colorSet.add(c.trim().toUpperCase());
+        }
       });
     }
   });
 
-  return Array.from(colorSet).sort();
+  const activeColors = Array.from(colorSet).sort();
+  console.log(`[Directus] Found ${activeColors.length} active colors across published products`);
+  return activeColors;
 }
 
 /**

@@ -1,6 +1,6 @@
-import { fetchDirectusNavigation, fetchActiveColors } from "@/lib/directus";
-import Header from "./Header";
+import Header, { DEFAULT_CATEGORIES, DEFAULT_QUICK_LINKS } from "./Header";
 import { processNavigation, Category, QuickLink } from "@/lib/navigation";
+import { fetchDirectusNavigation, fetchActiveColors } from "@/lib/directus";
 
 export default async function HeaderWrapper() {
     try {
@@ -17,22 +17,37 @@ export default async function HeaderWrapper() {
                 const processed = processNavigation(navItems);
                 categories = processed.categories;
                 quickLinks = processed.quickLinks;
-
-                // Inject dynamic colors into the COLORS/SHOP BY COLOUR category
-                const colorCategory = categories.find(c => c.label === "COLORS" || c.label === "SHOP BY COLOUR");
-                if (colorCategory) {
-                    colorCategory.label = "SHOP BY COLOUR";
-                    colorCategory.href = "/shop-by-colour/black"; // Default entry point
-                    if (activeColors && activeColors.length > 0) {
-                        colorCategory.subcategories = activeColors.map((color: string) => ({
-                            label: color.toUpperCase(),
-                            href: `/shop-by-colour/${color.toLowerCase()}`,
-                            type: 'link'
-                        }));
-                    }
-                }
             } catch (error) {
                 console.error("Error processing navigation:", error);
+            }
+        }
+
+        // If no categories from CMS, use defaults so we can still inject dynamic colors
+        if (!categories) {
+            // Using JSON stringify/parse for a deep copy to avoid mutations affecting subsequent renders
+            categories = JSON.parse(JSON.stringify(DEFAULT_CATEGORIES));
+            quickLinks = JSON.parse(JSON.stringify(DEFAULT_QUICK_LINKS));
+        }
+
+        if (categories) {
+            // Inject dynamic colors into the COLORS/SHOP BY COLOUR category
+            const colorCategory = categories.find(c =>
+                c.label.toUpperCase() === "COLORS" ||
+                c.label.toUpperCase() === "SHOP BY COLOUR" ||
+                c.href.includes("shop-by-colour")
+            );
+
+            if (colorCategory) {
+                if (activeColors && activeColors.length > 0) {
+                    colorCategory.subcategories = activeColors.map((color: string) => ({
+                        label: color.toUpperCase(),
+                        href: `/shop-by-colour/${color.toLowerCase()}`,
+                        type: 'link'
+                    }));
+                } else {
+                    // If no active colors, clear the subcategories so we don't show empty links/defaults
+                    colorCategory.subcategories = [];
+                }
             }
         }
 
