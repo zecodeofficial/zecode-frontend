@@ -1159,7 +1159,7 @@ export type DirectusNavigationItem = {
 
 // Cached version of fetchDirectusNavigation
 export const fetchDirectusNavigation = typeof window === 'undefined'
-  ? unstable_cache(_fetchDirectusNavigation, ['nav-menu'], { revalidate: 3600, tags: ['navigation'] })
+  ? unstable_cache(_fetchDirectusNavigation, ['nav-menu'], { revalidate: 60, tags: ['navigation'] })
   : _fetchDirectusNavigation;
 
 /**
