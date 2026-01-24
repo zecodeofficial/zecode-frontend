@@ -558,7 +558,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
                 price: (typeof p.sale_price === 'number' ? p.sale_price : (typeof p.price === 'number' ? p.price : null)),
                 originalPrice: typeof p.price === 'number' ? p.price : undefined,
                 image: finalImage,
-                gallery: [finalImage].filter(Boolean), // Main product images only
+                gallery: (finalGalleryFinal as string[]).length > 0 ? (finalGalleryFinal as string[]) : [finalImage].filter(Boolean) as string[],
                 modelImages: modelImages, // Model images separately
                 description: p.description ?? '',
                 sizes: p.sizes ?? undefined,
