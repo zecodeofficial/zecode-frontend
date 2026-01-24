@@ -1,12 +1,14 @@
+/// <reference types="styled-jsx" />
 "use client";
 import { useState } from "react";
 import Link from "next/link";
 import { STORES } from "@/data/stores";
 import PageHeader from "@/components/PageHeader";
+import { Store } from "@/types/store";
 
 export default function StoreLocatorClient() {
     const [searchQuery, setSearchQuery] = useState("");
-    const [stores, setStores] = useState<any[]>(STORES); // Initial fallback to local data
+    const [stores, setStores] = useState<Store[]>(STORES); // Initial fallback to local data
     const [isLoading, setIsLoading] = useState(true);
 
     useState(() => {
@@ -33,7 +35,7 @@ export default function StoreLocatorClient() {
             store.name.toLowerCase().includes(query) ||
             store.city.toLowerCase().includes(query) ||
             store.address.toLowerCase().includes(query) ||
-            (Array.isArray(store.tags) ? store.tags : []).some(tag => tag.toLowerCase().includes(query))
+            (Array.isArray(store.tags) ? store.tags : []).some((tag: string) => tag.toLowerCase().includes(query))
         );
     });
 
@@ -150,7 +152,7 @@ export default function StoreLocatorClient() {
                                     gap: '8px',
                                     marginBottom: '16px'
                                 }}>
-                                    {Array.isArray(store.tags) && store.tags.slice(0, 4).map((tag, index) => (
+                                    {Array.isArray(store.tags) && store.tags.slice(0, 4).map((tag: string, index: number) => (
                                         <span
                                             key={index}
                                             style={{
