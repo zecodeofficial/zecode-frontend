@@ -17,7 +17,7 @@ export default function StoreDetailPage() {
     const slug = params.slug as string;
 
     // Initial fallback to local data if available
-    const [store, setStore] = useState<Store | null>(() => getStoreBySlug(slug));
+    const [store, setStore] = useState<Store | null>(() => getStoreBySlug(slug) || null);
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
