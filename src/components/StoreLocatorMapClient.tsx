@@ -17,10 +17,28 @@ export default function StoreLocatorMapClient() {
     const [scriptLoaded, setScriptLoaded] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedStore, setSelectedStore] = useState<Store | null>(null);
-    const [stores] = useState<Store[]>(STORES); // Use updated local data
+    const [stores, setStores] = useState<Store[]>(STORES); // Initial fallback to local data
+    const [isLoading, setIsLoading] = useState(true);
     const mapRef = useRef<HTMLDivElement>(null);
     const mapInstanceRef = useRef<any>(null);
     const markersRef = useRef<any[]>([]);
+
+    useEffect(() => {
+        const fetchStoresData = async () => {
+            try {
+                const response = await fetch('/api/stores');
+                const data = await response.json();
+                if (data.stores && data.stores.length > 0) {
+                    setStores(data.stores);
+                }
+            } catch (error) {
+                console.error('Failed to fetch stores from API:', error);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        fetchStoresData();
+    }, []);
 
     const filteredStores = stores.filter(store =>
         store.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -183,7 +201,10 @@ export default function StoreLocatorMapClient() {
                     <div style={{
                         padding: '16px',
                         borderBottom: '2px solid #000000',
-                        backgroundColor: '#f9fafb'
+                        backgroundColor: '#f9fafb',
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center'
                     }}>
                         <h2 style={{
                             fontFamily: 'var(--font-din-condensed)',
@@ -194,6 +215,9 @@ export default function StoreLocatorMapClient() {
                         }}>
                             {filteredStores.length} Stores Found
                         </h2>
+                        {isLoading && (
+                            <span style={{ fontSize: '12px', color: '#6b7280' }}>Loading...</span>
+                        )}
                     </div>
 
                     {filteredStores.length === 0 ? (

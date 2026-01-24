@@ -1,0 +1,106 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+/node_modules
+/.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# testing
+/coverage
+
+# next.js
+/.next/
+/out/
+
+# production
+/build
+
+# misc
+.DS_Store
+*.pem
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# env files (can opt-in for committing if needed)
+.env
+.env.local
+.env.*.local
+!.env.example
+!.env.local.example
+
+# Instagram token metadata (contains sensitive info)
+scripts/instagram-token.json
+
+# Generated model poses (large files)
+scripts/generated-model-poses/
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+
+/src/generated/prisma
+
+# Images - now hosted on Cloudinary
+/public/products/
+/public/categories/
+/public/hero/
+# /public/placeholders/ # Allow placeholders for local fallbacks
+
+# Resource files (reference only)
+/resources/
+
+# Debug and log files (generated during troubleshooting)
+*-dump.txt
+*-log.txt
+*-check.txt
+*-output.txt
+*-report.json
+*-res.txt
+*.log.txt
+policy-*.txt
+perms-*.txt
+settings-*.txt
+roles.txt
+users-list.txt
+collections-list.txt
+working-products.txt
+junction-check.txt
+me-check.txt
+login.json
+
+# Temporary migration/debug scripts (not for production)
+force-public-role.mjs
+scripts/debug-*.js
+scripts/debug-*.mjs
+scripts/inspect-*.mjs
+scripts/check-*.mjs
+scripts/dump-*.mjs
+scripts/fix-admin-*.mjs
+scripts/patch-*.mjs
+scripts/list-users.mjs
+scripts/migrate-main-image.mjs
+
+/ZECODE - Your New Fashion Code*
+*.zip
+*.bak
+*.pt
+*.bin
+*.ptl
+*.onnx
+*.exe
+/node_modules
+/.next
+/out
+/build

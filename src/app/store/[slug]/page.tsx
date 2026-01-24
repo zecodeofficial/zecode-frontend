@@ -1,9 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { getStoreBySlug } from '@/data/stores';
+import { getStoreBySlug, STORES } from '@/data/stores';
+import { Store } from '@/types/store';
 import { getProductsByIds } from '@/data/products';
 import GoogleReviews from '@/components/GoogleReviews';
 import StorePhotoGallery from '@/components/StorePhotoGallery';
@@ -14,7 +15,43 @@ export default function StoreDetailPage() {
     const params = useParams();
     const router = useRouter();
     const slug = params.slug as string;
-    const store = getStoreBySlug(slug);
+
+    // Initial fallback to local data if available
+    const [store, setStore] = useState<Store | null>(() => getStoreBySlug(slug));
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchStoreData = async () => {
+            try {
+                const response = await fetch(`/api/stores?slug=${slug}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data) {
+                        setStore(data);
+                    }
+                }
+            } catch (error) {
+                console.error('Failed to fetch store details from API:', error);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        fetchStoreData();
+    }, [slug]);
+
+    if (isLoading && !store) {
+        return (
+            <div style={{
+                minHeight: '100vh',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontFamily: '"DIN Condensed", sans-serif'
+            }}>
+                <p style={{ fontSize: '24px', color: '#666' }}>Loading store details...</p>
+            </div>
+        );
+    }
 
     if (!store) {
         return (
@@ -47,8 +84,9 @@ export default function StoreDetailPage() {
     // Google Maps embed URL with the store location
     // Using place_id for accurate display of store name and address
     const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '';
-    const mapEmbedUrl = store.placeId
-        ? `https://www.google.com/maps/embed/v1/place?key=${apiKey}&q=place_id:${store.placeId}&zoom=15`
+    const place_id = (store as any).place_id || store.placeId; // Support both schemas during transition
+    const mapEmbedUrl = place_id
+        ? `https://www.google.com/maps/embed/v1/place?key=${apiKey}&q=place_id:${place_id}&zoom=15`
         : `https://www.google.com/maps/embed/v1/place?key=${apiKey}&q=${encodeURIComponent(store.address)}&zoom=15`;
 
     return (
@@ -347,7 +385,7 @@ export default function StoreDetailPage() {
                         GOOGLE REVIEWS
                     </h2>
 
-                    <GoogleReviews placeId={store.placeId} storeName={store.name} />
+                    <GoogleReviews placeId={place_id} storeName={store.name} />
                 </section>
 
                 {/* Back to Store Locator */}

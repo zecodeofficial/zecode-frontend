@@ -6,15 +6,34 @@ import PageHeader from "@/components/PageHeader";
 
 export default function StoreLocatorClient() {
     const [searchQuery, setSearchQuery] = useState("");
+    const [stores, setStores] = useState<any[]>(STORES); // Initial fallback to local data
+    const [isLoading, setIsLoading] = useState(true);
+
+    useState(() => {
+        const fetchStoresData = async () => {
+            try {
+                const response = await fetch('/api/stores');
+                const data = await response.json();
+                if (data.stores && data.stores.length > 0) {
+                    setStores(data.stores);
+                }
+            } catch (error) {
+                console.error('Failed to fetch stores from API:', error);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        fetchStoresData();
+    });
 
     // Filter stores based on search query
-    const filteredStores = STORES.filter((store) => {
+    const filteredStores = stores.filter((store) => {
         const query = searchQuery.toLowerCase();
         return (
             store.name.toLowerCase().includes(query) ||
             store.city.toLowerCase().includes(query) ||
             store.address.toLowerCase().includes(query) ||
-            store.tags.some(tag => tag.toLowerCase().includes(query))
+            (Array.isArray(store.tags) ? store.tags : []).some(tag => tag.toLowerCase().includes(query))
         );
     });
 
@@ -131,7 +150,7 @@ export default function StoreLocatorClient() {
                                     gap: '8px',
                                     marginBottom: '16px'
                                 }}>
-                                    {store.tags.slice(0, 4).map((tag, index) => (
+                                    {Array.isArray(store.tags) && store.tags.slice(0, 4).map((tag, index) => (
                                         <span
                                             key={index}
                                             style={{
