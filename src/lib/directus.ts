@@ -510,6 +510,31 @@ const DATA_CORRECTIONS: Record<string, Partial<Product>> = {
   '346': { color: 'Black', name: "Women's Black Polo Shirt" }, // female_black_polo_shirt
   // Red collection fix
   '265': { color: 'Multi', name: "Boys Red & White Varsity Jacket" }, // boy-kid-red-varsity-outerwear-jacket
+  // Ethnic Fusion / Kurti fixes (mislabeled in CMS)
+  '530': { name: "Women's Indigo Blue Leaf Print Angrakha Kurti", subcategory: "Ethnic Fusion" },
+  '546': { name: "Women's Navy Blue Floral Print Kurti with White Leggings", subcategory: "Ethnic Fusion" },
+  '553': { name: "Women's Peach Embroidered Kurti & Trousers Set", subcategory: "Ethnic Fusion" },
+  '560': { name: "Women's Plum Purple Printed Cotton Kurti & Leggings", subcategory: "Ethnic Fusion" },
+  '562': { name: "Women's Powder Pink Embroidered Kurti & Leggings", subcategory: "Ethnic Fusion" },
+  '565': { name: "Women's Purple Sleeveless Printed Straight Kurti & Leggings", subcategory: "Ethnic Fusion" },
+  '567': { name: "Women's Red Floral Print Kurti & Palazzo Pants Set", subcategory: "Ethnic Fusion" },
+  '573': { name: "Women's Rustic Orange Floral Longline Kurti & Pants Set", subcategory: "Ethnic Fusion" },
+  '585': { name: "Women's Teal Floral Embroidered Pleated Kurti & Trousers", subcategory: "Ethnic Fusion" },
+  '796': { name: "Women's Elegant Off-White Embroidered Kurti & Leggings", subcategory: "Ethnic Fusion" },
+  '1713': { name: "Women's Teal Embroidered V-Neck Kurti & Straight Pants", subcategory: "Ethnic Fusion" },
+  '1733': { name: "Women's Floral Print Button-Down Kurti & Palazzo Set", subcategory: "Ethnic Fusion" },
+  '1744': { name: "Women's Pastel Tie-Dye Embroidered Kurti & Wide-Leg Pants", subcategory: "Ethnic Fusion" },
+  '1746': { name: "Women's White Printed Cotton Kurti", subcategory: "Ethnic Fusion" },
+  // Additional misclassified Activewear
+  '432': { name: "Women's Boho Chic Printed Capri Pants", subcategory: "Ethnic Fusion" },
+  '433': { name: "Women's Navy Blue Printed Capri Pants", subcategory: "Trousers" },
+  '438': { name: "Women's Floral Velvet Midi Dress & Leggings Set", subcategory: "Ethnic Fusion" },
+  '441': { name: "Women's Vibrant Red Stretch Leggings", subcategory: "Trousers" },
+  '1729': { name: "Women's Vibrant Red Stretch Leggings", subcategory: "Trousers" },
+  '451': { name: "Women's Diamond Print Sleeveless Kurta & Leggings", subcategory: "Ethnic Fusion" },
+  '576': { name: "Women's Sage Green Floral Print Kurta & Leggings", subcategory: "Ethnic Fusion" },
+  '797': { name: "Women's Red Cotton Blend Capri Leggings", subcategory: "Trousers" },
+  '799': { name: "Women's Beige Diamond Capri & Top Set", subcategory: "Ethnic Fusion" },
 };
 
 /**
@@ -675,7 +700,7 @@ async function _fetchProductsByCategory(categorySlug: string): Promise<Product[]
       },
       timeout: TIMEOUT_DEFAULT,
     });
-    return res?.data?.data ?? null;
+    return (res?.data?.data as Product[])?.map(getCorrectedProduct) ?? null;
   } catch (err: any) {
     console.error("Directus fetchProductsByCategory error:", err.message);
     return null;
@@ -708,7 +733,7 @@ async function _fetchProductsByGender(gender: string): Promise<Product[] | null>
       },
       timeout: TIMEOUT_DEFAULT,
     });
-    return res?.data?.data ?? null;
+    return (res?.data?.data as Product[])?.map(getCorrectedProduct) ?? null;
   } catch (err: any) {
     console.error("Directus fetchProductsByGender error:", err.message);
     return null;
@@ -778,7 +803,7 @@ async function _fetchProductsByGenderAndSubcategory(gender: string | null, subca
 
     let products = res?.data?.data ?? [];
 
-    return products;
+    return products.map(getCorrectedProduct);
   } catch (err: any) {
     console.error("Directus fetchProductsByGenderAndSubcategory error:", err.message);
     return null; // Return null so caller can try fallback if needed
@@ -857,7 +882,7 @@ async function _fetchProductBySlug(slug: string): Promise<Product | null> {
       });
     }
 
-    return product;
+    return product ? getCorrectedProduct(product) : null;
   } catch (err: any) {
     console.error("Directus fetchProductBySlug error:", err.message);
     return null;
