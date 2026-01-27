@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { fetchStores } from '@/lib/directus';
+import { STORES } from '@/data/stores';
 import { checkRateLimit } from '@/lib/rate-limit';
 
 // Cache stores response for 5 minutes
@@ -9,7 +9,7 @@ export const revalidate = 300;
 export async function GET(request: NextRequest) {
     // Rate limiting: 100 requests per minute
     const { allowed, headers } = checkRateLimit(request, { maxRequests: 100 });
-
+    
     if (!allowed) {
         return NextResponse.json(
             { error: 'Too many requests. Please try again later.' },
@@ -22,15 +22,6 @@ export async function GET(request: NextRequest) {
     const slug = searchParams.get('slug');
 
     try {
-        const stores = await fetchStores();
-
-        if (!stores) {
-            return NextResponse.json(
-                { error: 'Failed to fetch stores' },
-                { status: 500, headers }
-            );
-        }
-
         if (id) {
             // Validate ID is a number
             const parsedId = parseInt(id);
@@ -40,8 +31,8 @@ export async function GET(request: NextRequest) {
                     { status: 400, headers }
                 );
             }
-
-            const store = stores.find(s => s.id === parsedId);
+            
+            const store = STORES.find(s => s.id === parsedId);
             if (!store) {
                 return NextResponse.json(
                     { error: 'Store not found' },
@@ -54,7 +45,7 @@ export async function GET(request: NextRequest) {
         if (slug) {
             // Sanitize slug
             const sanitizedSlug = slug.replace(/[^a-zA-Z0-9-]/g, '');
-            const store = stores.find(s => s.slug === sanitizedSlug);
+            const store = STORES.find(s => s.slug === sanitizedSlug);
             if (!store) {
                 return NextResponse.json(
                     { error: 'Store not found' },
@@ -66,8 +57,8 @@ export async function GET(request: NextRequest) {
 
         // Return all stores with cache headers
         return NextResponse.json(
-            { stores: stores, total: stores.length },
-            {
+            { stores: STORES, total: STORES.length },
+            { 
                 headers: {
                     ...headers,
                     'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600',

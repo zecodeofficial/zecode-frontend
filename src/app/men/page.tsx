@@ -15,11 +15,7 @@ const MEN_SUBCATEGORIES = [
   { title: "T-Shirts", slug: "tshirts" },
   { title: "Shirts", slug: "shirts" },
   { title: "Jeans", slug: "jeans" },
-  { title: "Trousers", slug: "trousers" },
   { title: "Jackets", slug: "jackets" },
-  { title: "Hoodies", slug: "hoodies" },
-  { title: "Shorts", slug: "shorts" },
-  { title: "Shoes", slug: "shoes" },
 ];
 
 // Define specific slide for Men's category
@@ -86,11 +82,11 @@ export default async function MenPage() {
       <DescriptionText text={description} />
 
       <SubcategoryGridDynamic
-        title="Explore Men's Fashion"
+        title="Men"
         categorySlug="men"
         subcategories={MEN_SUBCATEGORIES}
-        variant="section"
       />
     </div>
   );
 }
+

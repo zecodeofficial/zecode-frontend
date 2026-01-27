@@ -19,8 +19,8 @@ const CACHE_STORES = false;      // disabled
 const CACHE_CATEGORIES = 600;    // 10 minutes
 
 // Request timeout - increased for Render cold starts
-const TIMEOUT_DEFAULT = 30000;   // 30 seconds
-const TIMEOUT_PRODUCTS = 60000;  // 60 seconds for products
+const TIMEOUT_DEFAULT = 15000;   // 15 seconds
+const TIMEOUT_PRODUCTS = 30000;  // 30 seconds for products (larger payload)
 
 // Helper to get the correct URL - uses proxy on client-side to avoid CORS
 function getApiUrl(path: string): string {
@@ -148,9 +148,11 @@ const CLOUDINARY_BASE_URL = `https://res.cloudinary.com/${CLOUDINARY_CLOUD_NAME}
  * /products/image.jpg → https://res.cloudinary.com/ds8llatku/image/upload/f_auto,q_auto/zecode/products/image
  */
 function getCloudinaryUrl(localPath: string): string {
-  // Remove leading slash. Cloudinary works fine without extensions when using f_auto.
+  // Remove leading slash but KEEP file extension (Cloudinary needs it for proper format detection)
   const cleanPath = localPath.replace(/^\//, '');
   // Add auto format and quality optimization
+  // Note: We keep the extension because Cloudinary uses it for format detection
+  // and some images might not work without it
   return `${CLOUDINARY_BASE_URL}/f_auto,q_auto/zecode/${cleanPath}`;
 }
 
@@ -335,7 +337,6 @@ export const fetchCategoryBySlug = typeof window === 'undefined'
 export type Store = {
   id: number;
   name: string;
-  slug: string;
   address: string;
   city: string;
   state: string;
@@ -344,12 +345,7 @@ export type Store = {
   email?: string;
   latitude?: number;
   longitude?: number;
-  opening_hours?: string;
-  opened_date?: string;
-  place_id?: string;
-  tags?: string[] | string;
-  photos?: string[] | string;
-  description?: string;
+  hours?: string;
   image?: string;
   status?: string;
   sort?: number;
@@ -365,7 +361,6 @@ async function _fetchStores(): Promise<Store[] | null> {
       params: {
         sort: "sort,name",
         "filter[status][_eq]": "published",
-        fields: "*", // Get all fields including new ones
         _t: new Date().getTime(), // Cache buster
       },
       timeout: TIMEOUT_DEFAULT,
@@ -410,7 +405,6 @@ export type Product = {
   image?: string;
   image_url?: string;
   main_image?: string;
-  product_image_url?: string;
   model_image_1?: string;
   model_image_2?: string;
   model_image_3?: string;
@@ -422,8 +416,7 @@ export type Product = {
   subcategory?: string;
   gender_category?: string;
   sizes?: string[];
-  colors?: string[] | string;
-  color?: string;
+  colors?: string[];
   status?: string;
   featured?: boolean;
   sort?: number;
@@ -454,14 +447,13 @@ async function _fetchProducts(): Promise<Product[] | null> {
       const res = await axios.get(url, {
         params: {
           sort: "sort,name",
-          "filter[status][_eq]": "published",
-          fields: "*", // Optimized depth (all fields but no M2M nesting)
+          fields: "*.*", // Deep fetch for M2M
           limit: -1,  // Get all products
         },
         timeout: TIMEOUT_PRODUCTS,
       });
       const products = res?.data?.data ?? null;
-      if (products && Array.isArray(products)) {
+      if (products && products.length > 0) {
         console.log(`[Directus] Fetched ${products.length} products`);
         return products;
       }
@@ -487,204 +479,6 @@ export const fetchProducts = typeof window === 'undefined'
   : _fetchProducts;
 
 /**
- * Known data errors in the CMS that need overrides
- */
-const DATA_CORRECTIONS: Record<string, Partial<Product>> = {
-  'womens-pink-tank-top-dsc4404': {
-    color: 'Light Blue',
-    name: "Women's Light Blue Casual Jacket"
-  },
-  'womens-purple-zip-up-knit-jacket-dsc4404': { // Derived slug for ID 45
-    color: 'Light Blue'
-  },
-  // Blue collection false positives (identified by ID)
-  '291': { color: 'Green', name: "Men's Green Army Pants" }, // male_dark_green_t_shirt_graphic
-  '292': { color: 'White', name: "Men's White Short Sleeve Shirt" }, // male_white_short_sleeve_shirt
-  '294': { color: 'Green', name: "Men's Olive Green Short Sleeve Shirt" }, // male_olive_green_short_sleeve_shirt
-  '300': { color: 'Grey', name: "Men's Grey Jacket" },  // male_grey_jacket_outer
-  '308': { color: 'Black', name: "Women's Black Pants" }, // model2_female_black_pants
-  '309': { color: 'White', name: "Men's Off-White Button Up Shirt" }, // male_off-white_button_up_shirt
-  '338': { color: 'Grey', name: "Women's Grey Sleeveless Top" },  // female_light_grey_sleeveless_top
-  '341': { color: 'Beige', name: "Women's Beige T-Shirt" }, // female_beige_t_shirt_graphic
-  '342': { color: 'Black', name: "Women's Black Striped Sweater" }, // female_black_sweater_striped
-  '346': { color: 'Black', name: "Women's Black Polo Shirt" }, // female_black_polo_shirt
-  // Red collection fix
-  '265': { color: 'Multi', name: "Boys Red & White Varsity Jacket" }, // boy-kid-red-varsity-outerwear-jacket
-  // Ethnic Fusion / Kurti fixes (mislabeled in CMS)
-  '530': { name: "Women's Indigo Blue Leaf Print Angrakha Kurti", subcategory: "Ethnic Fusion" },
-  '546': { name: "Women's Navy Blue Floral Print Kurti with White Leggings", subcategory: "Ethnic Fusion" },
-  '553': { name: "Women's Peach Embroidered Kurti & Trousers Set", subcategory: "Ethnic Fusion" },
-  '560': { name: "Women's Plum Purple Printed Cotton Kurti & Leggings", subcategory: "Ethnic Fusion" },
-  '562': { name: "Women's Powder Pink Embroidered Kurti & Leggings", subcategory: "Ethnic Fusion" },
-  '565': { name: "Women's Purple Sleeveless Printed Straight Kurti & Leggings", subcategory: "Ethnic Fusion" },
-  '567': { name: "Women's Red Floral Print Kurti & Palazzo Pants Set", subcategory: "Ethnic Fusion" },
-  '573': { name: "Women's Rustic Orange Floral Longline Kurti & Pants Set", subcategory: "Ethnic Fusion" },
-  '585': { name: "Women's Teal Floral Embroidered Pleated Kurti & Trousers", subcategory: "Ethnic Fusion" },
-  '796': { name: "Women's Elegant Off-White Embroidered Kurti & Leggings", subcategory: "Ethnic Fusion" },
-  '1713': { name: "Women's Teal Embroidered V-Neck Kurti & Straight Pants", subcategory: "Ethnic Fusion" },
-  '1733': { name: "Women's Floral Print Button-Down Kurti & Palazzo Set", subcategory: "Ethnic Fusion" },
-  '1744': { name: "Women's Pastel Tie-Dye Embroidered Kurti & Wide-Leg Pants", subcategory: "Ethnic Fusion" },
-  '1746': { name: "Women's White Printed Cotton Kurti", subcategory: "Ethnic Fusion" },
-  // Additional misclassified Activewear
-  '432': { name: "Women's Boho Chic Printed Capri Pants", subcategory: "Ethnic Fusion" },
-  '433': { name: "Women's Navy Blue Printed Capri Pants", subcategory: "Trousers" },
-  '438': { name: "Women's Floral Velvet Midi Dress & Leggings Set", subcategory: "Ethnic Fusion" },
-  '441': { name: "Women's Vibrant Red Stretch Leggings", subcategory: "Trousers" },
-  '1729': { name: "Women's Vibrant Red Stretch Leggings", subcategory: "Trousers" },
-  '451': { name: "Women's Diamond Print Sleeveless Kurta & Leggings", subcategory: "Ethnic Fusion" },
-  '576': { name: "Women's Sage Green Floral Print Kurta & Leggings", subcategory: "Ethnic Fusion" },
-  '797': { name: "Women's Red Cotton Blend Capri Leggings", subcategory: "Trousers" },
-  '799': { name: "Women's Beige Diamond Capri & Top Set", subcategory: "Ethnic Fusion" },
-};
-
-/**
- * Exclusions for name-based color matching to avoid false positives
- * (e.g. avoiding "Gold Buckle" matching the Yellow collection)
- */
-const COLOR_MATCH_EXCLUSIONS: Record<string, string[]> = {
-  'yellow': [
-    'gold buckle', 'gold-buckle', 'gold detail', 'gold-detail',
-    'gold accent', 'gold-accent', 'gold trim', 'gold-trim',
-    'gold hardware', 'gold-hardware', 'gold accessory',
-    'gold chain', 'gold-chain', 'gold finish', 'gold-finish',
-    'rose gold', 'rose-gold'
-  ],
-  'blue': [], // Empty for now, blue should include its shades in the shop-by-colour page
-  'pink': ['light pink', 'hot pink']
-};
-
-/**
- * getCorrectedProduct - Applies manual overrides to a product's data
- */
-function getCorrectedProduct(product: Product): Product {
-  const slugCorrection = product.slug ? DATA_CORRECTIONS[product.slug] : null;
-  const idCorrection = product.id ? DATA_CORRECTIONS[product.id.toString()] : null;
-
-  const correction = slugCorrection || idCorrection;
-  if (correction) {
-    return { ...product, ...correction };
-  }
-  return product;
-}
-
-/**
- * hasColor - check if a product has a specific color (handles corrections and name-based fallback)
- */
-export function hasColor(product: Product, targetColor: string): boolean {
-  if (!targetColor) return true;
-  const correctedProduct = getCorrectedProduct(product);
-  const target = targetColor.toLowerCase();
-
-  // Mapping for synonymous or subset colors
-  const colorMappings: Record<string, string[]> = {
-    'yellow': ['yellow', 'gold', 'mustard', 'lemon'],
-    'blue': ['blue', 'navy', 'azure', 'cobalt'],
-    'pink': ['pink', 'rose', 'fuchsia', 'magenta'],
-    'green': ['green', 'olive', 'emerald', 'teal'],
-    'red': ['red', 'crimson', 'maroon', 'burgundy', 'scarlet', 'ruby'],
-  };
-
-  const searchTerms = colorMappings[target] || [target];
-
-  // 1. Check 'color' field (string)
-  if (correctedProduct.color) {
-    const pColor = correctedProduct.color.toLowerCase();
-    if (searchTerms.some(term => pColor.includes(term))) return true;
-  }
-
-  // 2. Check 'colors' field (array or comma string)
-  if (correctedProduct.colors) {
-    const productColors = Array.isArray(correctedProduct.colors)
-      ? correctedProduct.colors
-      : (typeof correctedProduct.colors === 'string' ? correctedProduct.colors.split(',').map(c => c.trim().toLowerCase()) : []);
-
-    if (productColors.some((c: string) => searchTerms.some(term => c.includes(term)))) return true;
-  }
-
-  // 3. Fallback: Check product name (especially for untagged items like Yellow/Gold)
-  if (correctedProduct.name) {
-    const pName = correctedProduct.name.toLowerCase();
-
-    // Check for exclusions first (e.g. "Gold Buckle" shouldn't match "Yellow")
-    const exclusions = COLOR_MATCH_EXCLUSIONS[target] || [];
-    if (exclusions.some(ex => pName.includes(ex))) return false;
-
-    // Use regex for whole-word matching to avoid partial matches
-    return searchTerms.some(term => {
-      const regex = new RegExp(`\\b${term}\\b`, 'i');
-      return regex.test(pName);
-    });
-  }
-
-  return false;
-}
-
-/**
- * fetchActiveColors - Extracts all unique colors from published products
- */
-export async function fetchActiveColors(): Promise<string[]> {
-  const products = await fetchProducts();
-  if (!products) return [];
-
-  const colorSet = new Set<string>();
-  const CORE_COLORS = ["BLACK", "WHITE", "NAVY", "BLUE", "RED", "GREEN", "YELLOW", "PINK", "PURPLE", "BEIGE", "BROWN", "GREY"];
-
-  products.forEach((p: Product) => {
-    const corrected = getCorrectedProduct(p);
-    let foundAnyColor = false;
-
-    if (corrected.color) {
-      colorSet.add(corrected.color.trim().toUpperCase());
-      foundAnyColor = true;
-    }
-    if (corrected.colors) {
-      const colors = Array.isArray(corrected.colors)
-        ? corrected.colors
-        : (typeof corrected.colors === 'string' ? corrected.colors.split(',') : []);
-
-      colors.forEach(c => {
-        if (typeof c === 'string' && c.trim()) {
-          colorSet.add(c.trim().toUpperCase());
-          foundAnyColor = true;
-        }
-      });
-    }
-
-    // Fallback for untagged products: check name for core colors
-    if (!foundAnyColor && corrected.name) {
-      const pName = corrected.name.toLowerCase();
-
-      CORE_COLORS.forEach(coreColor => {
-        const lowerCore = coreColor.toLowerCase();
-
-        // Check exclusions (e.g. don't add YELLOW for "Gold Buckle")
-        const exclusions = COLOR_MATCH_EXCLUSIONS[lowerCore] || [];
-        if (exclusions.some(ex => pName.includes(ex))) return;
-
-        // Whole word check
-        const regex = new RegExp(`\\b${lowerCore}\\b`, 'i');
-        if (regex.test(pName)) {
-          colorSet.add(coreColor);
-        }
-      });
-
-      // Special check for GOLD -> YELLOW (with exclusions)
-      const yellowExclusions = COLOR_MATCH_EXCLUSIONS['yellow'] || [];
-      if (!yellowExclusions.some(ex => pName.includes(ex))) {
-        const goldRegex = /\bgold\b/i;
-        if (goldRegex.test(pName)) {
-          colorSet.add('YELLOW');
-        }
-      }
-    }
-  });
-
-  const activeColors = Array.from(colorSet).sort();
-  console.log(`[Directus] Found ${activeColors.length} active colors across published products`);
-  return activeColors;
-}
-
-/**
  * fetchProductsByCategory - fetch products by category slug (cached)
  */
 async function _fetchProductsByCategory(categorySlug: string): Promise<Product[] | null> {
@@ -700,7 +494,7 @@ async function _fetchProductsByCategory(categorySlug: string): Promise<Product[]
       },
       timeout: TIMEOUT_DEFAULT,
     });
-    return (res?.data?.data as Product[])?.map(getCorrectedProduct) ?? null;
+    return res?.data?.data ?? null;
   } catch (err: any) {
     console.error("Directus fetchProductsByCategory error:", err.message);
     return null;
@@ -733,7 +527,7 @@ async function _fetchProductsByGender(gender: string): Promise<Product[] | null>
       },
       timeout: TIMEOUT_DEFAULT,
     });
-    return (res?.data?.data as Product[])?.map(getCorrectedProduct) ?? null;
+    return res?.data?.data ?? null;
   } catch (err: any) {
     console.error("Directus fetchProductsByGender error:", err.message);
     return null;
@@ -796,14 +590,14 @@ async function _fetchProductsByGenderAndSubcategory(gender: string | null, subca
       params: {
         sort: "sort,name",
         filter: JSON.stringify(filter),
-        fields: "*,image,image_url,main_image,model_image_1,model_image_2,model_image_3,model_image_1_url,model_image_2_url,model_image_3_url",
+        fields: "*,image,image_url,main_image",
       },
       timeout: TIMEOUT_DEFAULT,
     });
 
     let products = res?.data?.data ?? [];
 
-    return products.map(getCorrectedProduct);
+    return products;
   } catch (err: any) {
     console.error("Directus fetchProductsByGenderAndSubcategory error:", err.message);
     return null; // Return null so caller can try fallback if needed
@@ -825,7 +619,7 @@ export const fetchProductsByGenderAndSubcategory = typeof window === 'undefined'
       },
       [cacheKey],
       { revalidate: CACHE_PRODUCTS, tags: ['products'] }
-    )().catch((err: any) => {
+    )().catch(err => {
       console.error("Cached fetch wrapper error:", err);
       return null;
     });
@@ -882,7 +676,7 @@ async function _fetchProductBySlug(slug: string): Promise<Product | null> {
       });
     }
 
-    return product ? getCorrectedProduct(product) : null;
+    return product;
   } catch (err: any) {
     console.error("Directus fetchProductBySlug error:", err.message);
     return null;
@@ -1185,7 +979,7 @@ export type DirectusNavigationItem = {
 
 // Cached version of fetchDirectusNavigation
 export const fetchDirectusNavigation = typeof window === 'undefined'
-  ? unstable_cache(_fetchDirectusNavigation, ['nav-menu'], { revalidate: 60, tags: ['navigation'] })
+  ? unstable_cache(_fetchDirectusNavigation, ['nav-menu'], { revalidate: 3600, tags: ['navigation'] })
   : _fetchDirectusNavigation;
 
 /**

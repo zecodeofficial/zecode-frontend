@@ -14,31 +14,12 @@ declare global {
 }
 
 export default function StoreLocatorMapClient() {
-    const [scriptLoaded, setScriptLoaded] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedStore, setSelectedStore] = useState<Store | null>(null);
-    const [stores, setStores] = useState<Store[]>(STORES); // Initial fallback to local data
-    const [isLoading, setIsLoading] = useState(true);
+    const [stores] = useState<Store[]>(STORES); // Use local data permanently
     const mapRef = useRef<HTMLDivElement>(null);
     const mapInstanceRef = useRef<any>(null);
     const markersRef = useRef<any[]>([]);
-
-    useEffect(() => {
-        const fetchStoresData = async () => {
-            try {
-                const response = await fetch('/api/stores');
-                const data = await response.json();
-                if (data.stores && data.stores.length > 0) {
-                    setStores(data.stores);
-                }
-            } catch (error) {
-                console.error('Failed to fetch stores from API:', error);
-            } finally {
-                setIsLoading(false);
-            }
-        };
-        fetchStoresData();
-    }, []);
 
     const filteredStores = stores.filter(store =>
         store.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -47,8 +28,9 @@ export default function StoreLocatorMapClient() {
         (store.tags && store.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase())))
     );
 
-    const initMap = () => {
-        if (!window.google || !mapRef.current) return;
+    useEffect(() => {
+        const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+        if (!apiKey || !window.google) return;
 
         // Initialize map
         const mapOptions = {
@@ -93,13 +75,7 @@ export default function StoreLocatorMapClient() {
             });
             mapInstanceRef.current.fitBounds(bounds);
         }
-    };
-
-    useEffect(() => {
-        if (scriptLoaded) {
-            initMap();
-        }
-    }, [scriptLoaded, stores]);
+    }, [stores]);
 
     useEffect(() => {
         // Update selected marker
@@ -137,14 +113,11 @@ export default function StoreLocatorMapClient() {
             backgroundColor: '#f5f5f5',
             fontFamily: 'var(--font-din-condensed), sans-serif'
         }}>
-            {/* Load Google Maps API */}
+            {/* Load Google Maps API non-blocking */}
             <Script
                 src={`https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&libraries=places`}
-                strategy="afterInteractive"
-                onLoad={() => setScriptLoaded(true)}
+                strategy="lazyOnload"
             />
-
-            {/* Header Section */}
 
             {/* Header Section */}
             <PageHeader pageKey="store-locator-map" defaultTitle="STORE LOCATOR" subtitle="Find a ZECODE store near you" />
@@ -201,10 +174,7 @@ export default function StoreLocatorMapClient() {
                     <div style={{
                         padding: '16px',
                         borderBottom: '2px solid #000000',
-                        backgroundColor: '#f9fafb',
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center'
+                        backgroundColor: '#f9fafb'
                     }}>
                         <h2 style={{
                             fontFamily: 'var(--font-din-condensed)',
@@ -215,9 +185,6 @@ export default function StoreLocatorMapClient() {
                         }}>
                             {filteredStores.length} Stores Found
                         </h2>
-                        {isLoading && (
-                            <span style={{ fontSize: '12px', color: '#6b7280' }}>Loading...</span>
-                        )}
                     </div>
 
                     {filteredStores.length === 0 ? (

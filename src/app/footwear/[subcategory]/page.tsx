@@ -1,4 +1,4 @@
-import { fetchProducts, fetchProductBySlug, fileUrl, fetchProductsByGenderAndSubcategory, hasColor, type Product } from "@/lib/directus";
+import { fetchProducts, fetchProductBySlug, fileUrl, fetchProductsByGenderAndSubcategory } from "@/lib/directus";
 import ProductCard from "@/components/ProductCard";
 import ProductDetailContent from "@/components/ProductDetailContent";
 import Link from "next/link";
@@ -140,7 +140,7 @@ function getSubcategoryTitle(cmsSubcategory: string | null | undefined): string 
 
 interface PageProps {
   params: Promise<{ subcategory: string }>;
-  searchParams: Promise<{ [key: string]: string | string[] | undefined; color?: string }>;
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }
 
 export async function generateMetadata({ params, searchParams }: PageProps): Promise<Metadata> {
@@ -168,7 +168,7 @@ export async function generateMetadata({ params, searchParams }: PageProps): Pro
 
 export default async function FootwearSubcategoryPage({ params, searchParams }: PageProps) {
   const { subcategory } = await params;
-  const { gender: genderQuery, color } = await searchParams;
+  const { gender: genderQuery } = await searchParams;
 
   // 1. Check if it's a known subcategory (men or women)
   if (SUBCATEGORY_MAP[subcategory]) {
@@ -182,10 +182,6 @@ export default async function FootwearSubcategoryPage({ params, searchParams }: 
       displayTitle = `${genderLabel}'s ${displayTitle}`;
     }
 
-    if (typeof color === 'string') {
-      displayTitle = `${displayTitle} - ${color.charAt(0).toUpperCase() + color.slice(1)}`;
-    }
-
     let products: any[] = [];
     try {
       // Optimized fetch: Filter by subcategory and optional gender at the API level
@@ -194,8 +190,7 @@ export default async function FootwearSubcategoryPage({ params, searchParams }: 
       const fetchedProducts = await fetchProductsByGenderAndSubcategory(gender, cmsSubcategory, 'Footwear');
 
       if (fetchedProducts) {
-        // Apply color filter locally
-        products = fetchedProducts.filter((p: Product) => !color || hasColor(p, color));
+        products = fetchedProducts;
       }
     } catch (error) {
       console.error("Error fetching products:", error);

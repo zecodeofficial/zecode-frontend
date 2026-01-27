@@ -8,7 +8,7 @@ interface ProductCardProps {
 }
 
 export default function ProductCard({ product, priority = false }: ProductCardProps) {
-    const imageUrl = fileUrl(product.main_image || product.image || product.image_url || (product as any).product_image_url) || getProductPlaceholderUrl();
+    const imageUrl = fileUrl(product.image || product.image_url) || getProductPlaceholderUrl();
     const needsUnoptimized = isProxyRoute(imageUrl);
 
 

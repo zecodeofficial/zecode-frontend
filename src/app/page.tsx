@@ -1,6 +1,5 @@
 import HeroSlider from "@/components/HeroSlider";
-import ShopByColor from "@/components/ShopByColor";
-import { fetchHeroSlides, fetchProducts } from "@/lib/directus";
+import { fetchHeroSlides } from "@/lib/directus";
 
 // Use ISR - revalidate every 5 minutes for fresh content without cold starts
 export const revalidate = 300;
@@ -8,23 +7,15 @@ export const revalidate = 300;
 export default async function Home() {
   // Fetch data from Directus (with error handling)
   let heroSlides = null;
-  let products = null;
 
   try {
-    // Parallel fetching for performance
-    const [slidesRes, productsRes] = await Promise.all([
-      fetchHeroSlides(),
-      fetchProducts()
-    ]);
-    heroSlides = slidesRes;
-    products = productsRes;
+    heroSlides = await fetchHeroSlides();
   } catch (error) {
     console.error("Failed to fetch homepage data:", error);
   }
 
   return (
     <div style={{ width: '100%', backgroundColor: '#ffffff', minHeight: '100%' }}>
-      {/* ... (Schema.org script remains unchanged) */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
@@ -65,14 +56,7 @@ export default async function Home() {
           })
         }}
       />
-
-      {/* Hero Section */}
       <HeroSlider slides={heroSlides || undefined} />
-
-      {/* Shop By Color Section */}
-      {products && products.length > 0 && (
-        <ShopByColor products={products} />
-      )}
     </div>
   );
 }
