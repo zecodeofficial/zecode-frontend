@@ -410,6 +410,7 @@ export type Product = {
   image?: string;
   image_url?: string;
   main_image?: string;
+  product_image_url?: string;
   model_image_1?: string;
   model_image_2?: string;
   model_image_3?: string;
@@ -669,7 +670,7 @@ async function _fetchProductsByCategory(categorySlug: string): Promise<Product[]
         sort: "sort,name",
         "filter[category][_eq]": categorySlug,
         "filter[status][_eq]": "published",
-        fields: "*,main_image",
+        fields: "*,main_image,product_image_url",
         limit: -1,
       },
       timeout: TIMEOUT_DEFAULT,
@@ -702,7 +703,7 @@ async function _fetchProductsByGender(gender: string): Promise<Product[] | null>
         sort: "sort,name",
         "filter[gender_category][_istarts_with]": gender, // Matches "Women", "Women's", etc.
         "filter[status][_eq]": "published",
-        fields: "*,main_image",
+        fields: "*,main_image,product_image_url",
         limit: -1,
       },
       timeout: TIMEOUT_DEFAULT,
@@ -770,7 +771,7 @@ async function _fetchProductsByGenderAndSubcategory(gender: string | null, subca
       params: {
         sort: "sort,name",
         filter: JSON.stringify(filter),
-        fields: "*,image,image_url,main_image",
+        fields: "*,image,image_url,main_image,product_image_url,model_image_1,model_image_2,model_image_3,model_image_1_url,model_image_2_url,model_image_3_url",
       },
       timeout: TIMEOUT_DEFAULT,
     });

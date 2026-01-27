@@ -80,7 +80,7 @@ function SubcategoryCard({ title, slug, categorySlug, href, products, productCou
     }
     const product = products[currentImageIndex];
     // Check all possible image fields in priority order
-    const imageToUse = product?.image || product?.image_url || (product as any)?.main_image;
+    const imageToUse = product?.main_image || product?.image || product?.image_url || (product as any)?.product_image_url;
     return fileUrl(imageToUse) || getProductPlaceholderUrl();
   }, [products, currentImageIndex]);
 
@@ -193,7 +193,7 @@ export default function SubcategoryGridDynamic({ title, categorySlug, subcategor
         const params = new URLSearchParams();
         params.set('limit', '-1');
         // Request all relevant fields including variants found in CMS
-        params.set('fields', 'name,image_url,image,main_image,subcategory,category,gender_category');
+        params.set('fields', 'name,image_url,image,main_image,product_image_url,subcategory,category,gender_category');
         params.set('filter[status][_eq]', 'published');
 
         // Robust gender filtering
@@ -244,7 +244,7 @@ export default function SubcategoryGridDynamic({ title, categorySlug, subcategor
           });
 
           // Prefer items with any kind of image for display
-          const displayProducts = matchingProducts.filter(p => p.image || p.image_url || p.main_image);
+          const displayProducts = matchingProducts.filter(p => p.image || p.image_url || p.main_image || (p as any).product_image_url);
           const finalProducts = displayProducts.length > 0 ? displayProducts : matchingProducts;
 
           grouped.set(subcat.slug, {
