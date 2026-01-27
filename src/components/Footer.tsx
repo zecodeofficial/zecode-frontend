@@ -25,11 +25,6 @@ const SLUG_TO_CMS_SUBCATEGORY: Record<string, string[]> = {
   'tops': ['top', 'tops'],
   'dresses': ['dress', 'dresses'],
   'skirts': ['skirt', 'skirts'],
-  // Kids - special mappings
-  'boys-tshirts': ['t', 'tshirt', 't-shirt'],
-  'girls-tops': ['top', 'tops'],
-  'boys-jeans': ['bottom', 'bottoms', 'jean', 'jeans'],
-  'girls-dresses': ['dress', 'dresses'],
   // Footwear - gender-based subcategories
   'men': ['flats', 'flat', 'mules', 'mule', 'sneakers', 'sneaker', 'boots', 'boot', 'loafers', 'loafer', 'sandals', 'sandal'],
   'women': ['flats', 'flat', 'mules', 'mule', 'heels', 'heel', 'sandals', 'sandal', 'boots', 'boot', 'sneakers', 'sneaker'],
@@ -44,7 +39,6 @@ const DEFAULT_LINK_GROUPS = [
 const DEFAULT_LINKS: FooterLink[] = [
   { id: 1, label: "Men", href: "/men", group: 1, sort: 1, status: "published" },
   { id: 2, label: "Women", href: "/women", group: 1, sort: 2, status: "published" },
-  { id: 3, label: "Kids", href: "/kids", group: 1, sort: 3, status: "published" },
   { id: 7, label: "Footwear", href: "/footwear", group: 1, sort: 4, status: "published" },
   { id: 4, label: "About Us", href: "/about", group: 2, sort: 1, status: "published" },
   { id: 5, label: "Store Locator", href: "/store-locator-map", group: 2, sort: 2, status: "published" },

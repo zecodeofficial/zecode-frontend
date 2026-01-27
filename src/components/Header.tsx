@@ -18,35 +18,15 @@ const SLUG_TO_CMS_SUBCATEGORY: Record<string, string[]> = {
   'tops': ['top', 'tops'],
   'dresses': ['dress', 'dresses'],
   'skirts': ['skirt', 'skirts'],
-  // Kids - special mappings
-  'boys-tshirts': ['t', 'tshirt', 't-shirt'],
-  'girls-tops': ['top', 'tops'],
-  'boys-jeans': ['bottom', 'bottoms', 'jean', 'jeans'],
-  'girls-dresses': ['dress', 'dresses'],
   // Footwear - gender-based subcategories
   'men': ['flats', 'flat', 'mules', 'mule', 'sneakers', 'sneaker', 'boots', 'boot', 'loafers', 'loafer', 'sandals', 'sandal'],
   'women': ['flats', 'flat', 'mules', 'mule', 'heels', 'heel', 'sandals', 'sandal', 'boots', 'boot', 'sneakers', 'sneaker'],
 };
 
-const COLOR_MAP: Record<string, string> = {
-  "BLACK": "#1A1A1A",
-  "WHITE": "#FFFFFF",
-  "NAVY": "#000080",
-  "BLUE": "#3b82f6",
-  "RED": "#C83232",
-  "GREEN": "#046307",
-  "YELLOW": "#eab308",
-  "PINK": "#ec4899",
-  "PURPLE": "#a855f7",
-  "BEIGE": "#f5f5dc",
-  "BROWN": "#78350f",
-  "GREY": "#6b7280",
-};
-
 import { processNavigation, Category, QuickLink } from "@/lib/navigation";
 
 // Fallback category data
-export const DEFAULT_CATEGORIES: Category[] = [
+const DEFAULT_CATEGORIES: Category[] = [
   {
     href: "/men",
     label: "MEN",
@@ -63,65 +43,63 @@ export const DEFAULT_CATEGORIES: Category[] = [
     subcategories: [
       {
         label: "WESTERN WEAR",
-        href: "/women/western-wear",
+        href: "/women",
         type: 'section',
         items: [
-          { label: "DRESSES", href: "/women/dresses" },
           { label: "TOPS", href: "/women/tops" },
+          { label: "T-SHIRTS", href: "/women/tshirts" },
+          { label: "DRESSES", href: "/women/dresses" },
+          { label: "JEANS", href: "/women/jeans" },
           { label: "SKIRTS", href: "/women/skirts" },
+          { label: "JACKETS", href: "/women/jackets" },
+          { label: "SHORTS", href: "/women/shorts" },
         ]
-      }
-    ],
-  },
-  {
-    href: "/kids/boys",
-    label: "KIDS",
-    subcategories: [
+      },
       {
-        label: "BOYS",
-        href: "/kids/boys",
+        label: "ACTIVEWEAR",
+        href: "/women/activewear",
         type: 'section',
-        items: [
-          { label: "TISHIRTS", href: "/kids/boys/tshirts" },
-          { label: "PANTS", href: "/kids/boys/pants" },
-        ]
+      },
+      {
+        label: "ETHNIC FUSION",
+        href: "/women/ethnic-wear",
+        type: 'section',
+        // No items - standalone link with section styling
       }
     ],
   },
   {
-    href: "/footwear/sneakers",
+    href: "/footwear",
     label: "FOOTWEAR",
     subcategories: [
+      {
+        label: "MEN'S FOOTWEAR",
+        href: "/footwear/men",
+        type: 'section',
+        items: [
+          { label: "SNEAKERS", href: "/footwear/sneakers/men" },
+          { label: "SLIDES", href: "/footwear/slides/men" },
+          { label: "CLOGS", href: "/footwear/clogs/men" },
+          { label: "SANDALS", href: "/footwear/sandals/men" },
+          { label: "FLIP-FLOPS", href: "/footwear/flip-flops/men" },
+        ]
+      },
       {
         label: "WOMEN'S FOOTWEAR",
         href: "/footwear/women",
         type: 'section',
         items: [
           { label: "FLATS", href: "/footwear/flats/women" },
+          { label: "FLIP-FLOPS", href: "/footwear/flip-flops/women" },
+          { label: "HEELS", href: "/footwear/heels/women" },
+          { label: "SNEAKERS", href: "/footwear/sneakers/women" },
         ]
       }
     ],
   },
-  {
-    href: "/shop-by-colour/black",
-    label: "SHOP BY COLOUR",
-    subcategories: [
-      { label: "BLACK", href: "/shop-by-colour/black" },
-      { label: "WHITE", href: "/shop-by-colour/white" },
-      { label: "BLUE", href: "/shop-by-colour/blue" },
-      { label: "RED", href: "/shop-by-colour/red" },
-      { label: "GREEN", href: "/shop-by-colour/green" },
-      { label: "YELLOW", href: "/shop-by-colour/yellow" },
-      { label: "PINK", href: "/shop-by-colour/pink" },
-      { label: "PURPLE", href: "/shop-by-colour/purple" },
-      { label: "BEIGE", href: "/shop-by-colour/beige" },
-      { label: "BROWN", href: "/shop-by-colour/brown" },
-      { label: "GREY", href: "/shop-by-colour/grey" },
-    ],
-  },
 ];
 
-export const DEFAULT_QUICK_LINKS: QuickLink[] = [
+const DEFAULT_QUICK_LINKS: QuickLink[] = [
   { href: "/lit-zone", label: "LIT ZONE", icon: "🔥", highlight: true },
   { href: "/store-locator-map", label: "STORES", icon: "📍" },
   { href: "/about", label: "ABOUT", icon: "ℹ️" },
@@ -164,7 +142,7 @@ export default function Header({ initialCategories, initialQuickLinks }: HeaderP
       return DEFAULT_CATEGORIES;
     }
 
-    // Merge CMS categories with defaults
+    // Merge CMS categories with defaults, preserving section structure from defaults
     return DEFAULT_CATEGORIES.map(defaultCat => {
       const cmsCat = cmsCategories.find(c => c.href === defaultCat.href);
 
@@ -172,11 +150,20 @@ export default function Header({ initialCategories, initialQuickLinks }: HeaderP
         return defaultCat; // Use default if not in CMS
       }
 
-      // Use CMS data but ensure section types are preserved
+      // Preserve the section structure from defaults for WOMEN and FOOTWEAR
+      if (defaultCat.label === "WOMEN" || defaultCat.label === "FOOTWEAR") {
+        return {
+          ...defaultCat,
+          // Keep default subcategories structure (with sections)
+          subcategories: defaultCat.subcategories
+        };
+      }
+
+      // For other categories, use CMS data but ensure section types
       return {
         ...cmsCat,
         subcategories: cmsCat.subcategories.map(sub => {
-          const isSection = ["WESTERN WEAR", "ETHNIC FUSION", "ACTIVEWEAR", "BOYS", "GIRLS", "MEN'S FOOTWEAR", "WOMEN'S FOOTWEAR", "COLORS", "SHOP BY COLOUR"].includes(sub.label.toUpperCase());
+          const isSection = ["WESTERN WEAR", "ETHNIC FUSION", "ACTIVEWEAR", "SHOES", "MEN'S FOOTWEAR", "WOMEN'S FOOTWEAR"].includes(sub.label.toUpperCase());
           if (isSection && !sub.type) {
             return { ...sub, type: 'section' as const };
           }
@@ -193,7 +180,7 @@ export default function Header({ initialCategories, initialQuickLinks }: HeaderP
         return {
           ...cat,
           subcategories: cat.subcategories.map(sub => {
-            const isSection = ["WESTERN WEAR", "ETHNIC FUSION", "ACTIVEWEAR", "SHOES", "MEN'S FOOTWEAR", "WOMEN'S FOOTWEAR", "COLORS", "SHOP BY COLOUR"].includes(sub.label.toUpperCase());
+            const isSection = ["WESTERN WEAR", "ETHNIC FUSION", "ACTIVEWEAR", "SHOES", "MEN'S FOOTWEAR", "WOMEN'S FOOTWEAR"].includes(sub.label.toUpperCase());
             if (isSection && !sub.type) {
               return { ...sub, type: 'section' as const };
             }
@@ -306,10 +293,7 @@ export default function Header({ initialCategories, initialQuickLinks }: HeaderP
                         href={category.href}
                         className="group/link flex items-center justify-between px-5 py-3.5 text-sm font-bold text-[#C83232] hover:bg-[#C83232] hover:text-white transition-all duration-200 border-b border-white/10"
                       >
-                        <span>
-                          {["COLORS", "SHOP BY COLOUR"].includes(category.label.trim().toUpperCase()) ? "" : "VIEW ALL "}
-                          {category.label}
-                        </span>
+                        <span>VIEW ALL {category.label}</span>
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4 transform group-hover/link:translate-x-1 transition-transform">
                           <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
                         </svg>
@@ -333,17 +317,7 @@ export default function Header({ initialCategories, initialQuickLinks }: HeaderP
                                   href={item.href}
                                   className="group/sub flex items-center gap-3 px-5 py-2 text-sm text-white/75 hover:text-white hover:bg-white/5 transition-all duration-200"
                                 >
-                                  {(category.label === "COLORS" || category.label === "SHOP BY COLOUR") && COLOR_MAP[item.label.toUpperCase()] ? (
-                                    <span
-                                      className="w-3 h-3 rounded-full border border-white/20 transition-transform duration-200 group-hover/sub:scale-125"
-                                      style={{
-                                        backgroundColor: COLOR_MAP[item.label.toUpperCase()],
-                                        boxShadow: item.label.toUpperCase() === 'WHITE' ? 'inset 0 0 1px rgba(0,0,0,0.2)' : 'none'
-                                      }}
-                                    ></span>
-                                  ) : (
-                                    <span className="w-1.5 h-1.5 rounded-full bg-white/30 group-hover/sub:bg-[#C83232] group-hover/sub:scale-125 transition-all duration-200"></span>
-                                  )}
+                                  <span className="w-1.5 h-1.5 rounded-full bg-white/30 group-hover/sub:bg-[#C83232] group-hover/sub:scale-125 transition-all duration-200"></span>
                                   {item.label}
                                 </Link>
                               ))}
@@ -355,17 +329,7 @@ export default function Header({ initialCategories, initialQuickLinks }: HeaderP
                               href={sub.href}
                               className="group/sub flex items-center gap-3 px-5 py-2.5 text-sm text-white/75 hover:text-white hover:bg-white/5 transition-all duration-200"
                             >
-                              {(category.label === "COLORS" || category.label === "SHOP BY COLOUR") && COLOR_MAP[sub.label.toUpperCase()] ? (
-                                <span
-                                  className="w-3 h-3 rounded-full border border-white/20 transition-transform duration-200 group-hover/sub:scale-125"
-                                  style={{
-                                    backgroundColor: COLOR_MAP[sub.label.toUpperCase()],
-                                    boxShadow: sub.label.toUpperCase() === 'WHITE' ? 'inset 0 0 1px rgba(0,0,0,0.2)' : 'none'
-                                  }}
-                                ></span>
-                              ) : (
-                                <span className="w-1.5 h-1.5 rounded-full bg-white/30 group-hover/sub:bg-[#C83232] group-hover/sub:scale-125 transition-all duration-200"></span>
-                              )}
+                              <span className="w-1.5 h-1.5 rounded-full bg-white/30 group-hover/sub:bg-[#C83232] group-hover/sub:scale-125 transition-all duration-200"></span>
                               {sub.label}
                             </Link>
                           )
@@ -491,8 +455,7 @@ export default function Header({ initialCategories, initialQuickLinks }: HeaderP
                       onClick={() => setMobileMenuOpen(false)}
                       className="flex items-center gap-2 py-2 px-4 text-sm font-bold text-[#C83232] hover:bg-[#C83232] hover:text-white rounded-lg transition-all duration-200"
                     >
-                      {["COLORS", "SHOP BY COLOUR"].includes(category.label.trim().toUpperCase()) ? "" : "VIEW ALL "}
-                      {category.label}
+                      VIEW ALL {category.label}
                       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
                       </svg>
@@ -517,17 +480,7 @@ export default function Header({ initialCategories, initialQuickLinks }: HeaderP
                               onClick={() => setMobileMenuOpen(false)}
                               className="flex items-center gap-2 py-2 px-6 text-sm text-white/70 hover:text-white hover:bg-white/5 rounded-lg transition-all duration-200"
                             >
-                              {(category.label === "COLORS" || category.label === "SHOP BY COLOUR") && COLOR_MAP[item.label.toUpperCase()] ? (
-                                <span
-                                  className="w-3 h-3 rounded-full border border-white/20"
-                                  style={{
-                                    backgroundColor: COLOR_MAP[item.label.toUpperCase()],
-                                    boxShadow: item.label.toUpperCase() === 'WHITE' ? 'inset 0 0 1px rgba(0,0,0,0.2)' : 'none'
-                                  }}
-                                ></span>
-                              ) : (
-                                <span className="w-1 h-1 rounded-full bg-white/40"></span>
-                              )}
+                              <span className="w-1 h-1 rounded-full bg-white/40"></span>
                               {item.label}
                             </Link>
                           ))}
@@ -540,17 +493,7 @@ export default function Header({ initialCategories, initialQuickLinks }: HeaderP
                           onClick={() => setMobileMenuOpen(false)}
                           className="flex items-center gap-2 py-2 px-4 text-sm text-white/70 hover:text-white hover:bg-white/5 rounded-lg transition-all duration-200"
                         >
-                          {(category.label === "COLORS" || category.label === "SHOP BY COLOUR") && COLOR_MAP[sub.label.toUpperCase()] ? (
-                            <span
-                              className="w-3 h-3 rounded-full border border-white/20"
-                              style={{
-                                backgroundColor: COLOR_MAP[sub.label.toUpperCase()],
-                                boxShadow: sub.label.toUpperCase() === 'WHITE' ? 'inset 0 0 1px rgba(0,0,0,0.2)' : 'none'
-                              }}
-                            ></span>
-                          ) : (
-                            <span className="w-1 h-1 rounded-full bg-white/40"></span>
-                          )}
+                          <span className="w-1 h-1 rounded-full bg-white/40"></span>
                           {sub.label}
                         </Link>
                       )

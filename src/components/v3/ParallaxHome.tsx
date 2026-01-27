@@ -50,29 +50,29 @@ const HeroSection: React.FC = () => {
   }, []);
 
   return (
-    <section 
+    <section
       ref={ref}
       className="relative min-h-screen flex items-center justify-center overflow-hidden"
       style={{ backgroundColor: V3_COLORS.background }}
     >
       {/* Floating decorative elements */}
-      <div 
+      <div
         className="absolute top-20 left-10 w-32 h-32 rounded-full opacity-20 transition-transform duration-700"
-        style={{ 
+        style={{
           backgroundColor: V3_COLORS.accentLight,
           transform: mounted ? `translateY(${offset * 0.5}px)` : 'translateY(0px)'
         }}
       />
-      <div 
+      <div
         className="absolute top-40 right-20 w-48 h-48 rounded-full opacity-15 transition-transform duration-700"
-        style={{ 
+        style={{
           backgroundColor: V3_COLORS.accent,
           transform: mounted ? `translateY(${offset * 0.3}px)` : 'translateY(0px)'
         }}
       />
-      <div 
+      <div
         className="absolute bottom-40 left-1/4 w-24 h-24 rounded-full opacity-25 transition-transform duration-700"
-        style={{ 
+        style={{
           backgroundColor: V3_COLORS.highlight,
           transform: mounted ? `translateY(${-offset * 0.4}px)` : 'translateY(0px)'
         }}
@@ -80,9 +80,9 @@ const HeroSection: React.FC = () => {
 
       {/* Main content */}
       <div className="container mx-auto px-4 z-10 text-center">
-        <h1 
+        <h1
           className="text-6xl md:text-8xl font-light mb-6 tracking-wider"
-          style={{ 
+          style={{
             color: V3_COLORS.text,
             transform: mounted ? `translateY(${offset * 0.2}px)` : 'translateY(0px)',
             transition: 'transform 0.3s ease-out'
@@ -90,9 +90,9 @@ const HeroSection: React.FC = () => {
         >
           ZECODE
         </h1>
-        <p 
+        <p
           className="text-xl md:text-2xl mb-8 font-light"
-          style={{ 
+          style={{
             color: V3_COLORS.textLight,
             transform: mounted ? `translateY(${offset * 0.15}px)` : 'translateY(0px)',
             transition: 'transform 0.3s ease-out'
@@ -103,7 +103,7 @@ const HeroSection: React.FC = () => {
         <Link
           href="/collections"
           className="inline-block px-12 py-4 text-sm tracking-widest uppercase font-medium transition-all duration-300 hover:scale-105"
-          style={{ 
+          style={{
             backgroundColor: V3_COLORS.accent,
             color: V3_COLORS.background
           }}
@@ -116,9 +116,9 @@ const HeroSection: React.FC = () => {
 
       {/* Scroll indicator */}
       <div className="absolute bottom-10 left-1/2 transform -translate-x-1/2 animate-bounce">
-        <svg 
-          className="w-6 h-6" 
-          fill="none" 
+        <svg
+          className="w-6 h-6"
+          fill="none"
           stroke={V3_COLORS.textLight}
           viewBox="0 0 24 24"
         >
@@ -143,47 +143,47 @@ const OfferSection: React.FC = () => {
   }, []);
 
   return (
-    <section 
+    <section
       ref={ref}
       className="relative py-32 overflow-hidden"
-      style={{ 
+      style={{
         backgroundColor: V3_COLORS.accent,
         minHeight: windowHeight * 0.6
       }}
     >
       {/* Floating shapes */}
-      <div 
+      <div
         className="absolute top-10 right-10 w-40 h-40 border-2 rounded-full opacity-30"
-        style={{ 
+        style={{
           borderColor: V3_COLORS.background,
           transform: `translateY(${offset * 0.3}px) rotate(${offset * 0.1}deg)`
         }}
       />
-      <div 
+      <div
         className="absolute bottom-20 left-10 w-32 h-32 border-2 opacity-20"
-        style={{ 
+        style={{
           borderColor: V3_COLORS.background,
           transform: `translateY(${-offset * 0.2}px) rotate(${-offset * 0.05}deg)`
         }}
       />
 
       <div className="container mx-auto px-4 text-center relative z-10">
-        <span 
+        <span
           className="text-sm tracking-widest uppercase mb-4 block"
           style={{ color: V3_COLORS.accentLight }}
         >
           Limited Time Offer
         </span>
-        <h2 
+        <h2
           className="text-5xl md:text-7xl font-light mb-6"
-          style={{ 
+          style={{
             color: V3_COLORS.background,
             transform: `translateY(${offset * 0.15}px)`
           }}
         >
           30% OFF
         </h2>
-        <p 
+        <p
           className="text-xl mb-8 max-w-2xl mx-auto"
           style={{ color: V3_COLORS.backgroundDark }}
         >
@@ -192,7 +192,7 @@ const OfferSection: React.FC = () => {
         <Link
           href="/sale"
           className="inline-block px-10 py-3 text-sm tracking-widest uppercase font-medium transition-all duration-300 border-2 hover:scale-105"
-          style={{ 
+          style={{
             borderColor: V3_COLORS.background,
             color: V3_COLORS.background
           }}
@@ -233,23 +233,23 @@ const CategorySection: React.FC<CategorySectionProps> = ({ title, subtitle, imag
   }, []);
 
   return (
-    <section 
+    <section
       ref={ref}
       className="relative overflow-hidden"
-      style={{ 
+      style={{
         backgroundColor: V3_COLORS.background,
         minHeight: windowHeight * 0.8
       }}
     >
       <div className={`container mx-auto px-4 py-20 flex flex-col ${reverse ? 'md:flex-row-reverse' : 'md:flex-row'} items-center gap-12`}>
         {/* Image */}
-        <div 
+        <div
           className="w-full md:w-1/2 relative aspect-[3/4] overflow-hidden"
           style={{ transform: `translateY(${offset * 0.1}px)` }}
         >
-          <div 
+          <div
             className="absolute inset-0"
-            style={{ 
+            style={{
               backgroundColor: V3_COLORS.backgroundDark,
               transform: `translateY(${-offset * 0.15}px)`
             }}
@@ -262,9 +262,9 @@ const CategorySection: React.FC<CategorySectionProps> = ({ title, subtitle, imag
             />
           </div>
           {/* Decorative frame */}
-          <div 
+          <div
             className="absolute -bottom-4 -right-4 w-full h-full border-2 -z-10"
-            style={{ 
+            style={{
               borderColor: V3_COLORS.accent,
               transform: `translateY(${offset * 0.05}px)`
             }}
@@ -272,23 +272,23 @@ const CategorySection: React.FC<CategorySectionProps> = ({ title, subtitle, imag
         </div>
 
         {/* Content */}
-        <div 
+        <div
           className="w-full md:w-1/2 text-center md:text-left"
           style={{ transform: `translateY(${-offset * 0.1}px)` }}
         >
-          <span 
+          <span
             className="text-sm tracking-widest uppercase mb-4 block"
             style={{ color: V3_COLORS.accent }}
           >
             Collection
           </span>
-          <h2 
+          <h2
             className="text-4xl md:text-6xl font-light mb-6"
             style={{ color: V3_COLORS.text }}
           >
             {title}
           </h2>
-          <p 
+          <p
             className="text-lg mb-8 max-w-md"
             style={{ color: V3_COLORS.textLight }}
           >
@@ -300,9 +300,9 @@ const CategorySection: React.FC<CategorySectionProps> = ({ title, subtitle, imag
             style={{ color: V3_COLORS.accent }}
           >
             <span>View Collection</span>
-            <svg 
-              className="w-5 h-5 transform group-hover:translate-x-2 transition-transform" 
-              fill="none" 
+            <svg
+              className="w-5 h-5 transform group-hover:translate-x-2 transition-transform"
+              fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
             >
@@ -320,29 +320,22 @@ const ParallaxHome: React.FC = () => {
   return (
     <main style={{ backgroundColor: V3_COLORS.background }}>
       <HeroSection />
-      
+
       <OfferSection />
-      
+
       <CategorySection
         title="Men's Collection"
         subtitle="Refined essentials and contemporary pieces designed for the modern gentleman. From tailored fits to casual comfort."
         image="https://res.cloudinary.com/ds8llatku/image/upload/zecode/banners/categories/category_men.png"
         link="/category/men"
       />
-      
+
       <CategorySection
         title="Women's Collection"
         subtitle="Elegance redefined with timeless silhouettes and modern designs. Discover pieces that celebrate every occasion."
         image="https://res.cloudinary.com/ds8llatku/image/upload/zecode/banners/categories/category_women.png"
         link="/category/women"
         reverse
-      />
-      
-      <CategorySection
-        title="Kids' Collection"
-        subtitle="Playful styles with comfort at heart. Clothing that moves with them through every adventure."
-        image="https://res.cloudinary.com/ds8llatku/image/upload/zecode/banners/categories/category_kids.png"
-        link="/category/kids"
       />
 
       <CategorySection
@@ -354,18 +347,18 @@ const ParallaxHome: React.FC = () => {
       />
 
       {/* Newsletter section with parallax */}
-      <section 
+      <section
         className="relative py-32 overflow-hidden"
         style={{ backgroundColor: V3_COLORS.backgroundDark }}
       >
         <div className="container mx-auto px-4 text-center">
-          <h2 
+          <h2
             className="text-3xl md:text-5xl font-light mb-6"
             style={{ color: V3_COLORS.text }}
           >
             Stay Connected
           </h2>
-          <p 
+          <p
             className="text-lg mb-8 max-w-2xl mx-auto"
             style={{ color: V3_COLORS.textLight }}
           >
@@ -376,7 +369,7 @@ const ParallaxHome: React.FC = () => {
               type="email"
               placeholder="Enter your email"
               className="flex-1 px-6 py-4 text-sm focus:outline-none transition-all duration-300"
-              style={{ 
+              style={{
                 backgroundColor: V3_COLORS.background,
                 color: V3_COLORS.text,
                 border: `1px solid ${V3_COLORS.highlight}`
@@ -385,7 +378,7 @@ const ParallaxHome: React.FC = () => {
             <button
               type="submit"
               className="px-8 py-4 text-sm tracking-widest uppercase font-medium transition-all duration-300 hover:scale-105"
-              style={{ 
+              style={{
                 backgroundColor: V3_COLORS.accent,
                 color: V3_COLORS.background
               }}

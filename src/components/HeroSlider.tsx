@@ -38,15 +38,6 @@ const DEFAULT_SLIDES: HeroSlide[] = [
     variant: 'split'
   },
   {
-    id: 4,
-    image: "/local-assets/kids.jpg",
-    title: "KIDS' COLLECTION",
-    subtitle: "Fun & Stylish • Comfortable Fits • Made for Play",
-    cta: "SHOP KIDS",
-    link: "/kids",
-    variant: 'split'
-  },
-  {
     id: 5,
     image: "/local-assets/hero_footwear_indian.png",
     title: "FOOTWEAR COLLECTION",
