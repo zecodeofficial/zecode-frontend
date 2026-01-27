@@ -2,7 +2,9 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
+import SiteImage from '@/components/SiteImage';
 import Link from 'next/link';
+import { type HeroSlide, fileUrl, isProxyRoute } from "@/lib/directus";
 
 // V3 UNIQUE COLOR PALETTE - Warm, Earthy Tones (Different from V1/V2 dark+red)
 const V3_COLORS = {
@@ -254,11 +256,11 @@ const CategorySection: React.FC<CategorySectionProps> = ({ title, subtitle, imag
               transform: `translateY(${-offset * 0.15}px)`
             }}
           >
-            <Image
-              src={image}
+            <SiteImage
+              file={image}
               alt={title}
-              fill
-              className="object-cover transition-transform duration-700 hover:scale-105"
+              width={1200}
+              height={1600}
             />
           </div>
           {/* Decorative frame */}

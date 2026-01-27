@@ -174,7 +174,11 @@ export function getProductPlaceholderUrl(): string {
  */
 export function isProxyRoute(url: string | null): boolean {
   if (!url) return false;
-  return typeof url === 'string' && url.startsWith('/api/directus/assets/');
+  const s = String(url);
+  // Include both relative and absolute proxy routes, and any other patterns that should bypass optimization
+  return s.startsWith('/api/directus/assets/') ||
+    s.includes('/api/directus/assets/') ||
+    s.includes('zecode-directus.onrender.com'); // Directly to Directus should also be unoptimized if proxy fails
 }
 
 /** fileUrl helper */

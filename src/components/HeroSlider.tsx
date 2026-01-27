@@ -113,6 +113,7 @@ export default function HeroSlider({ slides }: HeroSliderProps) {
                 priority={isFirstSlide}
                 loading={isFirstSlide ? "eager" : "lazy"}
                 fetchPriority={isFirstSlide ? "high" : "auto"}
+                unoptimized={isProxyRoute(fileUrl(s.image))}
               />
               {/* Overlay / hero content */}
               <div className={`absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent flex ${s.variant === 'split' ? 'items-start justify-center pt-24 pb-20' : 'items-center justify-center'}`}>
