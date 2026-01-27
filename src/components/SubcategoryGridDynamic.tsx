@@ -193,7 +193,7 @@ export default function SubcategoryGridDynamic({ title, categorySlug, subcategor
         const params = new URLSearchParams();
         params.set('limit', '-1');
         // Request all relevant fields including variants found in CMS
-        params.set('fields', 'name,image_url,image,main_image,product_image_url,subcategory,category,gender_category');
+        params.set('fields', 'name,image_url,image,main_image,subcategory,category,gender_category');
         params.set('filter[status][_eq]', 'published');
 
         // Robust gender filtering
