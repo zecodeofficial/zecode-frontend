@@ -192,8 +192,8 @@ interface SubcategoryGridDynamicProps {
   variant?: 'default' | 'section'; // Visual styling variant
   showDivider?: boolean; // Show decorative divider above section
   forcedGender?: 'Men' | 'Women' | 'Kids'; // Explicitly override gender filtering
-  /** Pre-fetched product data from server - skips client-side fetch if provided */
-  initialData?: Map<string, { products: any[]; count: number }>;
+  /** Pre-fetched product data from server - skips client-side fetch if provided. Must be serializable (plain object). */
+  initialData?: Record<string, { products: any[]; count: number }>;
   /** Optional override for the heading tag (default: h2) */
   HeadingTag?: 'h1' | 'h2' | 'h3';
   /** Optional flag to hide the "Collection" label above title in section variant */
@@ -214,7 +214,7 @@ export default function SubcategoryGridDynamic({
   // Map of subcategory slug -> { products, count }
   // Use initialData if provided, otherwise start with empty Map
   const [subcategoryData, setSubcategoryData] = useState<Map<string, { products: any[]; count: number }>>(
-    initialData || new Map()
+    initialData ? new Map(Object.entries(initialData)) : new Map()
   );
   const [isLoading, setIsLoading] = useState(!initialData); // Skip loading if data provided
   const [error, setError] = useState<string | null>(null);
@@ -222,7 +222,7 @@ export default function SubcategoryGridDynamic({
 
   useEffect(() => {
     // Skip client-side fetch if data was prefetched server-side
-    if (initialData && initialData.size > 0) {
+    if (initialData && Object.keys(initialData).length > 0) {
       return;
     }
 

@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { type HeroSlide, fileUrl } from "@/lib/directus";
+import { type HeroSlide, fileUrl, isProxyRoute } from "@/lib/directus";
 
 /**
  * Hero Slider featuring main offers and category promotions

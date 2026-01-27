@@ -103,7 +103,7 @@ const nextConfig: NextConfig = {
       {
         protocol: "https",
         hostname: "res.cloudinary.com",
-        pathname: "/ds8llatku/**",
+        pathname: "/**",
       },
       // Allow our own domain for proxy routes (needed for Directus asset proxy)
       {
