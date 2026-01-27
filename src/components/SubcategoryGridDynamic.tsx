@@ -36,7 +36,7 @@ const SUBCATEGORY_TO_CMS: Record<string, string> = {
 // Mapping from URL slugs to normalized CMS subcategory values for matching
 const SLUG_TO_CMS_SUBCATEGORY: Record<string, string[]> = {
   // Men - MUST match exact capitalization in Directus
-  'tshirts': ['T', 'T-Shirt', 'Classic T-Shirt'],
+  'tshirts': ['T-Shirts', 'T-Shirt', 'T', 'Tshirt', 'Classic T-Shirt'],
   'shirts': ['Shirt', 'Casual Shirt', 'Button-Up Shirt', 'Short Sleeve Shirt'],
   'jeans': ['Jeans', 'Slim Jeans'],
   'trousers': ['Trousers', 'Pants', 'Slim Pants', 'Cargo Pants'],
@@ -66,7 +66,7 @@ const SLUG_TO_CMS_SUBCATEGORY: Record<string, string[]> = {
   'loafers': ['Loafers'],
   'flip-flops': ['Flip-Flops'],
   'shorts': ['Shorts', 'Short'],
-  'ethnic-wear': ['Kurti', 'Kurta', 'Lehenga', 'Suit Set', 'Ethnic Dress', 'ethnic-wear'],  // Added lowercase variant
+  'ethnic-wear': ['Ethnic Wear', 'Ethnic Fusion', 'Ethnic Dresses', 'Kurti', 'Kurta', 'Lehenga', 'Suit Set', 'Ethnic Dress', 'ethnic-wear'],
 };
 
 // Normalize subcategory for matching
@@ -108,7 +108,9 @@ function SubcategoryCard({ title, slug, categorySlug, href, products, productCou
       return getProductPlaceholderUrl();
     }
     const product = products[currentImageIndex];
-    return fileUrl(product?.image || product?.image_url) || getProductPlaceholderUrl();
+    // Check all possible image fields
+    const imageToUse = product?.image || product?.image_url || (product as any)?.main_image;
+    return fileUrl(imageToUse) || getProductPlaceholderUrl();
   }, [products, currentImageIndex]);
 
   const imageUrl = getCurrentImageUrl();
@@ -234,14 +236,14 @@ export default function SubcategoryGridDynamic({ title, categorySlug, subcategor
 
         // 2. Prepare batch API call - simpler filter, client-side category matching
         const params = new URLSearchParams();
-        params.set('limit', '500');
-        params.set('fields', 'name,image_url,image,subcategory,category,gender_category');
+        params.set('limit', '-1'); // Get all products to ensure we don't miss any subcategories
+        params.set('fields', 'name,image_url,image,main_image,subcategory,category,gender_category');
         params.set('filter[status][_eq]', 'published');
 
-        // Pre-filter by gender for faster response
+        // Pre-filter by gender for faster response - use _istarts_with for flexibility (Matches "Women" and "Women's")
         const genderMap: Record<string, string> = { 'men': 'Men', 'women': 'Women', 'kids': 'Kids' };
         const genderVal = forcedGender || genderMap[categorySlug.toLowerCase()];
-        if (genderVal) params.set('filter[gender_category][_eq]', genderVal);
+        if (genderVal) params.set('filter[gender_category][_istarts_with]', genderVal);
 
         const response = await fetch(`/api/directus/items/products?${params.toString()}`);
         let products: any[] = [];
