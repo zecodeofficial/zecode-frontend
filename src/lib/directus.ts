@@ -19,8 +19,8 @@ const CACHE_STORES = false;      // disabled
 const CACHE_CATEGORIES = 600;    // 10 minutes
 
 // Request timeout - increased for Render cold starts
-const TIMEOUT_DEFAULT = 15000;   // 15 seconds
-const TIMEOUT_PRODUCTS = 30000;  // 30 seconds for products (larger payload)
+const TIMEOUT_DEFAULT = 30000;   // 30 seconds
+const TIMEOUT_PRODUCTS = 60000;  // 60 seconds for products
 
 // Helper to get the correct URL - uses proxy on client-side to avoid CORS
 function getApiUrl(path: string): string {
@@ -148,11 +148,9 @@ const CLOUDINARY_BASE_URL = `https://res.cloudinary.com/${CLOUDINARY_CLOUD_NAME}
  * /products/image.jpg → https://res.cloudinary.com/ds8llatku/image/upload/f_auto,q_auto/zecode/products/image
  */
 function getCloudinaryUrl(localPath: string): string {
-  // Remove leading slash but KEEP file extension (Cloudinary needs it for proper format detection)
+  // Remove leading slash. Cloudinary works fine without extensions when using f_auto.
   const cleanPath = localPath.replace(/^\//, '');
   // Add auto format and quality optimization
-  // Note: We keep the extension because Cloudinary uses it for format detection
-  // and some images might not work without it
   return `${CLOUDINARY_BASE_URL}/f_auto,q_auto/zecode/${cleanPath}`;
 }
 
@@ -174,11 +172,7 @@ export function getProductPlaceholderUrl(): string {
  */
 export function isProxyRoute(url: string | null): boolean {
   if (!url) return false;
-  const s = String(url);
-  // Include both relative and absolute proxy routes, and any other patterns that should bypass optimization
-  return s.startsWith('/api/directus/assets/') ||
-    s.includes('/api/directus/assets/') ||
-    s.includes('zecode-directus.onrender.com'); // Directly to Directus should also be unoptimized if proxy fails
+  return typeof url === 'string' && url.startsWith('/api/directus/assets/');
 }
 
 /** fileUrl helper */
@@ -341,6 +335,7 @@ export const fetchCategoryBySlug = typeof window === 'undefined'
 export type Store = {
   id: number;
   name: string;
+  slug: string;
   address: string;
   city: string;
   state: string;
@@ -349,7 +344,12 @@ export type Store = {
   email?: string;
   latitude?: number;
   longitude?: number;
-  hours?: string;
+  opening_hours?: string;
+  opened_date?: string;
+  place_id?: string;
+  tags?: string[] | string;
+  photos?: string[] | string;
+  description?: string;
   image?: string;
   status?: string;
   sort?: number;
@@ -365,6 +365,7 @@ async function _fetchStores(): Promise<Store[] | null> {
       params: {
         sort: "sort,name",
         "filter[status][_eq]": "published",
+        fields: "*", // Get all fields including new ones
         _t: new Date().getTime(), // Cache buster
       },
       timeout: TIMEOUT_DEFAULT,
@@ -420,7 +421,8 @@ export type Product = {
   subcategory?: string;
   gender_category?: string;
   sizes?: string[];
-  colors?: string[];
+  colors?: string[] | string;
+  color?: string;
   status?: string;
   featured?: boolean;
   sort?: number;
@@ -451,13 +453,14 @@ async function _fetchProducts(): Promise<Product[] | null> {
       const res = await axios.get(url, {
         params: {
           sort: "sort,name",
-          fields: "*.*", // Deep fetch for M2M
+          "filter[status][_eq]": "published",
+          fields: "*", // Optimized depth (all fields but no M2M nesting)
           limit: -1,  // Get all products
         },
         timeout: TIMEOUT_PRODUCTS,
       });
       const products = res?.data?.data ?? null;
-      if (products && products.length > 0) {
+      if (products && Array.isArray(products)) {
         console.log(`[Directus] Fetched ${products.length} products`);
         return products;
       }
@@ -481,6 +484,179 @@ async function _fetchProducts(): Promise<Product[] | null> {
 export const fetchProducts = typeof window === 'undefined'
   ? unstable_cache(_fetchProducts, ['products-v3'], { revalidate: CACHE_PRODUCTS, tags: ['products'] })
   : _fetchProducts;
+
+/**
+ * Known data errors in the CMS that need overrides
+ */
+const DATA_CORRECTIONS: Record<string, Partial<Product>> = {
+  'womens-pink-tank-top-dsc4404': {
+    color: 'Light Blue',
+    name: "Women's Light Blue Casual Jacket"
+  },
+  'womens-purple-zip-up-knit-jacket-dsc4404': { // Derived slug for ID 45
+    color: 'Light Blue'
+  },
+  // Blue collection false positives (identified by ID)
+  '291': { color: 'Green', name: "Men's Green Army Pants" }, // male_dark_green_t_shirt_graphic
+  '292': { color: 'White', name: "Men's White Short Sleeve Shirt" }, // male_white_short_sleeve_shirt
+  '294': { color: 'Green', name: "Men's Olive Green Short Sleeve Shirt" }, // male_olive_green_short_sleeve_shirt
+  '300': { color: 'Grey', name: "Men's Grey Jacket" },  // male_grey_jacket_outer
+  '308': { color: 'Black', name: "Women's Black Pants" }, // model2_female_black_pants
+  '309': { color: 'White', name: "Men's Off-White Button Up Shirt" }, // male_off-white_button_up_shirt
+  '338': { color: 'Grey', name: "Women's Grey Sleeveless Top" },  // female_light_grey_sleeveless_top
+  '341': { color: 'Beige', name: "Women's Beige T-Shirt" }, // female_beige_t_shirt_graphic
+  '342': { color: 'Black', name: "Women's Black Striped Sweater" }, // female_black_sweater_striped
+  '346': { color: 'Black', name: "Women's Black Polo Shirt" }, // female_black_polo_shirt
+  // Red collection fix
+  '265': { color: 'Multi', name: "Boys Red & White Varsity Jacket" }, // boy-kid-red-varsity-outerwear-jacket
+};
+
+/**
+ * Exclusions for name-based color matching to avoid false positives
+ * (e.g. avoiding "Gold Buckle" matching the Yellow collection)
+ */
+const COLOR_MATCH_EXCLUSIONS: Record<string, string[]> = {
+  'yellow': [
+    'gold buckle', 'gold-buckle', 'gold detail', 'gold-detail',
+    'gold accent', 'gold-accent', 'gold trim', 'gold-trim',
+    'gold hardware', 'gold-hardware', 'gold accessory',
+    'gold chain', 'gold-chain', 'gold finish', 'gold-finish',
+    'rose gold', 'rose-gold'
+  ],
+  'blue': [], // Empty for now, blue should include its shades in the shop-by-colour page
+  'pink': ['light pink', 'hot pink']
+};
+
+/**
+ * getCorrectedProduct - Applies manual overrides to a product's data
+ */
+function getCorrectedProduct(product: Product): Product {
+  const slugCorrection = product.slug ? DATA_CORRECTIONS[product.slug] : null;
+  const idCorrection = product.id ? DATA_CORRECTIONS[product.id.toString()] : null;
+
+  const correction = slugCorrection || idCorrection;
+  if (correction) {
+    return { ...product, ...correction };
+  }
+  return product;
+}
+
+/**
+ * hasColor - check if a product has a specific color (handles corrections and name-based fallback)
+ */
+export function hasColor(product: Product, targetColor: string): boolean {
+  if (!targetColor) return true;
+  const correctedProduct = getCorrectedProduct(product);
+  const target = targetColor.toLowerCase();
+
+  // Mapping for synonymous or subset colors
+  const colorMappings: Record<string, string[]> = {
+    'yellow': ['yellow', 'gold', 'mustard', 'lemon'],
+    'blue': ['blue', 'navy', 'azure', 'cobalt'],
+    'pink': ['pink', 'rose', 'fuchsia', 'magenta'],
+    'green': ['green', 'olive', 'emerald', 'teal'],
+    'red': ['red', 'crimson', 'maroon', 'burgundy', 'scarlet', 'ruby'],
+  };
+
+  const searchTerms = colorMappings[target] || [target];
+
+  // 1. Check 'color' field (string)
+  if (correctedProduct.color) {
+    const pColor = correctedProduct.color.toLowerCase();
+    if (searchTerms.some(term => pColor.includes(term))) return true;
+  }
+
+  // 2. Check 'colors' field (array or comma string)
+  if (correctedProduct.colors) {
+    const productColors = Array.isArray(correctedProduct.colors)
+      ? correctedProduct.colors
+      : (typeof correctedProduct.colors === 'string' ? correctedProduct.colors.split(',').map(c => c.trim().toLowerCase()) : []);
+
+    if (productColors.some((c: string) => searchTerms.some(term => c.includes(term)))) return true;
+  }
+
+  // 3. Fallback: Check product name (especially for untagged items like Yellow/Gold)
+  if (correctedProduct.name) {
+    const pName = correctedProduct.name.toLowerCase();
+
+    // Check for exclusions first (e.g. "Gold Buckle" shouldn't match "Yellow")
+    const exclusions = COLOR_MATCH_EXCLUSIONS[target] || [];
+    if (exclusions.some(ex => pName.includes(ex))) return false;
+
+    // Use regex for whole-word matching to avoid partial matches
+    return searchTerms.some(term => {
+      const regex = new RegExp(`\\b${term}\\b`, 'i');
+      return regex.test(pName);
+    });
+  }
+
+  return false;
+}
+
+/**
+ * fetchActiveColors - Extracts all unique colors from published products
+ */
+export async function fetchActiveColors(): Promise<string[]> {
+  const products = await fetchProducts();
+  if (!products) return [];
+
+  const colorSet = new Set<string>();
+  const CORE_COLORS = ["BLACK", "WHITE", "NAVY", "BLUE", "RED", "GREEN", "YELLOW", "PINK", "PURPLE", "BEIGE", "BROWN", "GREY"];
+
+  products.forEach((p: Product) => {
+    const corrected = getCorrectedProduct(p);
+    let foundAnyColor = false;
+
+    if (corrected.color) {
+      colorSet.add(corrected.color.trim().toUpperCase());
+      foundAnyColor = true;
+    }
+    if (corrected.colors) {
+      const colors = Array.isArray(corrected.colors)
+        ? corrected.colors
+        : (typeof corrected.colors === 'string' ? corrected.colors.split(',') : []);
+
+      colors.forEach(c => {
+        if (typeof c === 'string' && c.trim()) {
+          colorSet.add(c.trim().toUpperCase());
+          foundAnyColor = true;
+        }
+      });
+    }
+
+    // Fallback for untagged products: check name for core colors
+    if (!foundAnyColor && corrected.name) {
+      const pName = corrected.name.toLowerCase();
+
+      CORE_COLORS.forEach(coreColor => {
+        const lowerCore = coreColor.toLowerCase();
+
+        // Check exclusions (e.g. don't add YELLOW for "Gold Buckle")
+        const exclusions = COLOR_MATCH_EXCLUSIONS[lowerCore] || [];
+        if (exclusions.some(ex => pName.includes(ex))) return;
+
+        // Whole word check
+        const regex = new RegExp(`\\b${lowerCore}\\b`, 'i');
+        if (regex.test(pName)) {
+          colorSet.add(coreColor);
+        }
+      });
+
+      // Special check for GOLD -> YELLOW (with exclusions)
+      const yellowExclusions = COLOR_MATCH_EXCLUSIONS['yellow'] || [];
+      if (!yellowExclusions.some(ex => pName.includes(ex))) {
+        const goldRegex = /\bgold\b/i;
+        if (goldRegex.test(pName)) {
+          colorSet.add('YELLOW');
+        }
+      }
+    }
+  });
+
+  const activeColors = Array.from(colorSet).sort();
+  console.log(`[Directus] Found ${activeColors.length} active colors across published products`);
+  return activeColors;
+}
 
 /**
  * fetchProductsByCategory - fetch products by category slug (cached)
@@ -623,7 +799,7 @@ export const fetchProductsByGenderAndSubcategory = typeof window === 'undefined'
       },
       [cacheKey],
       { revalidate: CACHE_PRODUCTS, tags: ['products'] }
-    )().catch(err => {
+    )().catch((err: any) => {
       console.error("Cached fetch wrapper error:", err);
       return null;
     });
@@ -983,7 +1159,7 @@ export type DirectusNavigationItem = {
 
 // Cached version of fetchDirectusNavigation
 export const fetchDirectusNavigation = typeof window === 'undefined'
-  ? unstable_cache(_fetchDirectusNavigation, ['nav-menu'], { revalidate: 3600, tags: ['navigation'] })
+  ? unstable_cache(_fetchDirectusNavigation, ['nav-menu'], { revalidate: 60, tags: ['navigation'] })
   : _fetchDirectusNavigation;
 
 /**
