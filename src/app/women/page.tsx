@@ -19,9 +19,6 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     title,
     description,
-    other: {
-      "link": "rel=preload href=/local-assets/women.jpg as=image fetchpriority=high",
-    },
     alternates: {
       canonical: category?.canonical_url || "/women",
     },
