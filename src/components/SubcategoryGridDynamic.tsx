@@ -182,7 +182,7 @@ function SubcategoryCard({ title, slug, categorySlug, href, products, productCou
 }
 
 interface SubcategoryGridDynamicProps {
-  title: string;
+  title: string | React.ReactNode;
   categorySlug: string;
   subcategories: Array<{
     title: string;
@@ -194,9 +194,23 @@ interface SubcategoryGridDynamicProps {
   forcedGender?: 'Men' | 'Women' | 'Kids'; // Explicitly override gender filtering
   /** Pre-fetched product data from server - skips client-side fetch if provided */
   initialData?: Map<string, { products: any[]; count: number }>;
+  /** Optional override for the heading tag (default: h2) */
+  HeadingTag?: 'h1' | 'h2' | 'h3';
+  /** Optional flag to hide the "Collection" label above title in section variant */
+  hideSectionLabel?: boolean;
 }
 
-export default function SubcategoryGridDynamic({ title, categorySlug, subcategories, variant = 'default', showDivider = false, forcedGender, initialData }: SubcategoryGridDynamicProps) {
+export default function SubcategoryGridDynamic({
+  title,
+  categorySlug,
+  subcategories,
+  variant = 'default',
+  showDivider = false,
+  forcedGender,
+  initialData,
+  HeadingTag = 'h2',
+  hideSectionLabel = false
+}: SubcategoryGridDynamicProps) {
   // Map of subcategory slug -> { products, count }
   // Use initialData if provided, otherwise start with empty Map
   const [subcategoryData, setSubcategoryData] = useState<Map<string, { products: any[]; count: number }>>(
@@ -317,16 +331,16 @@ export default function SubcategoryGridDynamic({ title, categorySlug, subcategor
       <div className="max-w-7xl mx-auto">
         {/* Enhanced section header */}
         <div className="text-center mb-10">
-          {variant === 'section' && (
+          {variant === 'section' && !hideSectionLabel && (
             <div className="inline-flex items-center gap-2 mb-3">
               <div className="w-8 h-px bg-[#C83232]"></div>
               <span className="text-xs font-bold tracking-[0.2em] text-[#C83232] uppercase">Collection</span>
               <div className="w-8 h-px bg-[#C83232]"></div>
             </div>
           )}
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">
+          <HeadingTag className={`${HeadingTag === 'h1' ? 'text-4xl md:text-5xl' : 'text-3xl md:text-4xl'} font-bold text-gray-900 mb-2`}>
             {title}
-          </h2>
+          </HeadingTag>
           {variant === 'section' && (
             <div className="w-20 h-1 bg-gradient-to-r from-[#C83232] to-[#e63946] mx-auto rounded-full"></div>
           )}
