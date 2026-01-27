@@ -10,12 +10,16 @@ import { type HeroSlide } from "@/lib/directus";
 // Use ISR - revalidate every 5 minutes
 export const revalidate = 300;
 
-// Define subcategories for Kids - matching header menu
+// Define subcategories for Kids
 const KIDS_SUBCATEGORIES = [
-  { title: "Boys T-Shirts", slug: "boys-tshirts" },
-  { title: "Girls Tops", slug: "girls-tops" },
-  { title: "Boys Jeans", slug: "boys-jeans" },
-  { title: "Girls Dresses", slug: "girls-dresses" },
+  { title: "Boys' T-Shirts", slug: "boys-tshirts" },
+  { title: "Girls' Tops", slug: "girls-tops" },
+  { title: "Boys' Jeans", slug: "boys-jeans" },
+  { title: "Girls' Dresses", slug: "girls-dresses" },
+  { title: "Outerwear", slug: "jackets" },
+  { title: "Jumpsuits", slug: "jumpsuits" },
+  { title: "Tracksuits", slug: "tracksuits" },
+  { title: "Footwear", slug: "shoes" },
 ];
 
 // Define specific slide for Kids' category
@@ -82,11 +86,11 @@ export default async function KidsPage() {
       <DescriptionText text={description} />
 
       <SubcategoryGridDynamic
-        title="Kids"
+        title="Little Ones' Fashion"
         categorySlug="kids"
         subcategories={KIDS_SUBCATEGORIES}
+        variant="section"
       />
     </div>
   );
 }
-

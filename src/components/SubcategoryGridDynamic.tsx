@@ -5,56 +5,36 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { fileUrl, fetchProductCounts, getProductPlaceholderUrl } from '@/lib/directus';
 
-// Map from URL slug to CMS subcategory values
-const SUBCATEGORY_TO_CMS: Record<string, string> = {
-  'tshirts': 'T Shirt',
-  'shirts': 'Shirt',
-  'jeans': 'Jeans',
-  'pants': 'Pants',
-  'trousers': 'Trousers',
-  'jackets': 'Jacket',
-  'shoes': 'Flats',
-  'accessories': 'Accessories',
-  'tops': 'Top',
-  'blouse': 'Blouse',
-  'dresses': 'Dress',
-  'skirts': 'Skirt',
-  'outerwear': 'Jacket',
-  'shorts': 'Shorts',
-  'ethnic-wear': 'Ethnic Wear',
-  'activewear': 'Activewear',
-  // Kids-specific slugs (matching header menu)
-  'boys-tshirts': 'T-Shirt',
-  'girls-tops': 'Top',
-  'boys-jeans': 'Jeans',
-  'girls-dresses': 'Dress',
-  // Footwear - gender based
-  'men': 'Flats',
-  'women': 'Flats',
-};
-
-// Mapping from URL slugs to normalized CMS subcategory values for matching
+/**
+ * Mapping from URL slugs to comprehensive CMS subcategory values.
+ * This ensures that a single category page (like /women/tops) can capture all 
+ * variations of that category found in the Directus database.
+ */
 const SLUG_TO_CMS_SUBCATEGORY: Record<string, string[]> = {
-  // Men - MUST match exact capitalization in Directus
-  'tshirts': ['T-Shirts', 'T-Shirt', 'T', 'Tshirt', 'Classic T-Shirt'],
-  'shirts': ['Shirt', 'Casual Shirt', 'Button-Up Shirt', 'Short Sleeve Shirt'],
-  'jeans': ['Jeans', 'Slim Jeans'],
-  'trousers': ['Trousers', 'Pants', 'Slim Pants', 'Cargo Pants'],
-  'jackets': ['Jacket', 'Casual Jacket', 'Denim Jacket', 'Varsity Jacket'],
-  // Women - MUST match exact capitalization in Directus
-  'tops': ['Top', 'Tops', 'Casual Top', 'Tank Top'],
-  'dresses': ['Dress', 'Dresses', 'Midi Dress', 'Mini Dress', 'Slip Dress'],
-  'skirts': ['Skirt', 'Skirts'],
-  'shoes': ['Footwear', 'Flats', 'Sneakers', 'Formal Shoes', 'Heels', 'Mules', 'Sandals', 'Boots', 'Loafers'],
-  'activewear': ['activewear', 'Activewear', 'ACTIVEWEAR'],  // Match both subcategory and category field
-  // Kids - matching header menu (4 subcategories)
-  'boys-tshirts': ['T-Shirt', 'T', 'Tshirt'],
-  'girls-tops': ['Top', 'Tops', 'Casual Top'],
+  // Global / Shared
+  'tshirts': ['T-Shirts', 'T-Shirt', 'T', 'Tshirt', 'Graphic Tee', 'Classic T-Shirt'],
+  'shirts': ['Shirt', 'Shirts', 'Casual Shirt', 'Button-Up Shirt', 'Short Sleeve Shirt'],
+  'jeans': ['Jeans', 'Denim', 'Slim Jeans', 'Wide Leg Jeans', 'Slim Pants'],
+  'trousers': ['Trousers', 'Pants', 'Leggings', 'Palazzos', 'Culottes', 'Slim Pants', 'Cargo Pants'],
+  'jackets': ['Jacket', 'Jackets', 'Outerwear', 'Blazer', 'Coat', 'Casual Jacket', 'Denim Jacket', 'Varsity Jacket'],
+  'shoes': ['Footwear', 'Shoes', 'Flats', 'Sneakers', 'Formal Shoes', 'Heels', 'Mules', 'Sandals', 'Boots', 'Loafers'],
+
+  // Women Specific
+  'tops': ['Top', 'Tops', 'Casual Top', 'Tank Top', 'Blouse', 'Tunics'],
+  'dresses': ['Dress', 'Dresses', 'Midi Dress', 'Mini Dress', 'Slip Dress', 'Maxi Dress', 'Evening Dress'],
+  'skirts': ['Skirt', 'Skirts', 'Mini Skirt', 'Midi Skirt'],
+  'activewear': ['Activewear', 'Sports Wear', 'Gym Wear', 'Yoga Wear', 'Leggings', 'Track Pants', 'activewear', 'ACTIVEWEAR'],
+  'ethnic-wear': ['Ethnic Wear', 'Ethnic Fusion', 'Ethnic Dresses', 'Kurta', 'Kurtas', 'Kurti', 'Lehenga', 'Suit Set', 'Ethnic Dress', 'Anarkali', 'ethnic-wear'],
+
+  // Kids Specific (matching header menu slugs)
+  'boys-tshirts': ['T-Shirt', 'T', 'Tshirt', 'Boy T-Shirt'],
+  'girls-tops': ['Top', 'Tops', 'Casual Top', 'Girl Top'],
   'boys-jeans': ['Jeans', 'Slim Jeans', 'Bottom', 'Bottoms'],
-  'girls-dresses': ['Dress', 'Dresses', 'Midi Dress'],
-  // Footwear - gender-based subcategories
-  'men': ['Flats', 'Mules', 'Sneakers', 'Boots', 'Loafers', 'Sandals'],
-  'women': ['Flats', 'Mules', 'Heels', 'Sandals', 'Boots', 'Sneakers'],
+  'girls-dresses': ['Dress', 'Dresses', 'Midi Dress', 'Girl Dress'],
+
+  // Footwear specific
+  'men': ['Flats', 'Mules', 'Sneakers', 'Boots', 'Loafers', 'Sandals', 'Formal Shoes'],
+  'women': ['Flats', 'Mules', 'Heels', 'Sandals', 'Boots', 'Sneakers', 'Mules'],
   'flats': ['Flats'],
   'mules': ['Mules'],
   'heels': ['Heels'],
@@ -66,13 +46,6 @@ const SLUG_TO_CMS_SUBCATEGORY: Record<string, string[]> = {
   'loafers': ['Loafers'],
   'flip-flops': ['Flip-Flops'],
   'shorts': ['Shorts', 'Short'],
-  'ethnic-wear': ['Ethnic Wear', 'Ethnic Fusion', 'Ethnic Dresses', 'Kurti', 'Kurta', 'Lehenga', 'Suit Set', 'Ethnic Dress', 'ethnic-wear'],
-};
-
-// Normalize subcategory for matching
-const normalizeSub = (s?: string | null) => {
-  if (!s) return "";
-  return s.toString().toLowerCase().replace(/[^a-z0-9]/g, "");
 };
 
 interface SubcategoryCardProps {
@@ -80,7 +53,7 @@ interface SubcategoryCardProps {
   slug: string;
   categorySlug: string;
   href?: string;
-  products: Array<{ image_url?: string; image?: string; name: string; subcategory?: string; gender_category?: string }>;
+  products: Array<{ image_url?: string; image?: string; main_image?: string; name: string; subcategory?: string; gender_category?: string }>;
   productCount: number;
   isLoading: boolean;
   priority?: boolean;
@@ -88,8 +61,6 @@ interface SubcategoryCardProps {
 
 function SubcategoryCard({ title, slug, categorySlug, href, products, productCount, isLoading, priority = false }: SubcategoryCardProps) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-
-  // Removed internal fetching logic - data now passed via props
 
   // Image cycling effect
   useEffect(() => {
@@ -108,7 +79,7 @@ function SubcategoryCard({ title, slug, categorySlug, href, products, productCou
       return getProductPlaceholderUrl();
     }
     const product = products[currentImageIndex];
-    // Check all possible image fields
+    // Check all possible image fields in priority order
     const imageToUse = product?.image || product?.image_url || (product as any)?.main_image;
     return fileUrl(imageToUse) || getProductPlaceholderUrl();
   }, [products, currentImageIndex]);
@@ -189,28 +160,24 @@ interface SubcategoryGridDynamicProps {
   subcategories: Array<{
     title: string;
     slug: string;
-    href?: string; // Optional custom link (e.g., with query params)
+    href?: string;
   }>;
-  variant?: 'default' | 'section'; // Visual styling variant
-  showDivider?: boolean; // Show decorative divider above section
-  forcedGender?: 'Men' | 'Women' | 'Kids'; // Explicitly override gender filtering
-  hideSectionLabel?: boolean; // Hide the "Collection" label in section variant
-  HeadingTag?: 'h1' | 'h2'; // Choose heading tag for SEO/layout
-  /** Pre-fetched product data from server - skips client-side fetch if provided */
+  variant?: 'default' | 'section';
+  showDivider?: boolean;
+  forcedGender?: 'Men' | 'Women' | 'Kids';
+  hideSectionLabel?: boolean;
+  HeadingTag?: 'h1' | 'h2';
   initialData?: Record<string, { products: any[]; count: number }>;
 }
 
 export default function SubcategoryGridDynamic({ title, categorySlug, subcategories, variant = 'default', showDivider = false, forcedGender, initialData, hideSectionLabel = false, HeadingTag = 'h2' }: SubcategoryGridDynamicProps) {
-  // Map of subcategory slug -> { products, count }
-  // Use initialData if provided, otherwise start with empty Map
   const [subcategoryData, setSubcategoryData] = useState<Map<string, { products: any[]; count: number }>>(
     new Map(Object.entries(initialData || {}))
   );
-  const [isLoading, setIsLoading] = useState(!initialData); // Skip loading if data provided
+  const [isLoading, setIsLoading] = useState(!initialData);
   const [error, setError] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
 
-  // Sync state with initialData PROP updates (e.g. when color filter changes in parent)
   useEffect(() => {
     if (initialData) {
       setSubcategoryData(new Map(Object.entries(initialData)));
@@ -219,103 +186,87 @@ export default function SubcategoryGridDynamic({ title, categorySlug, subcategor
   }, [initialData]);
 
   useEffect(() => {
-    // Skip client-side fetch if data was prefetched server-side
-    if (initialData && Object.keys(initialData).length > 0) {
-      return;
-    }
+    if (initialData && Object.keys(initialData).length > 0) return;
 
     async function fetchAllSubcategories() {
       try {
-        // 1. Collect all variations for all visible subcategories
-        const allVariations: string[] = [];
-        subcategories.forEach(subcat => {
-          // Use first value logic or mapping
-          const variations = SLUG_TO_CMS_SUBCATEGORY[subcat.slug] || [subcat.slug];
-          allVariations.push(...variations);
-        });
-
-        // 2. Prepare batch API call - simpler filter, client-side category matching
         const params = new URLSearchParams();
-        params.set('limit', '-1'); // Get all products to ensure we don't miss any subcategories
+        params.set('limit', '-1');
+        // Request all relevant fields including variants found in CMS
         params.set('fields', 'name,image_url,image,main_image,subcategory,category,gender_category');
         params.set('filter[status][_eq]', 'published');
 
-        // Pre-filter by gender for faster response - use _istarts_with for flexibility (Matches "Women" and "Women's")
+        // Robust gender filtering
         const genderMap: Record<string, string> = { 'men': 'Men', 'women': 'Women', 'kids': 'Kids' };
         const genderVal = forcedGender || genderMap[categorySlug.toLowerCase()];
-        if (genderVal) params.set('filter[gender_category][_istarts_with]', genderVal);
+        if (genderVal) {
+          params.set('filter[gender_category][_istarts_with]', genderVal);
+        }
 
         const response = await fetch(`/api/directus/items/products?${params.toString()}`);
         let products: any[] = [];
+
         if (response.ok) {
           const data = await response.json();
           products = data.data || [];
-          setError(null); // Clear any previous errors
+          setError(null);
         } else {
           const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
-          const errorMsg = errorData.details || errorData.error || 'Failed to load products';
-          console.error('API Error:', errorMsg);
-          setError(errorMsg);
+          setError(errorData.details || errorData.error || 'Failed to load products');
 
-          // Auto-retry on server overload (max 2 retries)
-          if (errorMsg.includes('Under pressure') && retryCount < 2) {
-            console.log(`Retrying... (attempt ${retryCount + 1}/2)`);
-            setTimeout(() => setRetryCount(prev => prev + 1), 2000); // Retry after 2 seconds
+          if (retryCount < 2) {
+            setTimeout(() => setRetryCount(prev => prev + 1), 2000);
           }
         }
 
-        // 3. Group products by subcategory slug
+        // Group products by subcategory slug using the mapping defined above
         const grouped = new Map();
         subcategories.forEach(subcat => {
           const variations = SLUG_TO_CMS_SUBCATEGORY[subcat.slug] || [subcat.slug];
+          const variationsLower = variations.map(v => v.toLowerCase());
 
-          // Filter products matching this subcategory's variations (by subcategory OR category)
-          // AND matching the gender logic
           const matchingProducts = products.filter(p => {
-            // Check subcategory OR category match
-            const matchesSub = variations.includes(p.subcategory);
-            const matchesCat = variations.includes(p.category);
-            if (!matchesSub && !matchesCat) return false;
+            const pSub = (p.subcategory || "").toLowerCase();
+            const pCat = (p.category || "").toLowerCase();
 
-            // Check gender match (refining the query filter above)
-            const pGender = p.gender_category;
-            const targetGender = forcedGender || genderMap[categorySlug.toLowerCase()];
+            // Check if product's subcategory or category matches any of our known variations
+            const isMatch = variationsLower.includes(pSub) || variationsLower.includes(pCat);
+            if (!isMatch) return false;
 
-            if (targetGender && pGender !== targetGender) return false;
-
-            // Extra check for Footwear page specifically if no forcedGender
+            // Extra gender safety for footwear
             if (categorySlug === 'footwear' && !forcedGender) {
-              if (subcat.slug === 'men' && pGender !== 'Men') return false;
-              if (subcat.slug === 'women' && pGender !== 'Women') return false;
+              const pGender = (p.gender_category || "");
+              if (subcat.slug === 'men' && !pGender.startsWith('Men')) return false;
+              if (subcat.slug === 'women' && !pGender.startsWith('Women')) return false;
             }
+
             return true;
           });
 
-          // For display, prefer items with images
-          const withImages = matchingProducts.filter((p: any) => p.image || p.image_url);
-          const displayProducts = withImages.length > 0 ? withImages : matchingProducts;
+          // Prefer items with any kind of image for display
+          const displayProducts = matchingProducts.filter(p => p.image || p.image_url || p.main_image);
+          const finalProducts = displayProducts.length > 0 ? displayProducts : matchingProducts;
 
           grouped.set(subcat.slug, {
-            products: displayProducts.slice(0, 10), // Keep first 10 for carousel
-            count: matchingProducts.length // Total count in this batch
+            products: finalProducts.slice(0, 10),
+            count: matchingProducts.length
           });
         });
 
         setSubcategoryData(grouped);
-      } catch (error) {
-        console.error('Error fetching batch products:', error);
-        setError(error instanceof Error ? error.message : 'Network error occurred');
+      } catch (err) {
+        console.error('Error fetching batch products:', err);
+        setError('Network error occurred');
       } finally {
         setIsLoading(false);
       }
     }
 
     fetchAllSubcategories();
-  }, [categorySlug, subcategories, retryCount, initialData]); // Re-run on retry
+  }, [categorySlug, subcategories, retryCount, initialData, forcedGender]);
 
   return (
     <section className={`py-12 px-4 md:px-8 ${variant === 'section' ? 'bg-gray-50' : 'bg-white'}`}>
-      {/* Optional decorative divider */}
       {showDivider && (
         <div className="max-w-7xl mx-auto mb-12">
           <div className="flex items-center gap-4">
@@ -327,7 +278,6 @@ export default function SubcategoryGridDynamic({ title, categorySlug, subcategor
       )}
 
       <div className="max-w-7xl mx-auto">
-        {/* Enhanced section header */}
         <div className="text-center mb-10">
           {variant === 'section' && !hideSectionLabel && (
             <div className="inline-flex items-center gap-2 mb-3">
@@ -344,7 +294,6 @@ export default function SubcategoryGridDynamic({ title, categorySlug, subcategor
           )}
         </div>
 
-        {/* Error message */}
         {error && !isLoading && (
           <div className="bg-red-50 border border-red-200 rounded-lg p-6 mb-6 text-center">
             <p className="text-red-800 font-semibold mb-2">Unable to load products</p>
@@ -360,11 +309,7 @@ export default function SubcategoryGridDynamic({ title, categorySlug, subcategor
 
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
           {subcategories.map((subcategory, index) => {
-            const data = subcategoryData.get(subcategory.slug) ||
-              subcategoryData.get(subcategory.slug.toLowerCase().trim().replace(/\s+/g, '-')) ||
-              { products: [], count: 0 };
-
-            // Show loading skeletons or hide if no products (but only if no error)
+            const data = subcategoryData.get(subcategory.slug) || { products: [], count: 0 };
             if (!isLoading && data.count === 0 && !error) return null;
 
             return (
@@ -377,7 +322,7 @@ export default function SubcategoryGridDynamic({ title, categorySlug, subcategor
                 products={data.products}
                 productCount={data.count}
                 isLoading={isLoading}
-                priority={index < 6}
+                priority={index < 4}
               />
             );
           })}
