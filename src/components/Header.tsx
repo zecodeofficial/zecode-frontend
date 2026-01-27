@@ -26,7 +26,7 @@ const SLUG_TO_CMS_SUBCATEGORY: Record<string, string[]> = {
 import { processNavigation, Category, QuickLink } from "@/lib/navigation";
 
 // Fallback category data
-const DEFAULT_CATEGORIES: Category[] = [
+export const DEFAULT_CATEGORIES: Category[] = [
   {
     href: "/men",
     label: "MEN",
@@ -99,7 +99,7 @@ const DEFAULT_CATEGORIES: Category[] = [
   },
 ];
 
-const DEFAULT_QUICK_LINKS: QuickLink[] = [
+export const DEFAULT_QUICK_LINKS: QuickLink[] = [
   { href: "/lit-zone", label: "LIT ZONE", icon: "🔥", highlight: true },
   { href: "/store-locator-map", label: "STORES", icon: "📍" },
   { href: "/about", label: "ABOUT", icon: "ℹ️" },
