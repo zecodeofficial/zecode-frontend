@@ -226,99 +226,83 @@ export default function SubcategoryGridDynamic({
 
     async function fetchAllSubcategories() {
       try {
-        // 1. Collect all variations for all visible subcategories
-        const allVariations: string[] = [];
-        subcategories.forEach(subcat => {
+        setIsLoading(true);
+
+        // OPTIMIZATION: Instead of one massive fetch that strains the server and hits limits,
+        // we fire parallel, targeted requests for specific subcategories.
+        // This is much faster for the DB (indexed lookup) and lighter on bandwidth.
+
+        const fetchPromises = subcategories.map(async (subcat) => {
+          // 1. Determine which CMS subcategories map to this slug
           const variations = SLUG_TO_CMS_SUBCATEGORY[subcat.slug] || [subcat.slug];
-          allVariations.push(...variations);
+
+          // 2. Build targeted query params
+          const params = new URLSearchParams();
+          params.set('limit', '10'); // We only show ~10 items, so don't fetch 200!
+          params.set('fields', 'name,image_url,image,subcategory,category,gender_category,slug');
+          params.set('filter[status][_eq]', 'published');
+          params.set('filter[category][_eq]', categorySlug.toLowerCase());
+
+          // 3. Subcategory Filter: specific targeted lookup
+          // If it's a known specific subcategory, filter by it directly.
+          // Exception: 'footwear' page where everything is currently generic 'footwear', 
+          // so we can't filter by subcategory strictly yet, we rely on the category filter + gender check.
+          if (categorySlug !== 'footwear') {
+            // Use '_in' operator to match any of the variations
+            variations.forEach(v => params.append('filter[subcategory][_in]', v));
+          }
+
+          try {
+            const response = await fetch(`/api/directus/items/products?${params.toString()}`);
+            if (!response.ok) return { slug: subcat.slug, products: [], count: 0 };
+
+            const data = await response.json();
+            let products = data.data || [];
+
+            // 4. Client-side refinement (Double check gender/fallback logic)
+            // This is still needed because of the 'footwear' generic category/gender issue
+            products = products.filter((p: any) => {
+              // Gender Logic
+              let productGender = p.gender_category;
+              if (!productGender && (p.name || p.slug)) {
+                const nameLower = (p.name || '').toLowerCase();
+                const slugLower = (p.slug || '').toLowerCase();
+                if (nameLower.includes("men's") || nameLower.startsWith("mens") || slugLower.includes("mens-")) productGender = 'Men';
+                else if (nameLower.includes("women's") || nameLower.startsWith("womens") || slugLower.includes("womens-")) productGender = 'Women';
+                else if (nameLower.includes("kid") || slugLower.includes("kid")) productGender = 'Kids';
+              }
+
+              if (forcedGender && productGender !== forcedGender) return false;
+              if (categorySlug === 'footwear') {
+                if (subcat.slug === 'men' && productGender !== 'Men') return false;
+                if (subcat.slug === 'women' && productGender !== 'Women') return false;
+              }
+              return true;
+            });
+
+            return {
+              slug: subcat.slug,
+              products: products,
+              count: products.length // approximate count from this slice
+            };
+          } catch (e) {
+            console.warn(`Failed to fetch for ${subcat.slug}`, e);
+            return { slug: subcat.slug, products: [], count: 0 };
+          }
         });
 
-        // 2. Prepare batch API call
-        const params = new URLSearchParams();
-        // REDUCED LIMIT to prevent 503 Service Unavailable ("Under pressure")
-        params.set('limit', '200');
-        params.set('fields', 'name,image_url,image,subcategory,category,gender_category,slug');
-        params.set('filter[status][_eq]', 'published');
-        // Pre-filter by category
-        params.set('filter[category][_eq]', categorySlug.toLowerCase());
+        const results = await Promise.all(fetchPromises);
 
-        const response = await fetch(`/api/directus/items/products?${params.toString()}`);
-        let products: any[] = [];
-
-        if (response.ok) {
-          const data = await response.json();
-          products = data.data || [];
-          setError(null);
-        } else {
-          // If 503 or other error, just log it and stop. Do not loop retry.
-          // This prevents crashing the browser or hammering the server.
-          console.warn('API Warning: Failed to fetch products (likely rate limited). Showing empty state.');
-          // Don't set hard error to UI to avoid scary red box, just show nothing/loading state ended.
-        }
-
-        // 3. Group products by subcategory slug
+        // Assemble results into Map
         const grouped = new Map();
-
-        subcategories.forEach(subcat => {
-          const variations = SLUG_TO_CMS_SUBCATEGORY[subcat.slug] || [subcat.slug];
-
-          const matchingProducts = products.filter(p => {
-            // --- GENDER CHECK ---
-            // If forcedGender is set, we must check it. 
-            // BUT, if Directus has null gender, we try to infer from Name/Slug.
-            let productGender = p.gender_category;
-
-            if (!productGender && (p.name || p.slug)) {
-              const nameLower = (p.name || '').toLowerCase();
-              const slugLower = (p.slug || '').toLowerCase();
-              if (nameLower.includes("men's") || nameLower.startsWith("mens") || slugLower.includes("mens-")) {
-                productGender = 'Men';
-              } else if (nameLower.includes("women's") || nameLower.startsWith("womens") || slugLower.includes("womens-")) {
-                productGender = 'Women';
-              } else if (nameLower.includes("kid") || slugLower.includes("kid")) {
-                productGender = 'Kids';
-              }
-            }
-
-            if (forcedGender) {
-              // If after inference we still don't match, exclude.
-              if (productGender !== forcedGender) return false;
-            } else if (categorySlug === 'footwear') {
-              // Special case for separate arrays in page.tsx if not using forcedGender
-              if (subcat.slug === 'men' && productGender !== 'Men') return false;
-              if (subcat.slug === 'women' && productGender !== 'Women') return false;
-            }
-
-
-            // --- SUBCATEGORY CHECK ---
-            // 1. Exact match via mapping
-            const matchesSub = variations.includes(p.subcategory);
-            if (matchesSub) return true;
-
-            // 2. Fallback: If category is Footwear, and product subcategory is generic 'footwear', allow it.
-            // (This logic allows us to populate the grid even if data is not granular yet)
-            if (categorySlug === 'footwear' && p.subcategory === 'footwear') {
-              return true;
-            }
-
-            return false;
-          });
-
-          // For display, prefer items with images
-          const withImages = matchingProducts.filter((p: any) => p.image || p.image_url);
-          const displayProducts = withImages.length > 0 ? withImages : matchingProducts;
-
-          // Limit to 10 items for the preview card
-          grouped.set(subcat.slug, {
-            products: displayProducts.slice(0, 10),
-            count: matchingProducts.length
-          });
+        results.forEach(res => {
+          grouped.set(res.slug, { products: res.products, count: res.count });
         });
 
         setSubcategoryData(grouped);
+        setError(null);
       } catch (error) {
-        console.error('Error fetching batch products:', error);
-        // Do not block UI with error
+        console.error('Error in parallel fetch:', error);
       } finally {
         setIsLoading(false);
       }
