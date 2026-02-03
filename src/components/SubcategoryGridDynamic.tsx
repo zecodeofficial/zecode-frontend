@@ -33,40 +33,30 @@ const SUBCATEGORY_TO_CMS: Record<string, string> = {
   'women': 'Flats',
 };
 
-// Mapping from URL slugs to normalized CMS subcategory values for matching
+// Mapping from URL slugs to standardized CMS subcategory values
 const SLUG_TO_CMS_SUBCATEGORY: Record<string, string[]> = {
-  // Men - MUST match exact capitalization in Directus
-  'tshirts': ['T', 'T-Shirt', 'Classic T-Shirt'],
-  'shirts': ['Shirt', 'Casual Shirt', 'Button-Up Shirt', 'Short Sleeve Shirt'],
-  'jeans': ['Jeans', 'Slim Jeans'],
-  'trousers': ['Trousers', 'Pants', 'Slim Pants', 'Cargo Pants'],
-  'jackets': ['Jacket', 'Casual Jacket', 'Denim Jacket', 'Varsity Jacket'],
-  // Women - MUST match exact capitalization in Directus
-  'tops': ['Top', 'Tops', 'Casual Top', 'Tank Top'],
-  'dresses': ['Dress', 'Dresses', 'Midi Dress', 'Mini Dress', 'Slip Dress'],
-  'skirts': ['Skirt', 'Skirts'],
-  'shoes': ['Footwear', 'Flats', 'Sneakers', 'Formal Shoes', 'Heels', 'Mules', 'Sandals', 'Boots', 'Loafers'],
-  'activewear': ['activewear', 'Activewear', 'ACTIVEWEAR'],  // Match both subcategory and category field
-  // Kids - matching header menu (4 subcategories)
-  'boys-tshirts': ['T-Shirt', 'T', 'Tshirt'],
-  'girls-tops': ['Top', 'Tops', 'Casual Top'],
-  'boys-jeans': ['Jeans', 'Slim Jeans', 'Bottom', 'Bottoms'],
-  'girls-dresses': ['Dress', 'Dresses', 'Midi Dress'],
-  // Footwear - gender-based subcategories
-  'men': ['Flats', 'Mules', 'Sneakers', 'Boots', 'Loafers', 'Sandals'],
-  'women': ['Flats', 'Mules', 'Heels', 'Sandals', 'Boots', 'Sneakers'],
-  'flats': ['Flats'],
-  'mules': ['Mules'],
-  'heels': ['Heels'],
-  'sandals': ['Sandals'],
-  'boots': ['Boots'],
-  'sneakers': ['Sneakers'],
-  'slides': ['Slides'],
-  'clogs': ['Clogs'],
-  'loafers': ['Loafers'],
-  'flip-flops': ['Flip-Flops'],
-  'shorts': ['Shorts', 'Short'],
-  'ethnic-wear': ['Kurti', 'Kurta', 'Lehenga', 'Suit Set', 'Ethnic Dress', 'ethnic-wear'],  // Added lowercase variant
+  // Men
+  'tshirts': ['t-shirts'],
+  'shirts': ['shirts'],
+  'jeans': ['jeans'],
+  'trousers': ['trousers'],
+  'jackets': ['jackets'],
+  'shorts': ['shorts'],
+  // Women
+  'tops': ['tops'],
+  'dresses': ['dresses'],
+  'skirts': ['skirts'],
+  'shoes': ['shoes', 'sneakers', 'sandals', 'boots', 'loafers', 'flats', 'mules', 'heels', 'slides', 'clogs', 'flip-flops'],
+  'activewear': ['activewear'],
+  // Kids
+  'boys-tshirts': ['boys-t-shirts'],
+  'girls-tops': ['girls-tops'],
+  'boys-jeans': ['kids-jeans'],
+  'girls-dresses': ['girls-dresses'],
+  // Others
+  'ethnic-wear': ['ethnic-wear'],
+  'ethnic-fusion': ['ethnic-fusion'],
+  'kurtas': ['kurtas'],
 };
 
 // Normalize subcategory for matching
@@ -242,10 +232,9 @@ export default function SubcategoryGridDynamic({
         params.set('fields', 'name,image_url,image,subcategory,category,gender_category');
         params.set('filter[status][_eq]', 'published');
 
-        // Pre-filter by gender for faster response
-        const genderMap: Record<string, string> = { 'men': 'Men', 'women': 'Women', 'kids': 'Kids' };
-        const genderVal = forcedGender || genderMap[categorySlug.toLowerCase()];
-        if (genderVal) params.set('filter[gender_category][_eq]', genderVal);
+        // Pre-filter by category for faster response
+        // Use lowercase slug directly since CMS values are now standardized to lowercase
+        params.set('filter[category][_eq]', categorySlug.toLowerCase());
 
         const response = await fetch(`/api/directus/items/products?${params.toString()}`);
         let products: any[] = [];
@@ -268,28 +257,25 @@ export default function SubcategoryGridDynamic({
 
         // 3. Group products by subcategory slug
         const grouped = new Map();
+        const genderMap: Record<string, string> = { 'men': 'Men', 'women': 'Women', 'kids': 'Kids' };
+
         subcategories.forEach(subcat => {
           const variations = SLUG_TO_CMS_SUBCATEGORY[subcat.slug] || [subcat.slug];
 
-          // Filter products matching this subcategory's variations (by subcategory OR category)
-          // AND matching the gender logic
           const matchingProducts = products.filter(p => {
-            // Check subcategory OR category match
+            // Match subcategory field using standardized values
             const matchesSub = variations.includes(p.subcategory);
-            const matchesCat = variations.includes(p.category);
-            if (!matchesSub && !matchesCat) return false;
+            if (!matchesSub) return false;
 
-            // Check gender match (refining the query filter above)
-            const pGender = p.gender_category;
-            const targetGender = forcedGender || genderMap[categorySlug.toLowerCase()];
+            // Optional: Filter by forced gender if provided (e.g., from props)
+            if (forcedGender && p.gender_category !== forcedGender) return false;
 
-            if (targetGender && pGender !== targetGender) return false;
-
-            // Extra check for Footwear page specifically if no forcedGender
+            // Special case for Footwear page to separate subcategories by gender_category
             if (categorySlug === 'footwear' && !forcedGender) {
-              if (subcat.slug === 'men' && pGender !== 'Men') return false;
-              if (subcat.slug === 'women' && pGender !== 'Women') return false;
+              if (subcat.slug === 'men' && p.gender_category !== 'Men') return false;
+              if (subcat.slug === 'women' && p.gender_category !== 'Women') return false;
             }
+
             return true;
           });
 
@@ -298,8 +284,8 @@ export default function SubcategoryGridDynamic({
           const displayProducts = withImages.length > 0 ? withImages : matchingProducts;
 
           grouped.set(subcat.slug, {
-            products: displayProducts.slice(0, 10), // Keep first 10 for carousel
-            count: matchingProducts.length // Total count in this batch
+            products: displayProducts.slice(0, 10),
+            count: matchingProducts.length
           });
         });
 

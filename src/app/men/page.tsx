@@ -12,10 +12,10 @@ export const revalidate = 300;
 
 // Define subcategories for Men
 const MEN_SUBCATEGORIES = [
-  { title: "T-Shirts", slug: "tshirts" },
   { title: "Shirts", slug: "shirts" },
   { title: "Jeans", slug: "jeans" },
-  { title: "Jackets", slug: "jackets" },
+  { title: "Trousers", slug: "trousers" },
+  { title: "Shorts", slug: "shorts" },
 ];
 
 // Define specific slide for Men's category
