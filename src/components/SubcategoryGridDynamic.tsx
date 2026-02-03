@@ -46,13 +46,21 @@ const SLUG_TO_CMS_SUBCATEGORY: Record<string, string[]> = {
   'tops': ['tops'],
   'dresses': ['dresses'],
   'skirts': ['skirts'],
-  'shoes': ['shoes', 'sneakers', 'sandals', 'boots', 'loafers', 'flats', 'mules', 'heels', 'slides', 'clogs', 'flip-flops'],
+  'shoes': ['shoes', 'sneakers', 'sandals', 'boots', 'loafers', 'flats', 'mules', 'heels', 'slides', 'clogs', 'flip-flops', 'footwear'],
   'activewear': ['activewear'],
   // Kids
   'boys-tshirts': ['boys-t-shirts'],
   'girls-tops': ['girls-tops'],
   'boys-jeans': ['kids-jeans'],
   'girls-dresses': ['girls-dresses'],
+  // Footwear (Temporary: map all specific footwear types to 'footwear' until granular categorization is fixed)
+  'sneakers': ['footwear'],
+  'slides': ['footwear'],
+  'clogs': ['footwear'],
+  'sandals': ['footwear'],
+  'flip-flops': ['footwear'],
+  'flats': ['footwear'],
+  'heels': ['footwear'],
   // Others
   'ethnic-wear': ['ethnic-wear'],
   'ethnic-fusion': ['ethnic-fusion'],
@@ -221,19 +229,16 @@ export default function SubcategoryGridDynamic({
         // 1. Collect all variations for all visible subcategories
         const allVariations: string[] = [];
         subcategories.forEach(subcat => {
-          // Use first value logic or mapping
           const variations = SLUG_TO_CMS_SUBCATEGORY[subcat.slug] || [subcat.slug];
           allVariations.push(...variations);
         });
 
-        // 2. Prepare batch API call - simpler filter, client-side category matching
+        // 2. Prepare batch API call
         const params = new URLSearchParams();
-        params.set('limit', '500');
-        params.set('fields', 'name,image_url,image,subcategory,category,gender_category');
+        params.set('limit', '1000'); // Increased limit
+        params.set('fields', 'name,image_url,image,subcategory,category,gender_category,slug');
         params.set('filter[status][_eq]', 'published');
-
-        // Pre-filter by category for faster response
-        // Use lowercase slug directly since CMS values are now standardized to lowercase
+        // Pre-filter by category
         params.set('filter[category][_eq]', categorySlug.toLowerCase());
 
         const response = await fetch(`/api/directus/items/products?${params.toString()}`);
@@ -241,48 +246,71 @@ export default function SubcategoryGridDynamic({
         if (response.ok) {
           const data = await response.json();
           products = data.data || [];
-          setError(null); // Clear any previous errors
+          setError(null);
         } else {
           const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
           const errorMsg = errorData.details || errorData.error || 'Failed to load products';
           console.error('API Error:', errorMsg);
           setError(errorMsg);
 
-          // Auto-retry on server overload (max 2 retries)
           if (errorMsg.includes('Under pressure') && retryCount < 2) {
-            console.log(`Retrying... (attempt ${retryCount + 1}/2)`);
-            setTimeout(() => setRetryCount(prev => prev + 1), 2000); // Retry after 2 seconds
+            setTimeout(() => setRetryCount(prev => prev + 1), 2000);
           }
         }
 
         // 3. Group products by subcategory slug
         const grouped = new Map();
-        const genderMap: Record<string, string> = { 'men': 'Men', 'women': 'Women', 'kids': 'Kids' };
 
         subcategories.forEach(subcat => {
           const variations = SLUG_TO_CMS_SUBCATEGORY[subcat.slug] || [subcat.slug];
 
           const matchingProducts = products.filter(p => {
-            // Match subcategory field using standardized values
-            const matchesSub = variations.includes(p.subcategory);
-            if (!matchesSub) return false;
+            // --- GENDER CHECK ---
+            // If forcedGender is set, we must check it. 
+            // BUT, if Directus has null gender, we try to infer from Name/Slug.
+            let productGender = p.gender_category;
 
-            // Optional: Filter by forced gender if provided (e.g., from props)
-            if (forcedGender && p.gender_category !== forcedGender) return false;
-
-            // Special case for Footwear page to separate subcategories by gender_category
-            if (categorySlug === 'footwear' && !forcedGender) {
-              if (subcat.slug === 'men' && p.gender_category !== 'Men') return false;
-              if (subcat.slug === 'women' && p.gender_category !== 'Women') return false;
+            if (!productGender && (p.name || p.slug)) {
+              const nameLower = (p.name || '').toLowerCase();
+              const slugLower = (p.slug || '').toLowerCase();
+              if (nameLower.includes("men's") || nameLower.startsWith("mens") || slugLower.includes("mens-")) {
+                productGender = 'Men';
+              } else if (nameLower.includes("women's") || nameLower.startsWith("womens") || slugLower.includes("womens-")) {
+                productGender = 'Women';
+              } else if (nameLower.includes("kid") || slugLower.includes("kid")) {
+                productGender = 'Kids';
+              }
             }
 
-            return true;
+            if (forcedGender) {
+              // If after inference we still don't match, exclude.
+              if (productGender !== forcedGender) return false;
+            } else if (categorySlug === 'footwear') {
+              // Special case for separate arrays in page.tsx if not using forcedGender
+              if (subcat.slug === 'men' && productGender !== 'Men') return false;
+              if (subcat.slug === 'women' && productGender !== 'Women') return false;
+            }
+
+
+            // --- SUBCATEGORY CHECK ---
+            // 1. Exact match via mapping
+            const matchesSub = variations.includes(p.subcategory);
+            if (matchesSub) return true;
+
+            // 2. Fallback: If category is Footwear, and product subcategory is generic 'footwear', allow it.
+            // (This logic allows us to populate the grid even if data is not granular yet)
+            if (categorySlug === 'footwear' && p.subcategory === 'footwear') {
+              return true;
+            }
+
+            return false;
           });
 
           // For display, prefer items with images
           const withImages = matchingProducts.filter((p: any) => p.image || p.image_url);
           const displayProducts = withImages.length > 0 ? withImages : matchingProducts;
 
+          // Limit to 10 items for the preview card
           grouped.set(subcat.slug, {
             products: displayProducts.slice(0, 10),
             count: matchingProducts.length
@@ -299,7 +327,7 @@ export default function SubcategoryGridDynamic({
     }
 
     fetchAllSubcategories();
-  }, [categorySlug, subcategories, retryCount, initialData]); // Re-run on retry
+  }, [categorySlug, subcategories, retryCount, initialData, forcedGender]);
 
   return (
     <section className={`py-12 px-4 md:px-8 ${variant === 'section' ? 'bg-gray-50' : 'bg-white'}`}>
