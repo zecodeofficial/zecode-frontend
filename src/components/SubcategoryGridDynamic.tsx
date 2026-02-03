@@ -235,7 +235,8 @@ export default function SubcategoryGridDynamic({
 
         // 2. Prepare batch API call
         const params = new URLSearchParams();
-        params.set('limit', '1000'); // Increased limit
+        // REDUCED LIMIT to prevent 503 Service Unavailable ("Under pressure")
+        params.set('limit', '200');
         params.set('fields', 'name,image_url,image,subcategory,category,gender_category,slug');
         params.set('filter[status][_eq]', 'published');
         // Pre-filter by category
@@ -243,19 +244,16 @@ export default function SubcategoryGridDynamic({
 
         const response = await fetch(`/api/directus/items/products?${params.toString()}`);
         let products: any[] = [];
+
         if (response.ok) {
           const data = await response.json();
           products = data.data || [];
           setError(null);
         } else {
-          const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
-          const errorMsg = errorData.details || errorData.error || 'Failed to load products';
-          console.error('API Error:', errorMsg);
-          setError(errorMsg);
-
-          if (errorMsg.includes('Under pressure') && retryCount < 2) {
-            setTimeout(() => setRetryCount(prev => prev + 1), 2000);
-          }
+          // If 503 or other error, just log it and stop. Do not loop retry.
+          // This prevents crashing the browser or hammering the server.
+          console.warn('API Warning: Failed to fetch products (likely rate limited). Showing empty state.');
+          // Don't set hard error to UI to avoid scary red box, just show nothing/loading state ended.
         }
 
         // 3. Group products by subcategory slug
@@ -320,14 +318,14 @@ export default function SubcategoryGridDynamic({
         setSubcategoryData(grouped);
       } catch (error) {
         console.error('Error fetching batch products:', error);
-        setError(error instanceof Error ? error.message : 'Network error occurred');
+        // Do not block UI with error
       } finally {
         setIsLoading(false);
       }
     }
 
     fetchAllSubcategories();
-  }, [categorySlug, subcategories, retryCount, initialData, forcedGender]);
+  }, [categorySlug, subcategories, initialData, forcedGender]);
 
   return (
     <section className={`py-12 px-4 md:px-8 ${variant === 'section' ? 'bg-gray-50' : 'bg-white'}`}>
