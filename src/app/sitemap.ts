@@ -12,7 +12,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         "/store-locator-map",
         "/men",
         "/women",
-        "/kids",
         "/footwear",
     ].map((route) => ({
         url: `${baseUrl}${route}`,
@@ -56,7 +55,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
                     // Let's normalize the parent slug.
                     const parentSlug = cat.slug.toLowerCase();
                     // Only add if it's one of our main route bases
-                    if (['men', 'women', 'kids', 'footwear'].includes(parentSlug)) {
+                    if (['men', 'women', 'footwear'].includes(parentSlug)) {
                         categoryRoutes.push({
                             url: `${baseUrl}/${parentSlug}/${sub.slug}`,
                             lastModified: new Date(),

@@ -36,7 +36,7 @@ export function processNavigation(items: DirectusNavigationItem[]): { categories
   );
 
   uniqueParentItems.forEach(parent => {
-    const isCategory = ["MEN", "WOMEN", "KIDS", "FOOTWEAR"].includes(parent.label.toUpperCase());
+    const isCategory = ["MEN", "WOMEN", "FOOTWEAR"].includes(parent.label.toUpperCase());
 
     if (isCategory) {
       // Skip if we've already added this category

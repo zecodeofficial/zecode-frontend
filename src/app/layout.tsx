@@ -46,7 +46,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "ZECODE - Your New Fashion Code",
-    description: "Premium kids fashion store in Bengaluru.",
+    description: "Premium urban fashion store in Bengaluru.",
     images: ["/brand/zecode-og.png"],
   },
   verification: {
