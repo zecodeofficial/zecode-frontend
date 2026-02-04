@@ -18,9 +18,9 @@ const CACHE_HERO = 600;          // 10 minutes
 const CACHE_STORES = false;      // disabled
 const CACHE_CATEGORIES = 600;    // 10 minutes
 
-// Request timeout - increased for Render cold starts
-const TIMEOUT_DEFAULT = 30000;   // 30 seconds
-const TIMEOUT_PRODUCTS = 60000;  // 60 seconds for products
+// Request timeout - increased for Render cold starts and slow responses
+const TIMEOUT_DEFAULT = 60000;   // 60 seconds (increased for Render free tier)
+const TIMEOUT_PRODUCTS = 90000;  // 90 seconds for products
 
 // Helper to get the correct URL - uses proxy on client-side to avoid CORS
 function getApiUrl(path: string): string {
