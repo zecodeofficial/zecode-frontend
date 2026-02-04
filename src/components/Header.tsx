@@ -100,6 +100,7 @@ export const DEFAULT_CATEGORIES: Category[] = [
 ];
 
 export const DEFAULT_QUICK_LINKS: QuickLink[] = [
+  { href: "/#shop-by-color", label: "SHOP BY COLOR", icon: "🎨" },
   { href: "/lit-zone", label: "LIT ZONE", icon: "🔥", highlight: true },
   { href: "/store-locator-map", label: "STORES", icon: "📍" },
   { href: "/about", label: "ABOUT", icon: "ℹ️" },
