@@ -794,7 +794,7 @@ async function _fetchProductsByGenderAndSubcategory(gender: string | null, subca
  */
 export const fetchProductsByGenderAndSubcategory = typeof window === 'undefined'
   ? (gender: string | null, subcategory: string | string[], category?: string) => {
-    const cacheKey = `products-${gender || 'all'}-${Array.isArray(subcategory) ? subcategory.join('-') : subcategory}${category ? '-' + category : ''}-v9`;
+    const cacheKey = `products-${gender || 'all'}-${Array.isArray(subcategory) ? subcategory.join('-') : subcategory}${category ? '-' + category : ''}-v10`;
     return unstable_cache(
       async () => {
         const data = await _fetchProductsByGenderAndSubcategory(gender, subcategory, category);
