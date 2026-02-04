@@ -1,6 +1,6 @@
 import HeroSlider from "@/components/HeroSlider";
-import ShopByColor from "@/components/ShopByColor";
-import { fetchHeroSlides, fetchProducts } from "@/lib/directus";
+import ShopByColorWrapper from "@/components/ShopByColorWrapper";
+import { fetchHeroSlides } from "@/lib/directus";
 
 // Use ISR - revalidate every 5 minutes for fresh content without cold starts
 export const revalidate = 300;
@@ -8,13 +8,9 @@ export const revalidate = 300;
 export default async function Home() {
   // Fetch data from Directus (with error handling)
   let heroSlides = null;
-  let products: any[] = [];
 
   try {
     heroSlides = await fetchHeroSlides();
-    // Fetch products for Shop by Color section
-    const productsData = await fetchProducts({ limit: 200 });
-    products = productsData || [];
   } catch (error) {
     console.error("Failed to fetch homepage data:", error);
   }
@@ -63,8 +59,8 @@ export default async function Home() {
       />
       <HeroSlider slides={heroSlides || undefined} />
 
-      {/* Shop by Color Section */}
-      {products.length > 0 && <ShopByColor products={products} />}
+      {/* Shop by Color Section - fetches products client-side */}
+      <ShopByColorWrapper />
     </div>
   );
 }
