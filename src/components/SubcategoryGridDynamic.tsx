@@ -53,14 +53,14 @@ const SLUG_TO_CMS_SUBCATEGORY: Record<string, string[]> = {
   'girls-tops': ['girls-tops'],
   'boys-jeans': ['kids-jeans'],
   'girls-dresses': ['girls-dresses'],
-  // Footwear (Temporary: map all specific footwear types to 'footwear' until granular categorization is fixed)
-  'sneakers': ['footwear'],
-  'slides': ['footwear'],
-  'clogs': ['footwear'],
-  'sandals': ['footwear'],
-  'flip-flops': ['footwear'],
-  'flats': ['footwear'],
-  'heels': ['footwear'],
+  // Footwear (Now using granular subcategories but keeping 'footwear' as fallback)
+  'sneakers': ['sneakers', 'footwear'],
+  'slides': ['slides', 'footwear'],
+  'clogs': ['clogs', 'footwear'],
+  'sandals': ['sandals', 'footwear'],
+  'flip-flops': ['flip-flops', 'footwear', 'slappers'],
+  'flats': ['flats', 'footwear'],
+  'heels': ['heels', 'footwear'],
   // Others
   'ethnic-wear': ['ethnic-wear'],
   'ethnic-fusion': ['ethnic-fusion'],
@@ -241,16 +241,17 @@ export default function SubcategoryGridDynamic({
           params.set('limit', '10'); // We only show ~10 items, so don't fetch 200!
           params.set('fields', 'name,image_url,image,subcategory,category,gender_category,slug');
           params.set('filter[status][_eq]', 'published');
-          params.set('filter[category][_eq]', categorySlug.toLowerCase());
-
-          // 3. Subcategory Filter: specific targeted lookup
-          // If it's a known specific subcategory, filter by it directly.
-          // Exception: 'footwear' page where everything is currently generic 'footwear', 
-          // so we can't filter by subcategory strictly yet, we rely on the category filter + gender check.
-          if (categorySlug !== 'footwear') {
-            // Use '_in' operator to match any of the variations
-            variations.forEach(v => params.append('filter[subcategory][_in]', v));
+          // 3. Category & Subcategory Filter
+          // For the 'footwear' page, products might be in 'men', 'women' or 'footwear' categories
+          // but will have subcategories like 'sneakers', 'sandals', or 'footwear'.
+          if (categorySlug === 'footwear') {
+            ['footwear', 'men', 'women'].forEach(c => params.append('filter[category][_in]', c));
+          } else {
+            params.set('filter[category][_eq]', categorySlug.toLowerCase());
           }
+
+          // Always add subcategory filters
+          variations.forEach(v => params.append('filter[subcategory][_in]', v));
 
           try {
             const response = await fetch(`/api/directus/items/products?${params.toString()}`);
