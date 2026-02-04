@@ -9,19 +9,20 @@ import DescriptionText from "@/components/DescriptionText";
 export const dynamic = 'force-dynamic';
 
 // Map subcategory slugs to CMS subcategory values for footwear
+// Use lowercase to match Directus data, include 'footwear' as fallback for generic products
 const SUBCATEGORY_MAP: Record<string, string | string[]> = {
-    'men': ['Flats', 'Mules', 'Sneakers', 'Boots', 'Loafers', 'Sandals'],
-    'women': ['Flats', 'Mules', 'Heels', 'Sandals', 'Boots', 'Sneakers'],
-    'sneakers': 'Sneakers',
-    'slides': 'Slides',
-    'clogs': 'Clogs',
-    'flats': ['Flats', 'Mules', 'Slides'],
-    'mules': 'Mules',
-    'heels': 'Heels',
-    'sandals': 'Sandals',
-    'boots': 'Boots',
-    'loafers': 'Loafers',
-    'flip-flops': 'Flip-Flops',
+    'men': ['flats', 'mules', 'sneakers', 'boots', 'loafers', 'sandals', 'slides', 'clogs', 'footwear'],
+    'women': ['flats', 'mules', 'heels', 'sandals', 'boots', 'sneakers', 'slides', 'clogs', 'footwear'],
+    'sneakers': ['sneakers', 'footwear'],
+    'slides': ['slides', 'footwear'],
+    'clogs': ['clogs', 'footwear'],
+    'flats': ['flats', 'mules', 'slides', 'footwear'],
+    'mules': ['mules', 'footwear'],
+    'heels': ['heels', 'footwear'],
+    'sandals': ['sandals', 'footwear'],
+    'boots': ['boots', 'footwear'],
+    'loafers': ['loafers', 'footwear'],
+    'flip-flops': ['flip-flops', 'footwear'],
 };
 
 const TITLE_MAP: Record<string, string> = {
@@ -72,8 +73,9 @@ export default async function FootwearGenderPage({ params }: PageProps) {
 
     let products: any[] = [];
     try {
-        // Explicitly using 'Footwear' category to ensure correct filtering
-        const fetchedProducts = await fetchProductsByGenderAndSubcategory(gender, cmsSubcategory, 'Footwear');
+        // Footwear products are distributed across 'men', 'women', and 'footwear' categories in Directus
+        // Don't restrict by category - rely on subcategory + gender filtering instead
+        const fetchedProducts = await fetchProductsByGenderAndSubcategory(gender, cmsSubcategory);
         if (fetchedProducts) {
             products = fetchedProducts;
         }
