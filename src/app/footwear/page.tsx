@@ -22,8 +22,11 @@ const MEN_FOOTWEAR_SUBCATEGORIES = [
 // Define subcategories for Footwear - Women
 const WOMEN_FOOTWEAR_SUBCATEGORIES = [
   { title: "FLATS", slug: "flats", href: "/footwear/flats/women" },
+  { title: "SANDALS", slug: "sandals", href: "/footwear/sandals/women" },
+  { title: "SLIDES", slug: "slides", href: "/footwear/slides/women" },
   { title: "FLIP-FLOPS", slug: "flip-flops", href: "/footwear/flip-flops/women" },
   { title: "HEELS", slug: "heels", href: "/footwear/heels/women" },
+  { title: "MULES", slug: "mules", href: "/footwear/mules/women" },
   { title: "SNEAKERS", slug: "sneakers", href: "/footwear/sneakers/women" },
 ];
 
