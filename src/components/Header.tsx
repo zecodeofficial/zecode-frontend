@@ -5,24 +5,7 @@ import { useState, useEffect } from "react";
 import { useTheme } from "@/contexts/ThemeContext";
 import type { DirectusNavigationItem } from "@/lib/directus";
 
-// Mapping from URL slugs to CMS subcategory values for proper matching
-const SLUG_TO_CMS_SUBCATEGORY: Record<string, string[]> = {
-  // Men
-  'tshirts': ['t', 'tshirt', 't-shirt'],
-  'shirts': ['shirt'],
-  'jeans': ['jean', 'jeans'],
-  'trousers': ['trouser', 'trousers', 'pants', 'pant'],
-  'jackets': ['jacket', 'outerwear'],
-  'shoes': ['shoe', 'flats', 'flat'],
-  // Women
-  'tops': ['top', 'tops'],
-  'dresses': ['dress', 'dresses'],
-  'skirts': ['skirt', 'skirts'],
-  // Footwear - gender-based subcategories
-  'men': ['flats', 'flat', 'mules', 'mule', 'sneakers', 'sneaker', 'boots', 'boot', 'loafers', 'loafer', 'sandals', 'sandal'],
-  'women': ['flats', 'flat', 'mules', 'mule', 'heels', 'heel', 'sandals', 'sandal', 'boots', 'boot', 'sneakers', 'sneaker'],
-};
-
+// PROCESS NAVIGATION HELPERS
 import { processNavigation, Category, QuickLink } from "@/lib/navigation";
 
 // Fallback category data
@@ -34,6 +17,8 @@ export const DEFAULT_CATEGORIES: Category[] = [
       { label: "T-SHIRTS", href: "/men/tshirts" },
       { label: "SHIRTS", href: "/men/shirts" },
       { label: "JEANS", href: "/men/jeans" },
+      { label: "TROUSERS", href: "/men/trousers" },
+      { label: "SHORTS", href: "/men/shorts" },
       { label: "JACKETS", href: "/men/jackets" },
     ],
   },
@@ -90,8 +75,11 @@ export const DEFAULT_CATEGORIES: Category[] = [
         type: 'section',
         items: [
           { label: "FLATS", href: "/footwear/flats/women" },
+          { label: "SANDALS", href: "/footwear/sandals/women" },
+          { label: "SLIDES", href: "/footwear/slides/women" },
           { label: "FLIP-FLOPS", href: "/footwear/flip-flops/women" },
           { label: "HEELS", href: "/footwear/heels/women" },
+          { label: "MULES", href: "/footwear/mules/women" },
           { label: "SNEAKERS", href: "/footwear/sneakers/women" },
         ]
       }
@@ -151,11 +139,11 @@ export default function Header({ initialCategories, initialQuickLinks }: HeaderP
         return defaultCat; // Use default if not in CMS
       }
 
-      // Preserve the section structure from defaults for WOMEN and FOOTWEAR
-      if (defaultCat.label === "WOMEN" || defaultCat.label === "FOOTWEAR") {
+      // Preserve the section structure from defaults for core categories
+      if (defaultCat.label === "MEN" || defaultCat.label === "WOMEN" || defaultCat.label === "FOOTWEAR") {
         return {
           ...defaultCat,
-          // Keep default subcategories structure (with sections)
+          // Keep default subcategories structure to ensure synchronization with category pages
           subcategories: defaultCat.subcategories
         };
       }

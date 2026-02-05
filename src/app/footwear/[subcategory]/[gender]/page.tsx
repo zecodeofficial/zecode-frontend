@@ -8,35 +8,26 @@ import DescriptionText from "@/components/DescriptionText";
 // Force dynamic rendering to prevent build-time API calls
 export const dynamic = 'force-dynamic';
 
-// Map subcategory slugs to CMS subcategory values for footwear
-// Use lowercase to match Directus data, include 'footwear' as fallback for generic products
-const SUBCATEGORY_MAP: Record<string, string | string[]> = {
+import {
+    FOOTWEAR_MEN_MAPPING,
+    FOOTWEAR_WOMEN_MAPPING,
+    getSubcategoryMap,
+    getTitleMap
+} from "@/data/subcategory-mapping";
+
+const SUBCATEGORY_MAP: Record<string, string[]> = {
+    ...getSubcategoryMap(FOOTWEAR_MEN_MAPPING),
+    ...getSubcategoryMap(FOOTWEAR_WOMEN_MAPPING),
+    // Explicitly add gender-neutral fallbacks if needed
     'men': ['flats', 'mules', 'sneakers', 'boots', 'loafers', 'sandals', 'slides', 'clogs', 'footwear'],
     'women': ['flats', 'mules', 'heels', 'sandals', 'boots', 'sneakers', 'slides', 'clogs', 'footwear'],
-    'sneakers': ['sneakers', 'footwear'],
-    'slides': ['slides', 'footwear'],
-    'clogs': ['clogs', 'footwear'],
-    'flats': ['flats', 'mules', 'slides', 'footwear'],
-    'mules': ['mules', 'footwear'],
-    'heels': ['heels', 'footwear'],
-    'sandals': ['sandals', 'footwear'],
-    'boots': ['boots', 'footwear'],
-    'loafers': ['loafers', 'footwear'],
-    'flip-flops': ['flip-flops', 'footwear'],
 };
 
 const TITLE_MAP: Record<string, string> = {
+    ...getTitleMap(FOOTWEAR_MEN_MAPPING),
+    ...getTitleMap(FOOTWEAR_WOMEN_MAPPING),
     'men': "Men's Footwear",
     'women': "Women's Footwear",
-    'shoes': 'Shoes',
-    'flats': 'Flats',
-    'mules': 'Mules',
-    'heels': 'Heels',
-    'sandals': 'Sandals',
-    'boots': 'Boots',
-    'sneakers': 'Sneakers',
-    'loafers': 'Loafers',
-    'flip-flops': 'Flip-Flops',
 };
 
 interface PageProps {

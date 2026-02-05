@@ -36,7 +36,12 @@ export function processNavigation(items: DirectusNavigationItem[]): { categories
   );
 
   uniqueParentItems.forEach(parent => {
-    const isCategory = ["MEN", "WOMEN", "FOOTWEAR"].includes(parent.label.toUpperCase());
+    const labelUpper = parent.label.toUpperCase();
+
+    // Explicitly exclude KIDS category as requested by user
+    if (labelUpper === "KIDS") return;
+
+    const isCategory = ["MEN", "WOMEN", "FOOTWEAR"].includes(labelUpper);
 
     if (isCategory) {
       // Skip if we've already added this category
@@ -79,7 +84,7 @@ export function processNavigation(items: DirectusNavigationItem[]): { categories
 
       categories.push({
         href: parent.href,
-        label: parent.label.toUpperCase(),
+        label: labelUpper,
         subcategories: children,
       });
     } else {
@@ -89,9 +94,13 @@ export function processNavigation(items: DirectusNavigationItem[]): { categories
       }
       seenQuickLinks.add(parent.href);
 
+      // Label Normalization
+      let finalLabel = labelUpper;
+      if (finalLabel === "SHOPBYCOLOR") finalLabel = "SHOP BY COLOR";
+
       quickLinks.push({
         href: parent.href,
-        label: parent.label.toUpperCase(),
+        label: finalLabel,
         icon: parent.icon || (parent.highlight ? "🔥" : undefined),
         highlight: parent.highlight || false,
       });

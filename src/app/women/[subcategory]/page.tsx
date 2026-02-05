@@ -16,17 +16,17 @@ export const dynamic = 'force-dynamic';
  */
 function getSessionId(imagePath: string | null | undefined): string | null {
   if (!imagePath || typeof imagePath !== 'string') return null;
-  
+
   // Get just the filename
   const filename = imagePath.split('/').pop() || imagePath;
-  
+
   // Match various patterns
   const patterns = [
     /(SONY_ILCE[-_]7RM5[-_]\d+x\d*)/i,  // SONY_ILCE-7RM5_6304x4180
     /(_DSC\d+)/i,                         // _DSC4648
     /(file_\d+x\d+_\d+)/i                 // file_1616x1080_00132
   ];
-  
+
   for (const pattern of patterns) {
     const match = filename.match(pattern);
     if (match) {
@@ -41,14 +41,14 @@ function getSessionId(imagePath: string | null | undefined): string | null {
  */
 function isSameSession(sessionId1: string | null, sessionId2: string | null): boolean {
   if (!sessionId1 || !sessionId2) return false;
-  
+
   // Normalize for comparison
   const norm1 = sessionId1.toUpperCase().replace(/-/g, '_');
   const norm2 = sessionId2.toUpperCase().replace(/-/g, '_');
-  
+
   // Direct match
   if (norm1 === norm2) return true;
-  
+
   // Check if they share the same base (e.g., SONY_ILCE_7RM5_6304X matches SONY_ILCE_7RM5_6304X4180_000006)
   if (norm1.length > 10 && norm2.length > 10) {
     const base = norm1.substring(0, Math.min(15, norm1.length));
@@ -56,7 +56,7 @@ function isSameSession(sessionId1: string | null, sessionId2: string | null): bo
       return true;
     }
   }
-  
+
   return false;
 }
 
@@ -66,7 +66,7 @@ function isSameSession(sessionId1: string | null, sessionId2: string | null): bo
  */
 function buildMatchingGallery(product: any): string[] {
   const MAX_IMAGES = 4; // 1 main + 3 model images max
-  
+
   // Check all possible main image fields
   const mainImage = product.image || product.image_url || product.main_image;
   const mainImageUrl = mainImage ? fileUrl(mainImage) : null;
@@ -87,18 +87,18 @@ function buildMatchingGallery(product: any): string[] {
 
   // Filter to only include model images from the SAME photo session
   const matchingModelImages: string[] = [];
-  
+
   for (const modelImg of allModelImages) {
     const modelSessionId = getSessionId(modelImg);
     const matches = isSameSession(mainSessionId, modelSessionId);
-    
+
     console.error(`[buildMatchingGallery] Model image check:`, {
       modelImg,
       modelSessionId,
       mainSessionId,
       matches
     });
-    
+
     if (matches) {
       const url = fileUrl(modelImg);
       if (url && url !== '') {
@@ -109,7 +109,7 @@ function buildMatchingGallery(product: any): string[] {
 
   // Build gallery: main image + matching model images only (max 4 total)
   const gallery: string[] = mainImageUrl ? [mainImageUrl] : [];
-  
+
   // Add matching model images up to the limit
   for (const modelUrl of matchingModelImages) {
     if (gallery.length >= MAX_IMAGES) break;
@@ -128,82 +128,21 @@ function buildMatchingGallery(product: any): string[] {
   return gallery;
 }
 
-const SUBCATEGORY_MAP: Record<string, string | string[]> = {
-  'tops': ['Top', 'Tops', 'Casual Top', 'Tank Top'],
-  'blouses': 'Blouse',
-  'dresses': ['Dress', 'Dresses', 'Midi Dress', 'Mini Dress', 'Slip Dress'],
-  'jeans': ['Jeans', 'Slim Jeans'],
-  'pants': ['Pants', 'Slim Pants', 'Cargo Pants'],
-  'skirts': 'Skirt',
-  'jackets': ['Jacket', 'Casual Jacket', 'Denim Jacket'],
-  'shoes': ['Footwear', 'Flats', 'Sneakers', 'Formal Shoes', 'Heels', 'Mules', 'Sandals', 'Boots', 'Loafers'],
-  'accessories': 'Accessories',
-  'tshirts': ['T', 'T-Shirt', 'T-Shirts', 'Classic T-Shirt'],
-  'shirts': ['Shirt', 'Casual Shirt'],
-  'shorts': 'Shorts',
-  'tunics': 'Tunic',
-  'hoodies': 'Hoodie',
-  'tanks': ['Tank', 'Tank Top'],
-  'sweaters': 'Sweater',
-  'sweatpants': 'Sweatpants',
-  'sweatshirts': 'Sweatshirt',
-  'tracksuits': ['Track', 'Tracksuit'],
-  'vests': 'Vest',
-  'visors': 'Visor',
-  'backpacks': 'Backpack',
-  'flats': 'Flats',
-  'mules': 'Mules',
-  'heels': 'Heels',
-  'jumpsuits': 'Jumpsuit',
-  'apparel': 'Apparel',  // Generic fallback
-  // Ethnic wear
-  'kurti': 'Kurti',
-  'kurta': 'Kurta',
-  'lehenga': 'Lehenga',
-  'ethnic-wear': ['Kurti', 'Kurta', 'Lehenga', 'ethnic-wear'],
-  'activewear': ['Activewear', 'activewear'],
-};
+import {
+  WOMEN_MAPPING,
+  getSubcategoryMap,
+  getTitleMap
+} from "@/data/subcategory-mapping";
 
-const TITLE_MAP: Record<string, string> = {
-  'tops': 'Tops',
-  'blouses': 'Blouses',
-  'dresses': 'Dresses',
-  'jeans': 'Jeans',
-  'pants': 'Pants',
-  'skirts': 'Skirts',
-  'jackets': 'Jackets',
-  'shoes': 'Shoes',
-  'accessories': 'Accessories',
-  'tshirts': 'T-Shirts',
-  'shirts': 'Shirts',
-  'shorts': 'Shorts',
-  'tunics': 'Tunics',
-  'hoodies': 'Hoodies',
-  'tanks': 'Tank Tops',
-  'sweaters': 'Sweaters',
-  'sweatpants': 'Sweatpants',
-  'sweatshirts': 'Sweatshirts',
-  'tracksuits': 'Tracksuits',
-  'vests': 'Vests',
-  'visors': 'Visors',
-  'backpacks': 'Backpacks',
-  'flats': 'Flats',
-  'mules': 'Mules',
-  'apparel': 'Apparel',
-  'ethnic-wear': 'Ethnic Fusion',
-  'activewear': 'Activewear',
-};
+const SUBCATEGORY_MAP: Record<string, string[]> = getSubcategoryMap(WOMEN_MAPPING);
+const TITLE_MAP: Record<string, string> = getTitleMap(WOMEN_MAPPING);
 
 // Reverse mapping from CMS subcategory values to route slugs
 function getSubcategorySlug(cmsSubcategory: string | null | undefined): string {
   if (!cmsSubcategory) return 'women';
   const lowerSub = cmsSubcategory.toLowerCase();
   for (const [slug, cmsValues] of Object.entries(SUBCATEGORY_MAP)) {
-    if (Array.isArray(cmsValues)) {
-      if (cmsValues.some(v => v.toLowerCase() === lowerSub)) return slug;
-    } else if (cmsValues.toLowerCase() === lowerSub) {
-      return slug;
-    }
+    if (cmsValues.some(v => v.toLowerCase() === lowerSub)) return slug;
   }
   return 'women'; // fallback
 }
@@ -345,7 +284,7 @@ export default async function WomenSubcategoryPage({ params }: PageProps) {
     // Filter gallery to remove nulls and empty strings
     const filteredGallery = gallery.filter((url): url is string => url !== null && url !== '' && typeof url === 'string');
     const finalImage = (filteredGallery.length > 0 && filteredGallery[0]) ? filteredGallery[0] : '';
-    
+
     // If gallery is empty but we have product image data, something went wrong - log it
     if (filteredGallery.length === 0 && (product.image || product.image_url || product.main_image)) {
       console.error(`[WomenSubcategoryPage] ⚠️⚠️⚠️ CRITICAL: Gallery is empty but product has image data!`, {

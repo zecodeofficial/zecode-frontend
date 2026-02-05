@@ -4,67 +4,23 @@ import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { fileUrl, fetchProductCounts, getProductPlaceholderUrl } from '@/lib/directus';
+import {
+  MEN_MAPPING,
+  WOMEN_MAPPING,
+  FOOTWEAR_MEN_MAPPING,
+  FOOTWEAR_WOMEN_MAPPING,
+  getSubcategoryMap
+} from '@/data/subcategory-mapping';
 
 // Map from URL slug to CMS subcategory values
-const SUBCATEGORY_TO_CMS: Record<string, string> = {
-  'tshirts': 'T Shirt',
-  'shirts': 'Shirt',
-  'jeans': 'Jeans',
-  'pants': 'Pants',
-  'trousers': 'Trousers',
-  'jackets': 'Jacket',
-  'shoes': 'Flats',
-  'accessories': 'Accessories',
-  'tops': 'Top',
-  'blouse': 'Blouse',
-  'dresses': 'Dress',
-  'skirts': 'Skirt',
-  'outerwear': 'Jacket',
-  'shorts': 'Shorts',
-  'ethnic-wear': 'Ethnic Wear',
-  'activewear': 'Activewear',
-  // Kids-specific slugs (matching header menu)
-  'boys-tshirts': 'T-Shirt',
-  'girls-tops': 'Top',
-  'boys-jeans': 'Jeans',
-  'girls-dresses': 'Dress',
-  // Footwear - gender based
-  'men': 'Flats',
-  'women': 'Flats',
-};
-
-// Mapping from URL slugs to standardized CMS subcategory values
+// This is now derived from the centralized mapping to ensure synchronization
 const SLUG_TO_CMS_SUBCATEGORY: Record<string, string[]> = {
-  // Men
-  'tshirts': ['t-shirts'],
-  'shirts': ['shirts'],
-  'jeans': ['jeans'],
-  'trousers': ['trousers'],
-  'jackets': ['jackets'],
-  'shorts': ['shorts'],
-  // Women
-  'tops': ['tops'],
-  'dresses': ['dresses'],
-  'skirts': ['skirts'],
+  ...getSubcategoryMap(MEN_MAPPING),
+  ...getSubcategoryMap(WOMEN_MAPPING),
+  ...getSubcategoryMap(FOOTWEAR_MEN_MAPPING),
+  ...getSubcategoryMap(FOOTWEAR_WOMEN_MAPPING),
+  // Additional specialized mappings or fallbacks
   'shoes': ['shoes', 'sneakers', 'sandals', 'boots', 'loafers', 'flats', 'mules', 'heels', 'slides', 'clogs', 'flip-flops', 'footwear'],
-  'activewear': ['activewear'],
-  // Kids
-  'boys-tshirts': ['boys-t-shirts'],
-  'girls-tops': ['girls-tops'],
-  'boys-jeans': ['kids-jeans'],
-  'girls-dresses': ['girls-dresses'],
-  // Footwear (Now using granular subcategories but keeping 'footwear' as fallback)
-  'sneakers': ['sneakers', 'footwear'],
-  'slides': ['slides', 'footwear'],
-  'clogs': ['clogs', 'footwear'],
-  'sandals': ['sandals', 'footwear'],
-  'flip-flops': ['flip-flops', 'footwear', 'slappers'],
-  'flats': ['flats', 'footwear'],
-  'heels': ['heels', 'footwear'],
-  // Others
-  'ethnic-wear': ['ethnic-wear'],
-  'ethnic-fusion': ['ethnic-fusion'],
-  'kurtas': ['kurtas'],
 };
 
 // Normalize subcategory for matching
@@ -238,16 +194,22 @@ export default function SubcategoryGridDynamic({
 
           // 2. Build targeted query params
           const params = new URLSearchParams();
-          params.set('limit', '10'); // We only show ~10 items, so don't fetch 200!
+          params.set('limit', '8'); // Just need a few for the thumbnail cycling
           params.set('fields', 'name,image_url,image,subcategory,category,gender_category,slug');
           params.set('filter[status][_eq]', 'published');
+          params.set('meta', 'filter_count'); // Get real total count!
+
           // 3. Category & Subcategory Filter
-          // For the 'footwear' page, products might be in 'men', 'women' or 'footwear' categories
-          // but will have subcategories like 'sneakers', 'sandals', or 'footwear'.
           if (categorySlug === 'footwear') {
             ['footwear', 'men', 'women'].forEach(c => params.append('filter[category][_in]', c));
           } else {
             params.set('filter[category][_eq]', categorySlug.toLowerCase());
+          }
+
+          // Apply gender filter at API level if forcedGender is provided
+          // This ensures meta.filter_count is accurate for the specific grid
+          if (forcedGender) {
+            params.set('filter[gender_category][_istarts_with]', forcedGender);
           }
 
           // Always add subcategory filters
@@ -259,9 +221,9 @@ export default function SubcategoryGridDynamic({
 
             const data = await response.json();
             let products = data.data || [];
+            let totalCount = data.meta?.filter_count ?? products.length;
 
             // 4. Client-side refinement (Double check gender/fallback logic)
-            // This is still needed because of the 'footwear' generic category/gender issue
             products = products.filter((p: any) => {
               // Gender Logic
               let productGender = p.gender_category;
@@ -284,7 +246,7 @@ export default function SubcategoryGridDynamic({
             return {
               slug: subcat.slug,
               products: products,
-              count: products.length // approximate count from this slice
+              count: totalCount
             };
           } catch (e) {
             console.warn(`Failed to fetch for ${subcat.slug}`, e);

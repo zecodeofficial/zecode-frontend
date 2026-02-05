@@ -114,16 +114,22 @@ export default async function Footer() {
     };
 
     const filtered = fetchedFooterLinks.filter(link => {
+      const labelFixed = (link.label || '').toUpperCase();
+      const hrefLower = (link.href || '').toLowerCase();
+
+      // Explicitly exclude KIDS category as requested by user
+      if (labelFixed === "KIDS" || hrefLower.startsWith('/kids')) return false;
+
       // Keep non-category quick links as-is
-      if (!link.href.startsWith('/men') && !link.href.startsWith('/women') && !link.href.startsWith('/kids') && !link.href.startsWith('/footwear')) return true;
+      if (!hrefLower.startsWith('/men') && !hrefLower.startsWith('/women') && !hrefLower.startsWith('/footwear')) return false;
 
       // Special handling for footwear category
-      if (link.href.startsWith('/footwear')) {
+      if (hrefLower.startsWith('/footwear')) {
         return hasFootwearProducts();
       }
 
-      // For top-level category links like '/men', '/women', '/kids' - use exact gender match
-      const parts = link.href.split('/').filter(Boolean);
+      // For top-level category links like '/men', '/women' - use exact gender match
+      const parts = hrefLower.split('/').filter(Boolean);
       const gender = (parts[0] || '').toLowerCase();
       if (parts.length === 1) {
         // Check if this gender has any products
