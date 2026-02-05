@@ -4,7 +4,7 @@ export default function manifest(): MetadataRoute.Manifest {
     return {
         name: 'ZECODE - Your New Fashion Code',
         short_name: 'ZECODE',
-        description: 'Premium kids fashion store in Bengaluru. Discover trendy, comfortable, and affordable clothing for children of all ages.',
+        description: 'Premium fashion for the modern lifestyle. Discover trendy, comfortable, and affordable clothing at Zecode.',
         start_url: '/',
         display: 'standalone',
         background_color: '#ffffff',

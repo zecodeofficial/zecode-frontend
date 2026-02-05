@@ -35,8 +35,8 @@ export default async function Home() {
                   "height": 112
                 },
                 "sameAs": [
-                  "https://instagram.com/zecode.kids",
-                  "https://facebook.com/zecode.kids"
+                  "https://instagram.com/zecodeindia",
+                  "https://facebook.com/zecodeindia"
                 ]
               },
               {
